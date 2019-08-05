@@ -272,9 +272,8 @@ namespace SentienceLab.MoCap
 						dev.channels[10].value = ((angle >  90 - 67.5f) && (angle <   90 + 67.5f)) ? touchpadPressed : 0; // up
 						dev.channels[11].value = ((angle > -90 - 67.5f) && (angle <  -90 + 67.5f)) ? touchpadPressed : 0; // down
 						// rumble output > convert value [0...1] to time 																						  // rumble output > convert value [0...1] to time 
-						float duration = Mathf.Clamp01(dev.channels[12].value) * 1000.0f * 1000.0f / updateRate;
-						duration = Mathf.Clamp(duration, 0, 30000);
-						system.TriggerHapticPulse((uint)controllerIdx, 0, (ushort)duration);
+						float duration = Mathf.Clamp01(dev.channels[12].value) * 4000f; // 4000us (4ms) is maximum length
+						system.TriggerHapticPulse((uint) controllerIdx, 0, (ushort) duration);
 					}
 					else if (trackedDevices[idx].deviceClass == ETrackedDeviceClass.GenericTracker)
 					{
@@ -288,8 +287,7 @@ namespace SentienceLab.MoCap
 						// menu button
 						dev.channels[3].value = (state.ulButtonPressed & (1ul << (int)EVRButtonId.k_EButton_ApplicationMenu)) != 0 ? 1 : 0;
 						// rumble output > convert value [0...1] to time 
-						float duration = Mathf.Clamp01(dev.channels[4].value) * 1.0f;
-						duration = Mathf.Clamp(duration, 0, 30000);
+						float duration = Mathf.Clamp01(dev.channels[4].value) * 1f; // no timing, just on/off
 						system.TriggerHapticPulse((uint) controllerIdx, 0, (ushort) duration);
 					}
 				}
