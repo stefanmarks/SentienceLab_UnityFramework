@@ -1,0 +1,19 @@
+{
+  "name": "nz.ac.aut.sentiencelab",
+  "displayName": "Sentience Lab Unity Framework",
+  "version": "1.0.0",
+  "unity": "2019.1",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:Unity-Technologies/InputSystem.git",
+    "revision": "eb5b812b1324edb8aa51c9d2d7982e5fab1cbe66"
+  },
+  "description": "A framework for multiuser VR development",
+  "keywords": [
+    "vr",
+    "xr"
+  ],
+  "dependencies": {
+    "com.unity.inputsystem": "0.9.0-preview"
+  }
+}

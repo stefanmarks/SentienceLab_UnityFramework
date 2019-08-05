@@ -1,0 +1,15 @@
+{
+    "name": "nz.ac.aut.sentiencelab.Editor",
+    "references": [
+        "GUID:e226fd756e797d243afcf32e1cfd9a4e"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}
