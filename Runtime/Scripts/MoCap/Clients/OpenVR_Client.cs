@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.XR;
 using Valve.VR;
@@ -87,6 +88,7 @@ namespace SentienceLab.MoCap
 				gamePoses = new TrackedDevicePose_t[0];
 
 				// find HMDs, trackers and controllers
+				HashSet<string> deviceNames = new HashSet<string>();
 				trackedDevices.Clear();
 				int controllerCount = 0;
 				int trackerCount    = 0;
@@ -99,7 +101,22 @@ namespace SentienceLab.MoCap
 					if (deviceClass == ETrackedDeviceClass.Controller)
 					{
 						controllerCount++;
-						trackedDevice = new TrackedDevice("ViveController" + controllerCount);
+						
+						string deviceName = GetPropertyString(index, ETrackedDeviceProperty.Prop_ModelNumber_String);
+						deviceName = deviceName.Replace(" ", "").Replace("-", "");
+						deviceName = deviceName.Replace("MixedReality", "MR").Replace("WindowsMR", "WMR");
+						if (deviceName.Contains(":0x045E/0x065B"))
+						{
+							deviceName = deviceName.Replace(":0x045E/0x065B", "Controller");
+							deviceName = deviceName.Replace("/0/1", "Left").Replace("/0/2", "Right");
+						}
+						if (deviceNames.Contains(deviceName))
+						{
+							deviceName = deviceName + controllerCount;
+						}
+						deviceNames.Add(deviceName);
+
+						trackedDevice = new TrackedDevice(deviceName);
 						
 						// controller has 12 input channels and 1 output
 						Device dev = new Device(scene, trackedDevice.name, inputDeviceIdx);
@@ -122,7 +139,7 @@ namespace SentienceLab.MoCap
 					else if (deviceClass == ETrackedDeviceClass.GenericTracker)
 					{
 						trackerCount++;
-						trackedDevice = new TrackedDevice("ViveTracker" + trackerCount);
+						trackedDevice = new TrackedDevice("OpenVR_Tracker" + trackerCount);
 
 						// tracker has 4 input channels and 1 output channel
 						Device dev = new Device(scene, trackedDevice.name, inputDeviceIdx);
@@ -137,11 +154,30 @@ namespace SentienceLab.MoCap
 					else if (deviceClass == ETrackedDeviceClass.HMD)
 					{
 						hmdCount++;
-						trackedDevice = new TrackedDevice("ViveHMD" + hmdCount);
+						string deviceName = GetPropertyString(index, ETrackedDeviceProperty.Prop_ModelNumber_String);
+						deviceName = deviceName.Replace(" ", "").Replace("-", "");
+						deviceName = deviceName.Replace("MixedReality", "MR").Replace("WindowsMR", "WMR");
+						if (deviceNames.Contains(deviceName))
+						{
+							deviceName = deviceName + hmdCount;
+						}
+						deviceNames.Add(deviceName);
+						trackedDevice = new TrackedDevice(deviceName);
 					}
 
 					if (trackedDevice != null)
 					{
+						/*
+						Debug.Log("Device " + index + " : "
+							+ ", Prop_ModelNumber_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_ModelNumber_String)
+							//+ ", Prop_SerialNumber_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_SerialNumber_String)
+							//+ ", Prop_RenderModelName_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_RenderModelName_String)
+							+ ", Prop_ManufacturerName_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_ManufacturerName_String)
+							//+ "Prop_TrackingSystemName_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_TrackingSystemName_String)
+							//+ ", Prop_TrackingFirmwareVersion_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_TrackingFirmwareVersion_String)
+						);
+						*/
+
 						trackedDevice.controllerIdx = index;
 						trackedDevice.deviceClass   = deviceClass;
 						trackedDevices.Add(trackedDevice);
@@ -188,9 +224,18 @@ namespace SentienceLab.MoCap
 		}
 		
 		
-		public String GetDataSourceName()
+		public string GetDataSourceName()
 		{
-			return "HTC Vive";
+			return "OpenVR/" + XRDevice.model;
+		}
+
+
+		private string GetPropertyString(int device, ETrackedDeviceProperty property)
+		{
+			StringBuilder b = new StringBuilder(1024);
+			ETrackedPropertyError err = ETrackedPropertyError.TrackedProp_Success;
+			system.GetStringTrackedDeviceProperty((uint)device, property, b, (uint) b.Capacity, ref err);
+			return b.ToString();
 		}
 
 
