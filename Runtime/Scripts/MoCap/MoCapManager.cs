@@ -42,7 +42,7 @@ namespace SentienceLab.MoCap
 		public string clientName = "{SCENE}";
 
 
-		private byte[] clientAppVersion = new byte[] { 1, 4, 2, 0 };
+		private byte[] clientAppVersion = new byte[] { 1, 4, 3, 0 };
 
 
 		/// <summary>
