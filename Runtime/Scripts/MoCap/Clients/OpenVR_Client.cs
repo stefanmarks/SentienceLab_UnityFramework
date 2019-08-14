@@ -26,6 +26,7 @@ namespace SentienceLab.MoCap
 		{
 			scene          = new Scene();
 			trackedDevices = new List<TrackedDevice>();
+			deviceNames    = new Dictionary<string, int>();
 			connected      = false;
 		}
 
@@ -88,34 +89,21 @@ namespace SentienceLab.MoCap
 				gamePoses = new TrackedDevicePose_t[0];
 
 				// find HMDs, trackers and controllers
-				HashSet<string> deviceNames = new HashSet<string>();
 				trackedDevices.Clear();
-				int controllerCount = 0;
-				int trackerCount    = 0;
-				int hmdCount        = 0;
+				deviceNames.Clear();
+				
 				int inputDeviceIdx  = 0;
 				for (int index = 0; index < OpenVR.k_unMaxTrackedDeviceCount; index++)
 				{
 					ETrackedDeviceClass deviceClass = system.GetTrackedDeviceClass((uint)index);
 					TrackedDevice trackedDevice = null;
+
+					string deviceName = GetPropertyString(index, ETrackedDeviceProperty.Prop_ModelNumber_String);
+					ProcessDeviceName(ref deviceName);
+					DetermineDeviceIndex(ref deviceName);
+
 					if (deviceClass == ETrackedDeviceClass.Controller)
 					{
-						controllerCount++;
-						
-						string deviceName = GetPropertyString(index, ETrackedDeviceProperty.Prop_ModelNumber_String);
-						deviceName = deviceName.Replace(" ", "").Replace("-", "");
-						deviceName = deviceName.Replace("MixedReality", "MR").Replace("WindowsMR", "WMR");
-						if (deviceName.Contains(":0x045E/0x065B"))
-						{
-							deviceName = deviceName.Replace(":0x045E/0x065B", "Controller");
-							deviceName = deviceName.Replace("/0/1", "Left").Replace("/0/2", "Right");
-						}
-						if (deviceNames.Contains(deviceName))
-						{
-							deviceName = deviceName + controllerCount;
-						}
-						deviceNames.Add(deviceName);
-
 						trackedDevice = new TrackedDevice(deviceName);
 						
 						// controller has 12 input channels and 1 output
@@ -138,8 +126,7 @@ namespace SentienceLab.MoCap
 					}
 					else if (deviceClass == ETrackedDeviceClass.GenericTracker)
 					{
-						trackerCount++;
-						trackedDevice = new TrackedDevice("OpenVR_Tracker" + trackerCount);
+						trackedDevice = new TrackedDevice(deviceName);
 
 						// tracker has 4 input channels and 1 output channel
 						Device dev = new Device(scene, trackedDevice.name, inputDeviceIdx);
@@ -153,28 +140,19 @@ namespace SentienceLab.MoCap
 					}
 					else if (deviceClass == ETrackedDeviceClass.HMD)
 					{
-						hmdCount++;
-						string deviceName = GetPropertyString(index, ETrackedDeviceProperty.Prop_ModelNumber_String);
-						deviceName = deviceName.Replace(" ", "").Replace("-", "");
-						deviceName = deviceName.Replace("MixedReality", "MR").Replace("WindowsMR", "WMR");
-						if (deviceNames.Contains(deviceName))
-						{
-							deviceName = deviceName + hmdCount;
-						}
-						deviceNames.Add(deviceName);
 						trackedDevice = new TrackedDevice(deviceName);
 					}
 
 					if (trackedDevice != null)
 					{
 						/*
-						Debug.Log("Device " + index + " : "
-							+ ", Prop_ModelNumber_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_ModelNumber_String)
-							//+ ", Prop_SerialNumber_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_SerialNumber_String)
-							//+ ", Prop_RenderModelName_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_RenderModelName_String)
+						Debug.Log("Device " + index + ": "
+							+   "Prop_ModelNumber_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_ModelNumber_String)
+							+ ", Prop_SerialNumber_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_SerialNumber_String)
+							+ ", Prop_RenderModelName_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_RenderModelName_String)
 							+ ", Prop_ManufacturerName_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_ManufacturerName_String)
-							//+ "Prop_TrackingSystemName_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_TrackingSystemName_String)
-							//+ ", Prop_TrackingFirmwareVersion_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_TrackingFirmwareVersion_String)
+							+ "Prop_TrackingSystemName_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_TrackingSystemName_String)
+							+ ", Prop_TrackingFirmwareVersion_String " + GetPropertyString(index, ETrackedDeviceProperty.Prop_TrackingFirmwareVersion_String)
 						);
 						*/
 
@@ -207,6 +185,50 @@ namespace SentienceLab.MoCap
 				}
 			}
 			return connected;
+		}
+
+
+		private void ProcessDeviceName(ref string deviceName)
+		{
+			// remove spaces and dashes
+			deviceName = deviceName.Replace(" ", "").Replace("-", "");
+			// handle product names
+			deviceName = deviceName.Replace("MixedReality", "MR").Replace("WindowsMR", "WMR");
+			deviceName = deviceName.Replace("VIVE", "Vive");
+			// handle IDs for left/right handed
+			if (deviceName.Contains(":0x045E/0x065B"))
+			{
+				deviceName = deviceName.Replace(":0x045E/0x065B", "Controller");
+				deviceName = deviceName.Replace("/0/1", "Left").Replace("/0/2", "Right");
+			}
+		}
+
+
+		/// <summary>
+		/// Determine a postfix index for a device.
+		/// If a device is not handed, it will automatically receive an index starting with 1.
+		/// If a device is handed (left/right), it will only receive an index if there is more than one.
+		/// </summary>
+		/// <param name="deviceName">the name to add a postfix to</param>
+		private void DetermineDeviceIndex(ref string deviceName)
+		{
+			int idx = -1;
+			if (deviceNames.TryGetValue(deviceName, out idx))
+			{
+				idx++;
+				deviceNames[deviceName] = idx;
+			}
+			else
+			{
+				deviceNames.Add(deviceName, 1);
+				idx = 1;
+			}
+			string lowercase = deviceName.ToLower();
+			bool   handed    = lowercase.Contains("right") || lowercase.Contains("left");
+			if ( (idx >= 2) || !handed)
+			{
+				deviceName += idx;
+			}
 		}
 
 
@@ -279,11 +301,10 @@ namespace SentienceLab.MoCap
 				Device dev = trackedDevices[idx].device;
 				if (dev != null)
 				{
-					system.GetControllerStateWithPose(
-						ETrackingUniverseOrigin.TrackingUniverseStanding,
+					system.GetControllerState(
 						(uint)controllerIdx,
-						ref state, (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VRControllerState_t)),
-						ref poses[controllerIdx]);
+						ref state, 
+						(uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(VRControllerState_t)));
 
 					if (trackedDevices[idx].deviceClass == ETrackedDeviceClass.Controller)
 					{
@@ -347,14 +368,15 @@ namespace SentienceLab.MoCap
 		}
 
 
-		private bool                   connected;
-		private Scene                  scene;
-		private CVRCompositor          compositor;
-		private CVRSystem              system;
-		private List<TrackedDevice>    trackedDevices;
-		private TrackedDevicePose_t[]  poses, gamePoses;
-		private VRControllerState_t    state;
-		private float                  updateRate;
+		private bool                     connected;
+		private Scene                    scene;
+		private CVRCompositor            compositor;
+		private CVRSystem                system;
+		private List<TrackedDevice>      trackedDevices;
+		private Dictionary<string, int>  deviceNames;
+		private TrackedDevicePose_t[]    poses, gamePoses;
+		private VRControllerState_t      state;
+		private float                    updateRate;
 	}
 
 }
