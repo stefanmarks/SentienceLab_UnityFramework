@@ -47,17 +47,14 @@ namespace SentienceLab.MoCap
 		/// <summary>
 		/// Finds an actor by name.
 		/// </summary>
+		/// <param name="nameRegEx">The name or regular expression of the actor to find</param>
 		/// <returns>The actor with the given name or <code>null</code> if the actor doesn't exist</returns>
-		/// <param name="nameRegEx">The name of the actor to find as a regular expression</param>
 		/// 
 		public Actor FindActor(string nameRegEx)
 		{
-			foreach (Actor a in actors)
+			foreach (Actor actor in actors)
 			{
-				if (a != null)
-				{
-					if (Regex.Matches(a.name, nameRegEx).Count > 0) return a;
-				}
+				if ( (actor != null) && Regex.IsMatch(actor.name, nameRegEx) ) return actor;
 			}
 			return null;
 		}
@@ -76,9 +73,9 @@ namespace SentienceLab.MoCap
 				 (actors[id] != null) && (actors[id].id == id) ) return actors[id];
 
 			// no > linear search
-			foreach ( Actor a in actors )
+			foreach (Actor actor in actors)
 			{
-				if ( (a != null) && (a.id == id) ) return a;
+				if ( (actor != null) && (actor.id == id) ) return actor;
 			}
 
 			// found nothing
@@ -90,13 +87,13 @@ namespace SentienceLab.MoCap
 		/// Finds an interaction device by name.
 		/// </summary>
 		/// <returns>The device with the given name or <code>null</code> if the device doesn't exist</returns>
-		/// <param name="name">The name of the device to find</param>
+		/// <param name="nameRegEx">The name or regular expression of the device to find</param>
 		/// 
-		public Device FindDevice(string name)
+		public Device FindDevice(string nameRegEx)
 		{
-			foreach (Device d in devices)
+			foreach (Device device in devices)
 			{
-				if ((d != null) && (d.name.CompareTo(name) == 0)) return d;
+				if ( (device != null) && Regex.IsMatch(device.name, nameRegEx) ) return device;
 			}
 			return null;
 		}
@@ -110,9 +107,9 @@ namespace SentienceLab.MoCap
 		/// 
 		public Device FindDevice(int id)
 		{
-			foreach (Device d in devices)
+			foreach (Device device in devices)
 			{
-				if ((d != null) && (d.id == id)) return d;
+				if ( (device != null) && (device.id == id) ) return device;
 			}
 			return null;
 		}
@@ -177,14 +174,14 @@ namespace SentienceLab.MoCap
 		/// <summary>
 		/// Finds a marker by name.
 		/// </summary>
-		/// <param name="name">the name of the marker to search for</param>
+		/// <param name="nameRegEx">the name or regular expression of the marker to search for</param>
 		/// <returns>The marker with the specified name or <code>null</code> if the marker could not be found</returns>
 		/// 
-		public Marker FindMarker(string name)
+		public Marker FindMarker(string nameRegEx)
 		{
-			foreach ( Marker marker in markers )
+			foreach (Marker marker in markers)
 			{
-				if ( (marker != null) && (marker.name.CompareTo(name) == 0) ) return marker;
+				if ( (marker != null) && Regex.IsMatch(marker.name, nameRegEx) ) return marker;
 			}
 			return null;
 		}
@@ -193,14 +190,14 @@ namespace SentienceLab.MoCap
 		/// <summary>
 		/// Finds a bone by name.
 		/// </summary>
-		/// <param name="name">the name of the bone to search for</param>
+		/// <param name="nameRegEx">the name or regular expression of the bone to search for</param>
 		/// <returns>The bone with the specified name or <code>null</code> if the bone could not be found</returns>
 		/// 
-		public Bone FindBone(string name)
+		public Bone FindBone(string nameRegEx)
 		{
-			foreach ( Bone bone in bones )
+			foreach (Bone bone in bones)
 			{
-				if ( (bone != null) && (bone.name.CompareTo(name) == 0) ) return bone;
+				if ( (bone != null) && Regex.IsMatch(bone.name, nameRegEx) ) return bone;
 			}
 			return null;
 		}
@@ -214,7 +211,7 @@ namespace SentienceLab.MoCap
 		/// 
 		public Bone FindBone(int id)
 		{
-			foreach ( Bone bone in bones )
+			foreach (Bone bone in bones)
 			{
 				if ( (bone != null) && (bone.id == id) ) return bone;
 			}
@@ -434,14 +431,14 @@ namespace SentienceLab.MoCap
 		/// <summary>
 		/// Finds a channel by name.
 		/// </summary>
-		/// <param name="name">the name of the channel to search for</param>
-		/// <returns>The marker with the specified name or <code>null</code> if the marker could not be found</returns>
+		/// <param name="nameRegEx">the name or regular expression of the channel to search for</param>
+		/// <returns>The channel with the specified name or <code>null</code> if the channel could not be found</returns>
 		/// 
-		public Channel FindChannel(string name)
+		public Channel FindChannel(string nameRegEx)
 		{
 			foreach (Channel channel in channels)
 			{
-				if ((channel != null) && (channel.name.CompareTo(name) == 0)) return channel;
+				if ( (channel != null) && Regex.IsMatch(channel.name, nameRegEx) ) return channel;
 			}
 			return null;
 		}
