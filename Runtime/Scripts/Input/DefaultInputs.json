@@ -8,7 +8,7 @@
 		{
 			"inputName": "trigger",
 			"inputType": 2,
-			"parameters": "ViveController1/button1"
+			"parameters": "ViveController.*1/button1"
 		}
 	]
 }

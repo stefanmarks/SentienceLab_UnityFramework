@@ -84,9 +84,9 @@ namespace SentienceLab.Input
 		{
 			// output list of input handlers
 			string logTxt = "";
-			foreach (InputHandler h in handlers.Values)
+			foreach (InputHandler handler in handlers.Values)
 			{
-				logTxt += ((logTxt.Length > 0) ? ", " : "") + h.ToString();
+				logTxt += ((logTxt.Length > 0) ? ", " : "") + handler.ToString();
 			}
 			Debug.Log("List of input handlers: " + logTxt);
 		}
@@ -96,11 +96,11 @@ namespace SentienceLab.Input
 		{
 			// output list of input handlers
 			string logTxt = "";
-			foreach (InputHandler h in handlers.Values)
+			foreach (InputHandler handler in handlers.Values)
 			{
-				if (!h.HasDevices())
+				if (!handler.HasDevices())
 				{
-					logTxt += ((logTxt.Length > 0) ? ", " : "") + h.ToString();
+					logTxt += ((logTxt.Length > 0) ? ", " : "") + handler.ToString();
 				}
 			}
 			if (logTxt.Length > 0)
