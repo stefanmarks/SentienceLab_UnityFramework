@@ -100,11 +100,7 @@ namespace SentienceLab.MoCap
 			{
 				channel = device.FindChannel(channelName);
 			}
-			if (channel != null)
-			{
-				Debug.Log("Handler registered for input device '" + deviceName + "', channel '" + channelName + "'");
-			}
-			else
+			if (channel == null)
 			{
 				if (!warningIssued)
 				{
@@ -142,8 +138,10 @@ namespace SentienceLab.MoCap
 
 		public override string ToString()
 		{
+			string devName = (channel != null) ? channel.device.name : deviceName;
+			string chnName = (channel != null) ? channel.name : channelName;
 			return "MoCap.InputDeviceHandler(" +
-				deviceName + "/" + channelName + ", " +
+				devName + "/" + chnName + ", " +
 				((channel != null) ? "active" : "not found") +
 				")";
 		}
