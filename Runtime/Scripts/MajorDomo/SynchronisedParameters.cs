@@ -81,9 +81,12 @@ namespace SentienceLab.MajorDomo
 			{
 				ParameterProxy proxy = null;
 
-				if      (param is Parameter_Boolean) { proxy = new ParameterProxy_Boolean((Parameter_Boolean)param, m_entity); }
-				else if (param is Parameter_Double)  { proxy = new ParameterProxy_Double((Parameter_Double)param, m_entity); }
-				else if (param is Parameter_Vector3) { proxy = new ParameterProxy_Vector3((Parameter_Vector3)param, m_entity); }
+				if      (param is Parameter_Boolean)     { proxy = new ParameterProxy_Boolean(    (Parameter_Boolean)     param, m_entity); }
+				else if (param is Parameter_Integer)     { proxy = new ParameterProxy_Integer(    (Parameter_Integer)     param, m_entity); }
+				else if (param is Parameter_Double)      { proxy = new ParameterProxy_Double(     (Parameter_Double)      param, m_entity); }
+				else if (param is Parameter_DoubleRange) { proxy = new ParameterProxy_DoubleRange((Parameter_DoubleRange) param, m_entity); }
+				else if (param is Parameter_List)        { proxy = new ParameterProxy_List(       (Parameter_List)        param, m_entity); }
+				else if (param is Parameter_Vector3)     { proxy = new ParameterProxy_Vector3(    (Parameter_Vector3)     param, m_entity); }
 
 				if (proxy != null)
 				{
@@ -248,7 +251,7 @@ namespace SentienceLab.MajorDomo
 			public ParameterProxy_Boolean(Parameter_Boolean _parameter, EntityData _entity) :
 				base(_parameter, _entity)
 			{
-				parameter = (Parameter_Boolean)_parameter;
+				parameter = _parameter;
 				if (_entity.State == EntityData.EntityState.Registered)
 				{
 					entityValue = _entity.GetValue_Boolean(parameter.Name);
@@ -286,6 +289,52 @@ namespace SentienceLab.MajorDomo
 
 			private Parameter_Boolean   parameter;
 			private EntityValue_Boolean entityValue;
+		}
+
+
+		private class ParameterProxy_Integer : ParameterProxy
+		{
+			public ParameterProxy_Integer(Parameter_Integer _parameter, EntityData _entity) :
+				base(_parameter, _entity)
+			{
+				parameter = _parameter;
+				if (_entity.State == EntityData.EntityState.Registered)
+				{
+					entityValue = _entity.GetValue_Int64(parameter.Name);
+				}
+				else
+				{
+					entityValue = _entity.AddValue_Int64(parameter.Name, parameter.Value);
+				}
+			}
+
+
+			public override void TransferValueFromParameterToEntity()
+			{
+				entityValue.Modify(parameter.Value);
+			}
+
+
+			public override void TransferValueFromEntityToParameter()
+			{
+				parameter.Value = entityValue.Value;
+			}
+
+
+			public override EntityValue GetEntityValue()
+			{
+				return entityValue;
+			}
+
+
+			public override string GetTypeName()
+			{
+				return "integer";
+			}
+
+
+			private Parameter_Integer  parameter;
+			private EntityValue_Int64  entityValue;
 		}
 
 
@@ -332,6 +381,52 @@ namespace SentienceLab.MajorDomo
 
 			private Parameter_Double    parameter;
 			private EntityValue_Float64 entityValue;
+		}
+
+
+		private class ParameterProxy_List : ParameterProxy
+		{
+			public ParameterProxy_List(Parameter_List _parameter, EntityData _entity) :
+				base(_parameter, _entity)
+			{
+				parameter = _parameter;
+				if (_entity.State == EntityData.EntityState.Registered)
+				{
+					entityValue = _entity.GetValue_Int32(parameter.Name);
+				}
+				else
+				{
+					entityValue = _entity.AddValue_Int32(parameter.Name, parameter.SelectedItemIndex);
+				}
+			}
+
+
+			public override void TransferValueFromParameterToEntity()
+			{
+				entityValue.Modify(parameter.SelectedItemIndex);
+			}
+
+
+			public override void TransferValueFromEntityToParameter()
+			{
+				parameter.SelectedItemIndex = entityValue.Value;
+			}
+
+
+			public override EntityValue GetEntityValue()
+			{
+				return entityValue;
+			}
+
+
+			public override string GetTypeName()
+			{
+				return "list";
+			}
+
+
+			private Parameter_List parameter;
+			private EntityValue_Int32 entityValue;
 		}
 
 
