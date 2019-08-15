@@ -104,7 +104,7 @@ namespace SentienceLab.MajorDomo
 			if      (param is Parameter_Boolean)     { proxy = new ParameterProxy_Boolean(    (Parameter_Boolean)     param, _entity); }
 			else if (param is Parameter_Integer)     { proxy = new ParameterProxy_Integer(    (Parameter_Integer)     param, _entity); }
 			else if (param is Parameter_Double)      { proxy = new ParameterProxy_Double(     (Parameter_Double)      param, _entity); }
-			//else if (param is Parameter_DoubleRange) { proxy = new ParameterProxy_DoubleRange((Parameter_DoubleRange) param, _entity); }
+			else if (param is Parameter_DoubleRange) { proxy = new ParameterProxy_DoubleRange((Parameter_DoubleRange) param, _entity); }
 			else if (param is Parameter_List)        { proxy = new ParameterProxy_List(       (Parameter_List)        param, _entity); }
 			else if (param is Parameter_Vector3)     { proxy = new ParameterProxy_Vector3(    (Parameter_Vector3)     param, _entity); }
 
