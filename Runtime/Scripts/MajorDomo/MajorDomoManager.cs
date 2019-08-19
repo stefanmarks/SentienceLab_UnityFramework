@@ -103,22 +103,22 @@ namespace SentienceLab.MajorDomo
 
 		public void PublishEntity(EntityData _entity)
 		{
-			lock (m_entitiesToPublish) { m_entitiesToPublish.Add(_entity); }
+			lock (m_entitiesToPublish) { if (!m_entitiesToPublish.Contains(_entity)) m_entitiesToPublish.Add(_entity); }
 		}
 
 		public void RevokeEntity(EntityData _entity)
 		{
-			lock (m_entitiesToRevoke) { m_entitiesToRevoke.Add(_entity); }
+			lock (m_entitiesToRevoke) { if (!m_entitiesToRevoke.Contains(_entity)) m_entitiesToRevoke.Add(_entity); }
 		}
 
 		public void RequestControl(EntityData _entity)
 		{
-			lock (m_entitiesToControl) { m_entitiesToControl.Add(_entity); }
+			lock (m_entitiesToControl) { if (!m_entitiesToControl.Contains(_entity)) m_entitiesToControl.Add(_entity); }
 		}
 
 		public void ReleaseControl(EntityData _entity)
 		{
-			lock (m_entitiesToRelease) { m_entitiesToRelease.Add(_entity); }
+			lock (m_entitiesToRelease) { if (!m_entitiesToRelease.Contains(_entity)) m_entitiesToRelease.Add(_entity); }
 		}
 
 		public bool IsConnected()
