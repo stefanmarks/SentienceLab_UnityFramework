@@ -28,11 +28,11 @@ public class MovementController : MonoBehaviour
 
 	void Start()
 	{
-		handlerMoveX   = (actionMoveX.Length == 0)   ? null : InputHandler.Find(actionMoveX);
-		handlerMoveY   = (actionMoveY.Length == 0)   ? null : InputHandler.Find(actionMoveY);
-		handlerMoveZ   = (actionMoveZ.Length == 0)   ? null : InputHandler.Find(actionMoveZ);
-		handlerRotateX = (actionRotateX.Length == 0) ? null : InputHandler.Find(actionRotateX);
-		handlerRotateY = (actionRotateY.Length == 0) ? null : InputHandler.Find(actionRotateY);
+		handlerMoveX   = InputHandler.Find(actionMoveX);
+		handlerMoveY   = InputHandler.Find(actionMoveY);
+		handlerMoveZ   = InputHandler.Find(actionMoveZ);
+		handlerRotateX = InputHandler.Find(actionRotateX);
+		handlerRotateY = InputHandler.Find(actionRotateY);
 		vecTranslate   = new Vector3();
 		vecRotate      = new Vector3();
 		vec            = new Vector3();
@@ -50,7 +50,6 @@ public class MovementController : MonoBehaviour
 		vecR.x = (handlerRotateX != null) ? handlerRotateX.GetValue() : 0;
 		vecR.y = (handlerRotateY != null) ? handlerRotateY.GetValue() : 0;
 		vecRotate = Vector3.Lerp(vecRotate, vecR, rotationLerp);
-
 		// rotate up/down (always absolute around X axis)
 		transform.RotateAround(rotationBasisNode.position, rotationBasisNode.right, vecRotate.x * maxRotationSpeed * Time.deltaTime);
 		// rotate left/right (always absolute around Y axis)

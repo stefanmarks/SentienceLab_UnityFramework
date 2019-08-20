@@ -206,7 +206,7 @@ namespace SentienceLab.Input
 		public static InputHandler GetInputHandler(string name)
 		{
 			InputHandler handler = null;
-			if (name != "")
+			if (name.Length > 0)
 			{
 				if (!handlers.TryGetValue(name, out handler))
 				{
