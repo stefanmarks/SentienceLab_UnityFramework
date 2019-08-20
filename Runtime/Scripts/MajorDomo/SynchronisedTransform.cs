@@ -12,13 +12,32 @@ namespace SentienceLab.MajorDomo
 	[AddComponentMenu("MajorDomo/Synchronised Transform")]
 	public class SynchronisedTransform : SynchronisedEntityBase
 	{
-		public enum eTransformComponents
+		/// <summary>
+		/// What components of this transform are synchronised.
+		/// </summary>
+		public enum ETransformComponents
 		{
 			TranslationRotationScale,
 			TranslationRotation,
 			Translation,
 			Rotation
 		}
+
+		/// <summary>
+		/// Possible actions for when the synchronisation is lost.
+		/// </summary>
+		public enum ESyncLostBehaviour
+		{
+			/// <summary>
+			/// Freeze the object at the last synchronised position/orientation.
+			/// </summary>
+			Freeze,
+
+			/// <summary>
+			/// Disable the game object and re-enable when tracking continues.
+			/// </summary>
+			Disable
+		};
 
 		[Tooltip("Transform that this object's transform is based on (empty=World)")]
 		public Transform ReferenceTransform = null;
@@ -27,7 +46,10 @@ namespace SentienceLab.MajorDomo
 		public Transform TargetTransform = null;
 
 		[Tooltip("Which components of this game object's transform are to be synchronised")]
-		public eTransformComponents TransformComponents;
+		public ETransformComponents TransformComponents = ETransformComponents.TranslationRotation;
+
+		[Tooltip("What to do when the synchronisation is lost")]
+		public ESyncLostBehaviour SyncLostBehaviour = ESyncLostBehaviour.Disable;
 
 
 		public new void Awake()
@@ -50,24 +72,24 @@ namespace SentienceLab.MajorDomo
 		private bool DoTrans()
 		{
 			return
-				TransformComponents == eTransformComponents.Translation ||
-				TransformComponents == eTransformComponents.TranslationRotation ||
-				TransformComponents == eTransformComponents.TranslationRotationScale;
+				TransformComponents == ETransformComponents.Translation ||
+				TransformComponents == ETransformComponents.TranslationRotation ||
+				TransformComponents == ETransformComponents.TranslationRotationScale;
 		}
 
 
 		private bool DoRot()
 		{
 			return
-				TransformComponents == eTransformComponents.TranslationRotation ||
-				TransformComponents == eTransformComponents.TranslationRotationScale;
+				TransformComponents == ETransformComponents.TranslationRotation ||
+				TransformComponents == ETransformComponents.TranslationRotationScale;
 		}
 
 
 		private bool DoScale()
 		{
 			return
-				TransformComponents == eTransformComponents.TranslationRotationScale;
+				TransformComponents == ETransformComponents.TranslationRotationScale;
 		}
 
 
@@ -139,7 +161,7 @@ namespace SentienceLab.MajorDomo
 
 		protected override bool CanDisableGameObject()
 		{
-			return true;
+			return SyncLostBehaviour == ESyncLostBehaviour.Disable;
 		}
 
 
