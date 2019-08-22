@@ -422,6 +422,8 @@ namespace SentienceLab.MajorDomo
 
 		public void RevokeOwnEntites(bool _includePersistent)
 		{
+			if (m_client == null) return;
+
 			List<EntityData> entities = EntityManager.GetClientEntities(m_client.ClientUID);
 			if (!_includePersistent)
 			{

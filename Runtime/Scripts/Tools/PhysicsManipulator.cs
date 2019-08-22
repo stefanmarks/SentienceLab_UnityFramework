@@ -55,7 +55,7 @@ namespace SentienceLab
 
 				// any rigidbody attached?
 				Transform t = target.transform;
-				Rigidbody r = (t != null) ? t.GetComponentInParent<Rigidbody>() : null;
+				Rigidbody r = t?.GetComponentInParent<Rigidbody>();
 				if (r != null)
 				{
 					// Yes: remember rigid body and its relative position.
