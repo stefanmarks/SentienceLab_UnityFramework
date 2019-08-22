@@ -81,6 +81,24 @@ namespace SentienceLab.Input
 					}
 				}
 			}
+			else if (inputName.Contains("T>") || inputName.Contains("T<"))
+			{
+				// plus/minus device
+				Device_Threshold.EThresholdType thresholdType = inputName.Contains("T>") ?
+					Device_Threshold.EThresholdType.GreaterThan :
+					Device_Threshold.EThresholdType.LessThan;
+				string[] parts = inputName.Split(new string[] { "T>", "T<" }, StringSplitOptions.RemoveEmptyEntries);
+				if (parts.Length > 1)
+				{
+					IDevice deviceValue = CreateDevice(type, parts[0]);
+					float threshold = 0.5f;
+					float.TryParse(parts[1], out threshold);
+					if (deviceValue != null)
+					{
+						device = new Device_Threshold(deviceValue, thresholdType, threshold);
+					}
+				}
+			}
 			else
 			{
 				// standard device
@@ -594,6 +612,72 @@ namespace SentienceLab.Input
 			}
 
 			private IDevice devicePlus, deviceMinus;
+		}
+
+
+		/// <summary>
+		/// Metaclass for an input device that takes a value and compares against a threshold.
+		/// </summary>
+		///
+		private class Device_Threshold : IDevice
+		{
+			public enum EThresholdType {  GreaterThan, LessThan };
+
+			public Device_Threshold(IDevice _deviceValue, EThresholdType _thresholdType, float _thresholdValue)
+			{
+				deviceValue    = _deviceValue;
+				thresholdType  = _thresholdType;
+				thresholdValue = _thresholdValue;
+			}
+
+			public bool Initialise(string inputName)
+			{
+				return true; // not used
+			}
+
+			public void Process()
+			{
+				oldActive = active;
+				deviceValue.Process();
+				active = (thresholdType == EThresholdType.GreaterThan) ?
+					deviceValue.GetValue() > thresholdValue :
+					deviceValue.GetValue() < thresholdValue;
+			}
+
+			public bool IsActive()
+			{
+				return active;
+			}
+
+			public bool IsActivated()
+			{
+				return active && !oldActive;
+			}
+
+			public bool IsDeactivated()
+			{
+				return !active && oldActive;
+			}
+
+			public float GetValue()
+			{
+				return deviceValue.GetValue();
+			}
+
+			public void SetPressThreshold(float value)
+			{
+				thresholdValue = value;
+			}
+
+			public override string ToString()
+			{
+				return deviceValue.ToString() + ((thresholdType == EThresholdType.GreaterThan ? " > " : " < ") + thresholdValue);
+			}
+
+			private IDevice        deviceValue;
+			private EThresholdType thresholdType;
+			private float          thresholdValue;
+			private bool           active, oldActive; 
 		}
 	}
 }
