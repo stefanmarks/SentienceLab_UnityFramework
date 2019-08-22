@@ -463,7 +463,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fca049a810613046bed332554226fc0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  actorName: Joystick_A
+  actorName: Joystick1
   boneName: 
   trackingUsage: 0
   trackingLostBehaviour: 1
