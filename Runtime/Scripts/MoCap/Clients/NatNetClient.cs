@@ -145,6 +145,10 @@ namespace SentienceLab.MoCap
 
 						dataClient.Client.ReceiveTimeout = 100;
 					}
+					else
+					{
+						Debug.LogWarning("Data streaming not enabled on server.");
+					}
 				}
 				catch (Exception e)
 				{
