@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace SentienceLab.MajorDomo
 {
-	public abstract class SynchronisedEntityBase : MonoBehaviour
+	public abstract class SynchronisedEntityBase : MonoBehaviour, MajorDomoManager.IAutoRegister
 	{
 		[Tooltip("Name of the entity to register with the server.\n" +
 				 "Leave empty to use this game object's name.\n" +
@@ -34,6 +34,19 @@ namespace SentienceLab.MajorDomo
 				this.enabled = false;
 				return;
 			}
+			else
+			{
+				RegisterWithMajorDomoManager(); // just to be sure
+			}
+		}
+
+
+		public void RegisterWithMajorDomoManager()
+		{
+			if (m_initialised) return;
+
+			Initialise();
+			m_initialised = true;
 
 			// empty name > use game object name
 			if (EntityName.Trim().Length == 0)
@@ -121,7 +134,8 @@ namespace SentienceLab.MajorDomo
 						}
 					}
 
-					Debug.LogFormat("{0} '{1}' synchronised with entity '{2}'", m_entityType, name, m_entity.ToString(true, true));
+					Debug.LogFormat("{0} '{1}' synchronised with entity '{2}'", 
+						GetEntityTypeName(), name, m_entity.ToString(true, true));
 				}
 				else
 				{
@@ -138,14 +152,16 @@ namespace SentienceLab.MajorDomo
 							entity.SetPersistent(Persistent);
 
 							MajorDomoManager.Instance.PublishEntity(entity);
-							Debug.LogFormat("Publishing {0} entity '{1}'", m_entityType, entity.ToString(true, true));
+							Debug.LogFormat("Publishing {0} entity '{1}'", 
+								GetEntityTypeName(), entity.ToString(true, true));
 						}
 					}
 				}
 			}
 			else if (m_entity.State == EntityData.EntityState.Revoked)
 			{
-				Debug.LogFormat("{0} '{1}' lost synchronisation with entity '{2}'", m_entityType, name, m_entity.ToString(true, false));
+				Debug.LogFormat("{0} '{1}' lost synchronisation with entity '{2}'", 
+					GetEntityTypeName(), name, m_entity.ToString(true, false));
 
 				DestroyVariables();
 
@@ -171,6 +187,8 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		protected abstract void Initialise();
+
 		protected abstract void CreateVariables(EntityData _entity);
 
 		protected abstract void FindVariables();
@@ -183,8 +201,10 @@ namespace SentienceLab.MajorDomo
 
 		protected abstract bool CanDisableGameObject();
 
+		protected abstract string GetEntityTypeName();
+
+		private bool m_initialised = false;
 
 		protected EntityData m_entity;
-		protected string     m_entityType;
 	}
 }

@@ -59,6 +59,15 @@ namespace SentienceLab.MajorDomo
 		public float AutoReconnectDelay = 5.0f;
 
 
+		/// <summary>
+		/// Interface for objects that need to automatically register with the manager on startup
+		/// </summary>
+		public interface IAutoRegister
+		{
+			void RegisterWithMajorDomoManager();
+		}
+
+
 		// Singleton accessor
 		public static MajorDomoManager Instance
 		{
@@ -161,6 +170,13 @@ namespace SentienceLab.MajorDomo
 			m_workerThread.Start();
 
 			if (AutoConnect) StartCoroutine(AutoConnectAsync());
+
+			// auto-register objects that use MajorDomo
+			IAutoRegister[] autoRegisterObjects = Resources.FindObjectsOfTypeAll<SynchronisedEntityBase>();
+			foreach (var obj in autoRegisterObjects)
+			{
+				obj.RegisterWithMajorDomoManager();
+			}
 		}
 
 
