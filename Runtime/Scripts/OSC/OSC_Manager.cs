@@ -78,11 +78,14 @@ public class OSC_Manager : MonoBehaviour
 			server = null;
 		}
 
-		foreach (OSCClient client in clients.Values)
+		if (clients != null)
 		{
-			client.Close();
+			foreach (OSCClient client in clients.Values)
+			{
+				client.Close();
+			}
+			clients.Clear();
 		}
-		clients.Clear();
 	}
 
 
