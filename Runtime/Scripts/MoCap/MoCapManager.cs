@@ -31,6 +31,17 @@ namespace SentienceLab.MoCap
 			public List<string> Sources;
 		}
 
+		[Tooltip("Name of the MoCap Client\n" +
+		"Special strings:\n" +
+			"  {IPv4}   : IPv4 Address of the client\n" +
+			"  {IPv6}   : IPv6 Address of the client\n" +
+			"  {HOST}   : Hostname of the client\n" +
+			"  {MACHINE}: Machine name of the client\n" +
+			"  {USER}   : User name\n" +
+			"  {SCENE}  : Scene name"
+		)]
+		public string ClientName = "{SCENE}_{HOST}";
+
 		[ContextMenuItem("Load configuration from config file", "LoadConfiguration")]
 		[ContextMenuItem("Save configuration to config file", "SaveConfiguration")]
 		public Configuration configuration;
@@ -38,11 +49,8 @@ namespace SentienceLab.MoCap
 		[Tooltip("Action name for pausing/running the client")]
 		public string pauseAction = "pause";
 
-		[Tooltip("Name of the MoCap Client\n(The string \"{SCENE}\" will be replaced by the active scene name)")]
-		public string clientName = "{SCENE}";
 
-
-		private byte[] clientAppVersion = new byte[] { 1, 4, 3, 0 };
+		private readonly byte[] clientAppVersion = new byte[] { 1, 4, 4, 0 };
 
 
 		/// <summary>
@@ -310,7 +318,7 @@ namespace SentienceLab.MoCap
 				if (this.isActiveAndEnabled)
 				{
 					// construct client name
-					string appName = clientName;
+					string appName = ClientName;
 					appName = appName.Replace("{SCENE}", SceneManager.GetActiveScene().name);
 
 					// build list of data sources
@@ -404,6 +412,51 @@ namespace SentienceLab.MoCap
 		}
 
 
+		private void ReplaceSpecialApplicationNameParts()
+		{
+			string n = ClientName;
+
+			if (n.Contains("{IPv") || n.Contains("{HOST}"))
+			{
+				string host = Dns.GetHostName();
+				n = n.Replace("{HOST}", host);
+
+				IPAddress[] addresses = Dns.GetHostAddresses(host);
+				string ipv4 = "";
+				string ipv6 = "";
+				foreach (var addr in addresses)
+				{
+					if (addr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+					{
+						ipv4 = addr.ToString();
+						if (ipv6.Length == 0)
+						{
+							ipv6 = addr.MapToIPv6().ToString();
+						}
+					}
+					else if (addr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+					{
+						ipv6 = addr.ToString();
+					}
+				}
+				n = n.Replace("{IPv4}", ipv4);
+				n = n.Replace("{IPv6}", ipv6);
+			}
+
+			if (n.Contains("{USER}"))
+			{
+				n = n.Replace("{USER}", System.Environment.UserName);
+			}
+
+			if (n.Contains("{MACHINE}"))
+			{
+				n = n.Replace("{MACHINE}", System.Environment.MachineName);
+			}
+
+			ClientName = n;
+		}
+
+
 		/// <summary>
 		/// Reads the MoCap data source file asset and constructs a list of the connection information.
 		/// </summary>
@@ -413,25 +466,25 @@ namespace SentienceLab.MoCap
 		{
 			LinkedList<IMoCapClient_ConnectionInfo> sources = new LinkedList<IMoCapClient_ConnectionInfo>();
 
-					// construct sources list with connection data structures
+			// construct sources list with connection data structures
 			foreach (string source in configuration.Sources)
+			{
+				if (source.Contains("/"))
+				{
+					// slash can only be in a filename
+					sources.AddLast(new FileClient.ConnectionInfo(source));
+				}
+				else
+				{
+					// or is it an IP address
+					IPAddress address;
+					if (IPAddress.TryParse(source.Trim(), out address))
 					{
-						if (source.Contains("/"))
-						{
-							// slash can only be in a filename
-							sources.AddLast(new FileClient.ConnectionInfo(source));
-						}
-						else
-						{
-							// or is it an IP address
-							IPAddress address;
-							if (IPAddress.TryParse(source.Trim(), out address))
-							{
-								// success > add to list
-								sources.AddLast(new NatNetClient.ConnectionInfo(address));
-							}
-						}
+						// success > add to list
+						sources.AddLast(new NatNetClient.ConnectionInfo(address));
 					}
+				}
+			}
 			return sources;
 		}
 

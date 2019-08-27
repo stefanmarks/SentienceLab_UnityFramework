@@ -16,15 +16,17 @@ namespace SentienceLab.MajorDomo
 	[AddComponentMenu("MajorDomo/Manager")]
 	public class MajorDomoManager : MonoBehaviour
 	{
-		[Tooltip("Name of the application to register with the server.\n" +
+		[Tooltip("Name of the client to register with the server.\n" +
 			"Special strings:\n" +
 			"  {IPv4}   : IPv4 Address of the client\n" +
 			"  {IPv6}   : IPv6 Address of the client\n" +
 			"  {HOST}   : Hostname of the client\n" +
 			"  {MACHINE}: Machine name of the client\n" +
-			"  {USER}   : User name"
+			"  {USER}   : User name\n" +
+			"  {SCENE}  : Scene name"
 		)]
-		public string ApplicationName = "MajorDomo Unity Client";
+
+		public string ClientName = "{SCENE}_{HOST}";
 
 		[System.Serializable]
 		public class Configuration : ConfigFileBase
@@ -39,7 +41,17 @@ namespace SentienceLab.MajorDomo
 				public float  connectionTimeout;
 			}
 
+			[Tooltip("List of MajorDomo servers/ports to query and their timeout values in seconds")]
 			public List<ServerInfo> Servers;
+
+			[Tooltip("Automatic connect delay after startup in seconds")]
+			public float AutoConnectDelay = 0.1f;
+
+			[Tooltip("Automatic disconnect delay after receiving server shutdown event in seconds")]
+			public float AutoDisconnectDelay = 0.1f;
+
+			[Tooltip("Automatic reconnect delay after server reboot")]
+			public float AutoReconnectDelay = 5.0f;
 		}
 
 		[ContextMenuItem("Load configuration from config file", "LoadConfiguration")]
@@ -51,12 +63,6 @@ namespace SentienceLab.MajorDomo
 
 		[Tooltip("Display buttons for connect/disconnect")]
 		public bool UseGUI = false;
-
-		[Tooltip("Automatic disconnect delay after receiving server shutdown event in seconds")]
-		public float AutoDisconnectDelay = 0.1f;
-
-		[Tooltip("Automatic reconnect delay after server reboot")]
-		public float AutoReconnectDelay = 5.0f;
 
 
 		/// <summary>
@@ -182,7 +188,7 @@ namespace SentienceLab.MajorDomo
 
 		private void ReplaceSpecialApplicationNameParts()
 		{
-			string n = ApplicationName;
+			string n = ClientName;
 
 			if (n.Contains("{IPv") || n.Contains("{HOST}"))
 			{
@@ -221,7 +227,7 @@ namespace SentienceLab.MajorDomo
 				n = n.Replace("{MACHINE}", System.Environment.MachineName);
 			}
 
-			ApplicationName = n;
+			ClientName = n;
 		}
 
 
@@ -264,7 +270,7 @@ namespace SentienceLab.MajorDomo
 							ushort port    = configuration.Servers[configIdx].port;
 							float  timeout = configuration.Servers[configIdx].connectionTimeout;
 
-							m_client.Connect(ApplicationName, address, port, timeout);
+							m_client.Connect(ClientName, address, port, timeout);
 						}
 
 						if (m_client.IsConnected())
@@ -560,7 +566,7 @@ namespace SentienceLab.MajorDomo
 		{
 			while (AutoConnect && !IsConnected())
 			{
-				yield return new WaitForSeconds(AutoReconnectDelay);
+				yield return new WaitForSeconds(configuration.AutoConnectDelay);
 				Connect();
 			}
 		}
@@ -568,9 +574,9 @@ namespace SentienceLab.MajorDomo
 
 		private IEnumerator AutoDisconnectAsync(bool restart)
 		{
-			yield return new WaitForSeconds(AutoDisconnectDelay);
+			yield return new WaitForSeconds(configuration.AutoDisconnectDelay);
 			Disconnect();
-			yield return new WaitForSeconds(AutoReconnectDelay);
+			yield return new WaitForSeconds(configuration.AutoReconnectDelay);
 			Connect();
 		}
 
