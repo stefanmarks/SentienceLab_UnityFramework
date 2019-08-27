@@ -34,6 +34,9 @@ namespace SentienceLab.MoCap
 		[Tooltip("When to update the object")]
 		public UpdateType updateType = UpdateType.Update;
 
+		[Tooltip("Position offset to apply to MoCap data for this object")]
+		public Vector3 PositionOffset = Vector3.zero;
+
 
 		/// <summary>
 		/// Possible actions for when a markerset loses tracking.
@@ -229,7 +232,7 @@ namespace SentienceLab.MoCap
 					if ( (trackingUsage == TrackingUsage.PositionOnly) ||
 						 (trackingUsage == TrackingUsage.PositionAndRotation))
 					{
-						obj.transform.localPosition = data.pos;
+						obj.transform.localPosition = data.pos + PositionOffset;
 					}
 					obj.SetActive(true);
 					disabled = false;

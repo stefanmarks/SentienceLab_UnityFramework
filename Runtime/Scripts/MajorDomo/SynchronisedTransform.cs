@@ -52,14 +52,11 @@ namespace SentienceLab.MajorDomo
 		public ESyncLostBehaviour SyncLostBehaviour = ESyncLostBehaviour.Disable;
 
 
-		public new void Awake()
+		protected override void Initialise()
 		{
-			base.m_entityType = "Transform";
-			base.Awake();
-			
 			if (ReferenceTransform == null)
 			{
-				m_reference = transform.root;
+				ReferenceTransform = transform.root;
 			}
 
 			if (TargetTransform == null)
@@ -144,8 +141,8 @@ namespace SentienceLab.MajorDomo
 				TargetTransform.gameObject.SetActive(true);
 			}
 
-			if (m_valPosition != null) TargetTransform.position   = m_valPosition.Value;
-			if (m_valRotation != null) TargetTransform.rotation   = m_valRotation.Value;
+			if (m_valPosition != null) TargetTransform.position   = ReferenceTransform.TransformPoint(m_valPosition.Value);
+			if (m_valRotation != null) TargetTransform.rotation   = ReferenceTransform.rotation * m_valRotation.Value;
 			if (m_valScale    != null) TargetTransform.localScale = m_valScale.Value;
 		}
 
@@ -153,8 +150,8 @@ namespace SentienceLab.MajorDomo
 		protected override void SynchroniseToEntity()
 		{
 			if (m_valEnabled  != null) m_valEnabled.Modify(TargetTransform.gameObject.activeSelf);
-			if (m_valPosition != null) m_valPosition.Modify(TargetTransform.position);
-			if (m_valRotation != null) m_valRotation.Modify(TargetTransform.rotation);
+			if (m_valPosition != null) m_valPosition.Modify(ReferenceTransform.InverseTransformPoint(TargetTransform.position));
+			if (m_valRotation != null) m_valRotation.Modify(Quaternion.Inverse(ReferenceTransform.rotation) * TargetTransform.rotation);
 			if (m_valScale    != null) m_valScale.Modify(TargetTransform.localScale);
 		}
 
@@ -165,12 +162,16 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		protected override string GetEntityTypeName()
+		{
+			return "Transform";
+		}
+
+
 		private EntityValue_Boolean    m_valEnabled;
 		private EntityValue_Vector3D   m_valPosition;
 		private EntityValue_Quaternion m_valRotation;
 		private EntityValue_Vector3D   m_valScale;
 		private EntityValue_Colour     m_valueColour;
-
-		private Transform              m_reference;
 	}
 }

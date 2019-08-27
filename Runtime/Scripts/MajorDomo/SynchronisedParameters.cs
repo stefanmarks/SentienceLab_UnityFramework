@@ -18,27 +18,26 @@ namespace SentienceLab.MajorDomo
 		public GameObject ParameterBaseNode = null;
 
 		
-		public new void Awake()
+		protected override void Initialise()
 		{
-			base.m_entityType = "Parameter set";
-			base.Awake();
-			
+			m_proxies = new List<ParameterProxy>();
+
 			if (ParameterBaseNode == null)
 			{
 				ParameterBaseNode = this.gameObject;
 			}
-
-			m_proxies = new List<ParameterProxy>();
 		}
 
 
 		private ParameterBase[] FindParameters()
 		{
 			ParameterBase[] parameters = ParameterBaseNode.GetComponentsInChildren<ParameterBase>();
+
 			if (parameters.Length == 0)
 			{
 				Debug.LogFormat("MajorDomo parameter manager '{0}' found no parameters", EntityName);
 			}
+
 			return parameters;
 		}
 
@@ -145,6 +144,12 @@ namespace SentienceLab.MajorDomo
 		protected override bool CanDisableGameObject()
 		{
 			return false;
+		}
+
+
+		protected override string GetEntityTypeName()
+		{
+			return "Parameter set";
 		}
 
 
