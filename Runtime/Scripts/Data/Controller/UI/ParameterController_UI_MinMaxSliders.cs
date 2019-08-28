@@ -39,6 +39,9 @@ namespace SentienceLab.Data
 			minimumSlider.onValueChanged.AddListener(delegate { MinSliderValueChanged(); });
 
 			m_updating = false;
+
+			// force update (in case element was just enabled)
+			ValueChanged(Parameter);
 		}
 
 

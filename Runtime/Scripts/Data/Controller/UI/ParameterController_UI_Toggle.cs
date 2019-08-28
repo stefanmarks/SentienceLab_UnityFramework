@@ -38,6 +38,9 @@ namespace SentienceLab.Data
 			}
 
 			m_updating = false;
+
+			// force update (in case element was just enabled)
+			ValueChanged(Parameter);
 		}
 
 

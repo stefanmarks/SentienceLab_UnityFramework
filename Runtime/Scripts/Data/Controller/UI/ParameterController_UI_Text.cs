@@ -40,7 +40,9 @@ namespace SentienceLab.Data
 
 			m_textComponent = GetComponent<Text>();
 			m_prefix        = m_textComponent.text;
-			
+
+			// force update (in case element was just enabled)
+			ValueChanged(Parameter);
 		}
 
 
