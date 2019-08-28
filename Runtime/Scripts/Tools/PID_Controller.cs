@@ -11,6 +11,7 @@ using UnityEngine;
 /// 
 namespace SentienceLab
 {
+	[System.Serializable]
 	public class PID_Controller
 	{
 		[Tooltip("PID proportional control value")]
@@ -22,11 +23,11 @@ namespace SentienceLab
 		[Tooltip("PID derivative control value")]
 		public float D = 0f;
 		
-		[Tooltip("Setpoint of the controller")]
-		public float Setpoint = 0;
-
 		[Tooltip("Maximum error sum allowed")]
-		public float MaxError = 20f;
+		public float MaxErrorSum = float.PositiveInfinity;
+
+
+		public float Setpoint { get; set; }
 
 
 		public float Process(float _inputValue, float _deltaT = -1)
@@ -43,23 +44,23 @@ namespace SentienceLab
 				m_out = P * error;
 
 				// Integral part
-				m_sumErr += _deltaT * error;
-				m_sumErr  = Mathf.Clamp(m_sumErr, -MaxError, MaxError);
-				m_out += I * m_sumErr;
+				m_errorSum += _deltaT * error;
+				m_errorSum  = Mathf.Clamp(m_errorSum, -MaxErrorSum, MaxErrorSum);
+				m_out += I * m_errorSum;
 
 				// Derivative part
-				float d_dt_error = (error - m_oldErr) / _deltaT;
+				float d_dt_error = (error - m_errorOld) / _deltaT;
 				m_out += D * d_dt_error;
 
 				// keep track of error for next timestep
-				m_oldErr = error;
+				m_errorOld = error;
 			}
 
 			return m_out;
 		} 
 		
-		private float m_oldErr = 0f;
-		private float m_sumErr = 0f;	
+		private float m_errorOld = 0f;
+		private float m_errorSum = 0f;	
 		private float m_in, m_out;
 	}
 
@@ -77,7 +78,7 @@ namespace SentienceLab
 		public float D = 0f;
 
 		[Tooltip("Maximum error sum allowed")]
-		public float MaxError = 20f;
+		public float MaxErrorSum = float.PositiveInfinity;
 
 
 		public Vector3 Setpoint { get; set; }
@@ -97,23 +98,23 @@ namespace SentienceLab
 				m_out = P * error;
 
 				// Integral part
-				m_sumErr += _deltaT * error;
-				m_sumErr = Vector3.ClampMagnitude(m_sumErr, MaxError);
-				m_out += I * m_sumErr;
+				m_errorSum += _deltaT * error;
+				m_errorSum = Vector3.ClampMagnitude(m_errorSum, MaxErrorSum);
+				m_out += I * m_errorSum;
 
 				// Derivative part
-				Vector3 d_dt_error = (error - m_oldErr) / _deltaT;
+				Vector3 d_dt_error = (error - m_errorOld) / _deltaT;
 				m_out += D * d_dt_error;
 
 				// keep track of error for next timestep
-				m_oldErr = error;
+				m_errorOld = error;
 			}
 
 			return m_out;
 		}
 
-		private Vector3 m_oldErr = Vector3.zero;
-		private Vector3 m_sumErr = Vector3.zero;
+		private Vector3 m_errorOld = Vector3.zero;
+		private Vector3 m_errorSum = Vector3.zero;
 		private Vector3 m_in, m_out;
 	}
 }
