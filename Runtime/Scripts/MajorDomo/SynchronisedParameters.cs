@@ -155,51 +155,51 @@ namespace SentienceLab.MajorDomo
 
 		private abstract class ParameterProxy
 		{
-			protected enum eState { Idle, ParameterUpdated, ParameterTransferred, EntityUpdated, EntityTransferred, UpdateDone, Revoked }
+			protected enum EProxyState { Idle, ParameterUpdated, ParameterTransferred, EntityUpdated, EntityTransferred, UpdateDone, Revoked }
 
 
 			protected ParameterProxy(ParameterBase _parameter, EntityData _entity)
 			{
-				baseParameter = _parameter;
-				baseParameter.OnValueChanged += ParameterValueChanged;
-				entity = _entity;
-				entity.OnEntityUpdated  += EntityValueChanged;
-				entity.OnControlChanged += EntityControlChanged;
-				state = eState.Idle;
+				m_baseParameter = _parameter;
+				m_baseParameter.OnValueChanged += ParameterValueChanged;
+				m_entity = _entity;
+				m_entity.OnEntityUpdated  += EntityValueChanged;
+				m_entity.OnControlChanged += EntityControlChanged;
+				m_proxyState = EProxyState.Idle;
 			}
 
 
 			public bool Registered { get
 				{
-					return entity.State ==  EntityData.EntityState.Registered;
+					return m_entity.State ==  EntityData.EntityState.Registered;
 				}
 			}
 
 
 			public void Revoke()
 			{
-				entity.OnEntityUpdated       -= EntityValueChanged;
-				entity.OnControlChanged      -= EntityControlChanged;
-				baseParameter.OnValueChanged -= ParameterValueChanged;
-				state = eState.Revoked;
+				m_entity.OnEntityUpdated       -= EntityValueChanged;
+				m_entity.OnControlChanged      -= EntityControlChanged;
+				m_baseParameter.OnValueChanged -= ParameterValueChanged;
+				m_proxyState = EProxyState.Revoked;
 			}
 
 
 			private void ParameterValueChanged(ParameterBase _parameter)
 			{
-				if (Registered && ((state == eState.Idle) || (state == eState.ParameterTransferred)))
+				if (Registered && ((m_proxyState == EProxyState.Idle) || (m_proxyState == EProxyState.ParameterTransferred)))
 				{
-					state = eState.ParameterUpdated;
-					if (entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID))
+					m_proxyState = EProxyState.ParameterUpdated;
+					if (m_entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID))
 					{
 						// transfer directly
 						TransferValueFromParameterToEntity();
-						state = eState.ParameterTransferred;
+						m_proxyState = EProxyState.ParameterTransferred;
 					}
 					else
 					{
 						// need to request control first and copy value when that is done
-						MajorDomoManager.Instance.RequestControl(entity);
+						MajorDomoManager.Instance.RequestControl(m_entity);
 					}
 				}
 			}
@@ -207,39 +207,39 @@ namespace SentienceLab.MajorDomo
 
 			private void EntityControlChanged(uint _newClientUID)
 			{
-				if (entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID) && (state == eState.ParameterUpdated))
+				if (m_entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID) && (m_proxyState == EProxyState.ParameterUpdated))
 				{
 					// entity is under control now > copy value
 					TransferValueFromParameterToEntity();
-					state = eState.ParameterTransferred;
+					m_proxyState = EProxyState.ParameterTransferred;
 				}
-				else if (entity.State == EntityData.EntityState.Revoked)
+				else if (m_entity.State == EntityData.EntityState.Revoked)
 				{
-					Debug.LogWarningFormat("Parameter entity {0} was revoked", entity.Name);
-					state = eState.Revoked;
+					Debug.LogWarningFormat("Parameter entity {0} was revoked", m_entity.Name);
+					m_proxyState = EProxyState.Revoked;
 				}
-				else if (entity.ClientUID == ClientData.UID_SERVER)
+				else if (m_entity.ClientUID == ClientData.UID_SERVER)
 				{
-					Debug.LogFormat("Parameter entity {0} was released to server", entity.Name);
+					Debug.LogFormat("Parameter entity {0} was released to server", m_entity.Name);
 				}
 			}
 
 
 			private void EntityValueChanged()
 			{
-				if (Registered && ((state == eState.Idle) || (state == eState.EntityTransferred)))
+				if (Registered && ((m_proxyState == EProxyState.Idle) || (m_proxyState == EProxyState.EntityTransferred)))
 				{
-					state = eState.EntityUpdated;
+					m_proxyState = EProxyState.EntityUpdated;
 					TransferValueFromEntityToParameter();
-					state = eState.EntityTransferred;
+					m_proxyState = EProxyState.EntityTransferred;
 				}
 			}
 
 
 			public void ResetState()
 			{
-				if      (state == eState.EntityTransferred || state == eState.ParameterTransferred) state = eState.UpdateDone;
-				else if (state == eState.UpdateDone) state = eState.Idle;
+				if      (m_proxyState == EProxyState.EntityTransferred || m_proxyState == EProxyState.ParameterTransferred) m_proxyState = EProxyState.UpdateDone;
+				else if (m_proxyState == EProxyState.UpdateDone) m_proxyState = EProxyState.Idle;
 			}
 
 
@@ -249,9 +249,9 @@ namespace SentienceLab.MajorDomo
 			public abstract string GetTypeName();
 
 
-			protected ParameterBase baseParameter;
-			protected EntityData    entity;
-			protected eState        state;
+			protected ParameterBase m_baseParameter;
+			protected EntityData    m_entity;
+			protected EProxyState   m_proxyState;
 		}
 
 

@@ -15,7 +15,7 @@ namespace SentienceLab.MajorDomo
 				 "Leave empty to use this game object's name.\n" +
 				 "The string \"{GAMEOBJECT}\" will be automatically replaced by the game object name.")]
 		public string EntityName = "";
-		
+
 		[Tooltip("Mode for the entity.\nClient: object is controlled by the client.\nServer: objects is controlled by the server/another client")]
 		public MajorDomoManager.SynchronisationMode SynchronisationMode = MajorDomoManager.SynchronisationMode.Client;
 
@@ -92,6 +92,7 @@ namespace SentienceLab.MajorDomo
 
 		public void OnDisable()
 		{
+			// make sure last state is synchronised
 			if (SynchronisationMode == MajorDomoManager.SynchronisationMode.Client)
 			{
 				SynchroniseToEntity();
@@ -101,6 +102,7 @@ namespace SentienceLab.MajorDomo
 
 		public void OnEnable()
 		{
+			// make sure current state is synchronised
 			if (SynchronisationMode == MajorDomoManager.SynchronisationMode.Client)
 			{
 				SynchroniseToEntity();
@@ -112,9 +114,11 @@ namespace SentienceLab.MajorDomo
 		{
 			if (m_entity == null)
 			{
+				// entity not found/created yet. Let's search first
 				m_entity = MajorDomoManager.Instance.FindEntity(EntityName);
 				if (m_entity != null)
 				{
+					// found it > find the variables, too
 					FindVariables();
 
 					Persistent    = m_entity.IsPersistent();
@@ -134,11 +138,12 @@ namespace SentienceLab.MajorDomo
 						}
 					}
 
-					Debug.LogFormat("{0} '{1}' synchronised with entity '{2}'", 
+					Debug.LogFormat("{0} '{1}' synchronised with entity '{2}'",
 						GetEntityTypeName(), name, m_entity.ToString(true, true));
 				}
 				else
 				{
+					// entity not found. let's create and publish it
 					if ((SynchronisationMode == MajorDomoManager.SynchronisationMode.Client) && MajorDomoManager.Instance.IsConnected())
 					{
 						// Create and publish entity and then wait for the callback when server has acknowledged
@@ -152,7 +157,7 @@ namespace SentienceLab.MajorDomo
 							entity.SetPersistent(Persistent);
 
 							MajorDomoManager.Instance.PublishEntity(entity);
-							Debug.LogFormat("Publishing {0} entity '{1}'", 
+							Debug.LogFormat("Publishing {0} entity '{1}'",
 								GetEntityTypeName(), entity.ToString(true, true));
 						}
 					}
@@ -160,7 +165,9 @@ namespace SentienceLab.MajorDomo
 			}
 			else if (m_entity.State == EntityData.EntityState.Revoked)
 			{
-				Debug.LogFormat("{0} '{1}' lost synchronisation with entity '{2}'", 
+				// entity was revoked > remove references
+
+				Debug.LogFormat("{0} '{1}' lost synchronisation with entity '{2}'",
 					GetEntityTypeName(), name, m_entity.ToString(true, false));
 
 				DestroyVariables();
@@ -174,7 +181,9 @@ namespace SentienceLab.MajorDomo
 			}
 			else
 			{
-				if (m_entity.ClientUID == MajorDomoManager.Instance.ClientUID)
+				// control might have changed. check for that
+
+				if (IsControlledByClient())
 				{
 					// this entity is now controlled by this client
 					SynchronisationMode = MajorDomoManager.SynchronisationMode.Client;
@@ -184,6 +193,12 @@ namespace SentienceLab.MajorDomo
 					SynchronisationMode = MajorDomoManager.SynchronisationMode.Server;
 				}
 			}
+		}
+
+
+		public bool IsControlledByClient()
+		{
+			return m_entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID);
 		}
 
 
