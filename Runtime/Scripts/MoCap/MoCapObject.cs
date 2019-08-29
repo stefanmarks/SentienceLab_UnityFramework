@@ -37,6 +37,9 @@ namespace SentienceLab.MoCap
 		[Tooltip("Position offset to apply to MoCap data for this object")]
 		public Vector3 PositionOffset = Vector3.zero;
 
+		[Tooltip("Rotation offset to apply to MoCap data for this object")]
+		public Vector3 RotationOffset = Vector3.zero;
+
 
 		/// <summary>
 		/// Possible actions for when a markerset loses tracking.
@@ -227,7 +230,7 @@ namespace SentienceLab.MoCap
 					if ( (trackingUsage == TrackingUsage.RotationOnly) ||
 						 (trackingUsage == TrackingUsage.PositionAndRotation))
 					{
-						obj.transform.localRotation = data.rot;
+						obj.transform.localRotation = data.rot * Quaternion.Euler(RotationOffset);
 					}
 					if ( (trackingUsage == TrackingUsage.PositionOnly) ||
 						 (trackingUsage == TrackingUsage.PositionAndRotation))
