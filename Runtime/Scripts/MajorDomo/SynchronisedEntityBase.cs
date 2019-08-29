@@ -126,7 +126,7 @@ namespace SentienceLab.MajorDomo
 
 					if (SynchronisationMode == MajorDomoManager.SynchronisationMode.Server)
 					{
-						Entity.OnEntityUpdated += Update;
+						// server authority > update immediately
 						SynchroniseFromEntity();
 					}
 					else
@@ -137,6 +137,8 @@ namespace SentienceLab.MajorDomo
 							SynchroniseFromEntity();
 						}
 					}
+
+					Entity.OnEntityUpdated += Update;
 
 					Debug.LogFormat("{0} '{1}' synchronised with entity '{2}'",
 						GetEntityTypeName(), name, Entity.ToString(true, true));
