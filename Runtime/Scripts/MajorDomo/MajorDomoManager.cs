@@ -9,6 +9,7 @@ using System.Collections;
 using System.Net;
 using System.Threading;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 namespace SentienceLab.MajorDomo
 {
@@ -227,6 +228,11 @@ namespace SentienceLab.MajorDomo
 				n = n.Replace("{MACHINE}", System.Environment.MachineName);
 			}
 
+			if (n.Contains("{SCENE}"))
+			{
+				n = n.Replace("{SCENE}", SceneManager.GetActiveScene().name);
+			}
+			
 			ClientName = n;
 		}
 

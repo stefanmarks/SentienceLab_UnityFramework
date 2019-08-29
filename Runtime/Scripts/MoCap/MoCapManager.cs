@@ -318,9 +318,8 @@ namespace SentienceLab.MoCap
 				if (this.isActiveAndEnabled)
 				{
 					// construct client name
-					string appName = ClientName;
-					appName = appName.Replace("{SCENE}", SceneManager.GetActiveScene().name);
-
+					ReplaceSpecialApplicationNameParts();
+					
 					// build list of data sources
 					ICollection<IMoCapClient_ConnectionInfo> sources = GetSourceList();
 
@@ -333,7 +332,7 @@ namespace SentienceLab.MoCap
 							// is client already the right type?
 							if (!(client is NatNetClient))
 							{
-								client = new NatNetClient(appName, clientAppVersion);
+								client = new NatNetClient(ClientName, clientAppVersion);
 							}
 						}
 						else if (info is FileClient.ConnectionInfo) 
@@ -451,6 +450,11 @@ namespace SentienceLab.MoCap
 			if (n.Contains("{MACHINE}"))
 			{
 				n = n.Replace("{MACHINE}", System.Environment.MachineName);
+			}
+
+			if (n.Contains("{SCENE}"))
+			{
+				n = n.Replace("{SCENE}", SceneManager.GetActiveScene().name);
 			}
 
 			ClientName = n;
