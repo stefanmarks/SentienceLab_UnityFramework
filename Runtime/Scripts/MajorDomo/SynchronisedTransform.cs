@@ -113,10 +113,10 @@ namespace SentienceLab.MajorDomo
 
 		protected override void FindVariables()
 		{
-			m_valEnabled  = m_entity.GetValue_Boolean(EntityValue.ENABLED);
-			m_valPosition = DoTrans() ? m_entity.GetValue_Vector3D(EntityValue.POSITION)   : null;
-			m_valRotation = DoRot()   ? m_entity.GetValue_Quaternion(EntityValue.ROTATION) : null;
-			m_valScale    = DoScale() ? m_entity.GetValue_Vector3D(EntityValue.SCALE)      : null;
+			m_valEnabled  = Entity.GetValue_Boolean(EntityValue.ENABLED);
+			m_valPosition = DoTrans() ? Entity.GetValue_Vector3D(EntityValue.POSITION)   : null;
+			m_valRotation = DoRot()   ? Entity.GetValue_Quaternion(EntityValue.ROTATION) : null;
+			m_valScale    = DoScale() ? Entity.GetValue_Vector3D(EntityValue.SCALE)      : null;
 			Debug.Log(m_valPosition);
 		}
 

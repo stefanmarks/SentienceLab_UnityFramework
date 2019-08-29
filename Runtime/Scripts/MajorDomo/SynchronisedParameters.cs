@@ -20,7 +20,8 @@ namespace SentienceLab.MajorDomo
 		
 		protected override void Initialise()
 		{
-			m_proxies = new List<ParameterProxy>();
+			m_proxies    = new List<ParameterProxy>();
+			m_syncState = ESyncState.Idle;
 
 			if (ParameterBaseNode == null)
 			{
@@ -66,6 +67,9 @@ namespace SentienceLab.MajorDomo
 					Debug.LogWarningFormat("Could not create proxy for type of parameter '{0}'", param.Name);
 				}
 			}
+
+			Entity.OnEntityUpdated  += EntityValueChanged;
+			Entity.OnControlChanged += EntityControlChanged;
 		}
 
 
@@ -74,7 +78,7 @@ namespace SentienceLab.MajorDomo
 			ParameterBase[] parameters = FindParameters();
 			foreach (ParameterBase param in parameters)
 			{
-				ParameterProxy proxy = CreateParameterProxy(param, m_entity);
+				ParameterProxy proxy = CreateParameterProxy(param, Entity);
 
 				if (proxy != null)
 				{
@@ -85,7 +89,7 @@ namespace SentienceLab.MajorDomo
 					else
 					{
 						Debug.LogWarningFormat("Could not find entity value '{0}' of type {1} in entity '{2}'",
-							param.Name, proxy.GetTypeName(), m_entity.Name);
+							param.Name, proxy.GetTypeName(), Entity.Name);
 					}
 				}
 				else
@@ -93,6 +97,9 @@ namespace SentienceLab.MajorDomo
 					Debug.LogWarningFormat("Could not create proxy for type of parameter '{0}'", param.Name);
 				}
 			}
+
+			Entity.OnEntityUpdated  += EntityValueChanged;
+			Entity.OnControlChanged += EntityControlChanged;
 		}
 
 
@@ -100,12 +107,12 @@ namespace SentienceLab.MajorDomo
 		{
 			ParameterProxy proxy = null;
 
-			if      (param is Parameter_Boolean)     { proxy = new ParameterProxy_Boolean(    (Parameter_Boolean)     param, _entity); }
-			else if (param is Parameter_Integer)     { proxy = new ParameterProxy_Integer(    (Parameter_Integer)     param, _entity); }
-			else if (param is Parameter_Double)      { proxy = new ParameterProxy_Double(     (Parameter_Double)      param, _entity); }
-			else if (param is Parameter_DoubleRange) { proxy = new ParameterProxy_DoubleRange((Parameter_DoubleRange) param, _entity); }
-			else if (param is Parameter_List)        { proxy = new ParameterProxy_List(       (Parameter_List)        param, _entity); }
-			else if (param is Parameter_Vector3)     { proxy = new ParameterProxy_Vector3(    (Parameter_Vector3)     param, _entity); }
+			if      (param is Parameter_Boolean)     { proxy = new ParameterProxy_Boolean(    this, (Parameter_Boolean)     param); }
+			else if (param is Parameter_Integer)     { proxy = new ParameterProxy_Integer(    this, (Parameter_Integer)     param); }
+			else if (param is Parameter_Double)      { proxy = new ParameterProxy_Double(     this, (Parameter_Double)      param); }
+			else if (param is Parameter_DoubleRange) { proxy = new ParameterProxy_DoubleRange(this, (Parameter_DoubleRange) param); }
+			else if (param is Parameter_List)        { proxy = new ParameterProxy_List(       this, (Parameter_List)        param); }
+			else if (param is Parameter_Vector3)     { proxy = new ParameterProxy_Vector3(    this, (Parameter_Vector3)     param); }
 
 			return proxy;
 		}
@@ -115,9 +122,14 @@ namespace SentienceLab.MajorDomo
 		{
 			foreach (var proxy in m_proxies)
 			{
-				proxy.Revoke();
+				proxy.Destroy();
 			}
 			m_proxies.Clear();
+
+			Entity.OnEntityUpdated  -= EntityValueChanged;
+			Entity.OnControlChanged -= EntityControlChanged;
+
+			m_syncState = ESyncState.Revoked;
 		}
 
 
@@ -126,8 +138,8 @@ namespace SentienceLab.MajorDomo
 			foreach (var proxy in m_proxies)
 			{
 				proxy.TransferValueFromEntityToParameter();
-				proxy.ResetState();
 			}
+			ResetSyncState();
 		}
 
 
@@ -136,8 +148,8 @@ namespace SentienceLab.MajorDomo
 			foreach (var proxy in m_proxies)
 			{
 				proxy.TransferValueFromParameterToEntity();
-				proxy.ResetState();
 			}
+			ResetSyncState();
 		}
 
 
@@ -153,140 +165,142 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		protected void ResetSyncState()
+		{
+			if (m_syncState == ESyncState.DoneSyncFromEntity ||
+				m_syncState == ESyncState.DoneSyncToEntity)
+			{
+				// sync done, give it one more cycle before becoming idle
+				m_syncState = ESyncState.SyncFinished;
+			}
+			else if (m_syncState == ESyncState.SyncFinished)
+			{
+				// "rest" cycle done
+				m_syncState = ESyncState.Idle;
+			}
+		}
+
+
+		public bool Registered
+		{
+			get
+			{
+				return Entity.State == EntityData.EntityState.Registered;
+			}
+		}
+
+
+		private void EntityControlChanged(uint _newClientUID)
+		{
+			if (Entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID) && (m_syncState == ESyncState.RequestSyncToEntity))
+			{
+				// entity is under control now > copy parameter values over
+				SynchroniseToEntity();
+				m_syncState = ESyncState.DoneSyncToEntity;
+			}
+			else if (Entity.State == EntityData.EntityState.Revoked)
+			{
+				Debug.LogWarningFormat("Parameter entity {0} was revoked", Entity.Name);
+				m_syncState = ESyncState.Revoked;
+			}
+			else if (Entity.ClientUID == ClientData.UID_SERVER)
+			{
+				Debug.LogFormat("Parameter entity {0} was released to server", Entity.Name);
+			}
+		}
+
+
+		private void EntityValueChanged()
+		{
+			if (Registered && ((m_syncState == ESyncState.Idle) || (m_syncState == ESyncState.DoneSyncFromEntity)))
+			{
+				m_syncState = ESyncState.RequestSyncFromEntity;
+				SynchroniseFromEntity();
+				m_syncState = ESyncState.DoneSyncFromEntity;
+			}
+		}
+
+
 		private abstract class ParameterProxy
 		{
-			protected enum EProxyState { Idle, ParameterUpdated, ParameterTransferred, EntityUpdated, EntityTransferred, UpdateDone, Revoked }
-
-
-			protected ParameterProxy(ParameterBase _parameter, EntityData _entity)
+			protected ParameterProxy(SynchronisedParameters _parent, ParameterBase _parameter)
 			{
 				m_baseParameter = _parameter;
 				m_baseParameter.OnValueChanged += ParameterValueChanged;
-				m_entity = _entity;
-				m_entity.OnEntityUpdated  += EntityValueChanged;
-				m_entity.OnControlChanged += EntityControlChanged;
-				m_proxyState = EProxyState.Idle;
+				m_parent = _parent;
 			}
 
 
-			public bool Registered { get
-				{
-					return m_entity.State ==  EntityData.EntityState.Registered;
-				}
-			}
-
-
-			public void Revoke()
+			public void Destroy()
 			{
-				m_entity.OnEntityUpdated       -= EntityValueChanged;
-				m_entity.OnControlChanged      -= EntityControlChanged;
 				m_baseParameter.OnValueChanged -= ParameterValueChanged;
-				m_proxyState = EProxyState.Revoked;
 			}
 
 
 			private void ParameterValueChanged(ParameterBase _parameter)
 			{
-				if (Registered && ((m_proxyState == EProxyState.Idle) || (m_proxyState == EProxyState.ParameterTransferred)))
+				if (m_parent.Registered && 
+					((m_parent.m_syncState == ESyncState.Idle) || (m_parent.m_syncState == ESyncState.DoneSyncToEntity)))
 				{
-					m_proxyState = EProxyState.ParameterUpdated;
-					if (m_entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID))
+					m_parent.m_syncState = ESyncState.RequestSyncToEntity;
+					if (m_parent.Entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID))
 					{
 						// transfer directly
 						TransferValueFromParameterToEntity();
-						m_proxyState = EProxyState.ParameterTransferred;
+						m_parent.m_syncState = ESyncState.DoneSyncToEntity;
 					}
 					else
 					{
 						// need to request control first and copy value when that is done
-						MajorDomoManager.Instance.RequestControl(m_entity);
+						MajorDomoManager.Instance.RequestControl(m_parent.Entity);
 					}
 				}
 			}
 
-
-			private void EntityControlChanged(uint _newClientUID)
-			{
-				if (m_entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID) && (m_proxyState == EProxyState.ParameterUpdated))
-				{
-					// entity is under control now > copy value
-					TransferValueFromParameterToEntity();
-					m_proxyState = EProxyState.ParameterTransferred;
-				}
-				else if (m_entity.State == EntityData.EntityState.Revoked)
-				{
-					Debug.LogWarningFormat("Parameter entity {0} was revoked", m_entity.Name);
-					m_proxyState = EProxyState.Revoked;
-				}
-				else if (m_entity.ClientUID == ClientData.UID_SERVER)
-				{
-					Debug.LogFormat("Parameter entity {0} was released to server", m_entity.Name);
-				}
-			}
-
-
-			private void EntityValueChanged()
-			{
-				if (Registered && ((m_proxyState == EProxyState.Idle) || (m_proxyState == EProxyState.EntityTransferred)))
-				{
-					m_proxyState = EProxyState.EntityUpdated;
-					TransferValueFromEntityToParameter();
-					m_proxyState = EProxyState.EntityTransferred;
-				}
-			}
-
-
-			public void ResetState()
-			{
-				if      (m_proxyState == EProxyState.EntityTransferred || m_proxyState == EProxyState.ParameterTransferred) m_proxyState = EProxyState.UpdateDone;
-				else if (m_proxyState == EProxyState.UpdateDone) m_proxyState = EProxyState.Idle;
-			}
-
-
+			
 			public abstract void TransferValueFromParameterToEntity();
 			public abstract void TransferValueFromEntityToParameter();
 			public abstract bool IsValid();
 			public abstract string GetTypeName();
 
 
-			protected ParameterBase m_baseParameter;
-			protected EntityData    m_entity;
-			protected EProxyState   m_proxyState;
+			protected SynchronisedParameters m_parent;
+			protected ParameterBase          m_baseParameter;
 		}
 
 
 		private class ParameterProxy_Boolean : ParameterProxy
 		{
-			public ParameterProxy_Boolean(Parameter_Boolean _parameter, EntityData _entity) :
-				base(_parameter, _entity)
+			public ParameterProxy_Boolean(SynchronisedParameters _parent, Parameter_Boolean _parameter) :
+				base(_parent, _parameter)
 			{
-				parameter = _parameter;
-				if (_entity.State == EntityData.EntityState.Registered)
+				m_parameter = _parameter;
+				if (m_parent.Entity.State == EntityData.EntityState.Registered)
 				{
-					entityValue = _entity.GetValue_Boolean(parameter.Name);
+					m_entityValue = m_parent.Entity.GetValue_Boolean(m_parameter.Name);
 				}
 				else
 				{
-					entityValue = _entity.AddValue_Boolean(parameter.Name, parameter.Value);
+					m_entityValue = m_parent.Entity.AddValue_Boolean(m_parameter.Name, m_parameter.Value);
 				}
 			}
 
 
 			public override void TransferValueFromParameterToEntity()
 			{
-				entityValue.Modify(parameter.Value);
+				m_entityValue.Modify(m_parameter.Value);
 			}
 
 
 			public override void TransferValueFromEntityToParameter()
 			{
-				parameter.Value = entityValue.Value;
+				m_parameter.Value = m_entityValue.Value;
 			}
 
 
 			public override bool IsValid()
 			{
-				return entityValue != null;
+				return m_entityValue != null;
 			}
 
 
@@ -296,43 +310,43 @@ namespace SentienceLab.MajorDomo
 			}
 
 
-			private Parameter_Boolean   parameter;
-			private EntityValue_Boolean entityValue;
+			private Parameter_Boolean   m_parameter;
+			private EntityValue_Boolean m_entityValue;
 		}
 
 
 		private class ParameterProxy_Integer : ParameterProxy
 		{
-			public ParameterProxy_Integer(Parameter_Integer _parameter, EntityData _entity) :
-				base(_parameter, _entity)
+			public ParameterProxy_Integer(SynchronisedParameters _parent, Parameter_Integer _parameter) :
+				base(_parent, _parameter)
 			{
-				parameter = _parameter;
-				if (_entity.State == EntityData.EntityState.Registered)
+				m_parameter = _parameter;
+				if (m_parent.Entity.State == EntityData.EntityState.Registered)
 				{
-					entityValue = _entity.GetValue_Int64(parameter.Name);
+					m_entityValue = m_parent.Entity.GetValue_Int64(m_parameter.Name);
 				}
 				else
 				{
-					entityValue = _entity.AddValue_Int64(parameter.Name, parameter.Value);
+					m_entityValue = m_parent.Entity.AddValue_Int64(m_parameter.Name, m_parameter.Value);
 				}
 			}
 
 
 			public override void TransferValueFromParameterToEntity()
 			{
-				entityValue.Modify(parameter.Value);
+				m_entityValue.Modify(m_parameter.Value);
 			}
 
 
 			public override void TransferValueFromEntityToParameter()
 			{
-				parameter.Value = entityValue.Value;
+				m_parameter.Value = m_entityValue.Value;
 			}
 
 
 			public override bool IsValid()
 			{
-				return entityValue != null;
+				return m_entityValue != null;
 			}
 
 
@@ -342,43 +356,43 @@ namespace SentienceLab.MajorDomo
 			}
 
 
-			private Parameter_Integer  parameter;
-			private EntityValue_Int64  entityValue;
+			private Parameter_Integer  m_parameter;
+			private EntityValue_Int64  m_entityValue;
 		}
 
 
 		private class ParameterProxy_Double : ParameterProxy
 		{
-			public ParameterProxy_Double(Parameter_Double _parameter, EntityData _entity) :
-				base(_parameter, _entity)
+			public ParameterProxy_Double(SynchronisedParameters _parent, Parameter_Double _parameter) :
+				base(_parent, _parameter)
 			{
-				parameter = _parameter;
-				if (_entity.State == EntityData.EntityState.Registered)
+				m_parameter = _parameter;
+				if (m_parent.Entity.State == EntityData.EntityState.Registered)
 				{
-					entityValue = _entity.GetValue_Float64(parameter.Name);
+					m_entityValue = m_parent.Entity.GetValue_Float64(m_parameter.Name);
 				}
 				else
 				{
-					entityValue = _entity.AddValue_Float64(parameter.Name, parameter.Value);
+					m_entityValue = m_parent.Entity.AddValue_Float64(m_parameter.Name, m_parameter.Value);
 				}
 			}
 
 
 			public override void TransferValueFromParameterToEntity()
 			{
-				entityValue.Modify(parameter.Value);
+				m_entityValue.Modify(m_parameter.Value);
 			}
 
 
 			public override void TransferValueFromEntityToParameter()
 			{
-				parameter.Value = entityValue.Value;
+				m_parameter.Value = m_entityValue.Value;
 			}
 
 
 			public override bool IsValid()
 			{
-				return entityValue != null;
+				return m_entityValue != null;
 			}
 
 
@@ -388,47 +402,47 @@ namespace SentienceLab.MajorDomo
 			}
 
 
-			private Parameter_Double    parameter;
-			private EntityValue_Float64 entityValue;
+			private Parameter_Double    m_parameter;
+			private EntityValue_Float64 m_entityValue;
 		}
 
 
 		private class ParameterProxy_DoubleRange : ParameterProxy
 		{
-			public ParameterProxy_DoubleRange(Parameter_DoubleRange _parameter, EntityData _entity) :
-				base(_parameter, _entity)
+			public ParameterProxy_DoubleRange(SynchronisedParameters _parent, Parameter_DoubleRange _parameter) :
+				base(_parent, _parameter)
 			{
-				parameter = _parameter;
-				if (_entity.State == EntityData.EntityState.Registered)
+				m_parameter = _parameter;
+				if (m_parent.Entity.State == EntityData.EntityState.Registered)
 				{
-					entityValueMin = _entity.GetValue_Float64(parameter.Name + "Min");
-					entityValueMax = _entity.GetValue_Float64(parameter.Name + "Max");
+					m_entityValueMin = m_parent.Entity.GetValue_Float64(m_parameter.Name + "Min");
+					m_entityValueMax = m_parent.Entity.GetValue_Float64(m_parameter.Name + "Max");
 				}
 				else
 				{
-					entityValueMin = _entity.AddValue_Float64(parameter.Name + "Min", parameter.ValueMin);
-					entityValueMax = _entity.AddValue_Float64(parameter.Name + "Max", parameter.ValueMax);
+					m_entityValueMin = m_parent.Entity.AddValue_Float64(m_parameter.Name + "Min", m_parameter.ValueMin);
+					m_entityValueMax = m_parent.Entity.AddValue_Float64(m_parameter.Name + "Max", m_parameter.ValueMax);
 				}
 			}
 
 
 			public override void TransferValueFromParameterToEntity()
 			{
-				entityValueMin.Modify(parameter.ValueMin);
-				entityValueMax.Modify(parameter.ValueMax);
+				m_entityValueMin.Modify(m_parameter.ValueMin);
+				m_entityValueMax.Modify(m_parameter.ValueMax);
 			}
 
 
 			public override void TransferValueFromEntityToParameter()
 			{
-				parameter.ValueMin = entityValueMin.Value;
-				parameter.ValueMax = entityValueMax.Value;
+				m_parameter.ValueMin = m_entityValueMin.Value;
+				m_parameter.ValueMax = m_entityValueMax.Value;
 			}
 
 
 			public override bool IsValid()
 			{
-				return (entityValueMin != null) && (entityValueMax != null);
+				return (m_entityValueMin != null) && (m_entityValueMax != null);
 			}
 
 
@@ -438,43 +452,43 @@ namespace SentienceLab.MajorDomo
 			}
 
 
-			private Parameter_DoubleRange parameter;
-			private EntityValue_Float64   entityValueMin, entityValueMax;
+			private Parameter_DoubleRange m_parameter;
+			private EntityValue_Float64   m_entityValueMin, m_entityValueMax;
 		}
 
 
 		private class ParameterProxy_List : ParameterProxy
 		{
-			public ParameterProxy_List(Parameter_List _parameter, EntityData _entity) :
-				base(_parameter, _entity)
+			public ParameterProxy_List(SynchronisedParameters _parent, Parameter_List _parameter) :
+				base(_parent, _parameter)
 			{
-				parameter = _parameter;
-				if (_entity.State == EntityData.EntityState.Registered)
+				m_parameter = _parameter;
+				if (m_parent.Entity.State == EntityData.EntityState.Registered)
 				{
-					entityValue = _entity.GetValue_Int32(parameter.Name);
+					m_entityValue = m_parent.Entity.GetValue_Int32(m_parameter.Name);
 				}
 				else
 				{
-					entityValue = _entity.AddValue_Int32(parameter.Name, parameter.SelectedItemIndex);
+					m_entityValue = m_parent.Entity.AddValue_Int32(m_parameter.Name, m_parameter.SelectedItemIndex);
 				}
 			}
 
 
 			public override void TransferValueFromParameterToEntity()
 			{
-				entityValue.Modify(parameter.SelectedItemIndex);
+				m_entityValue.Modify(m_parameter.SelectedItemIndex);
 			}
 
 
 			public override void TransferValueFromEntityToParameter()
 			{
-				parameter.SelectedItemIndex = entityValue.Value;
+				m_parameter.SelectedItemIndex = m_entityValue.Value;
 			}
 
 
 			public override bool IsValid()
 			{
-				return entityValue != null;
+				return m_entityValue != null;
 			}
 
 
@@ -484,43 +498,43 @@ namespace SentienceLab.MajorDomo
 			}
 
 
-			private Parameter_List parameter;
-			private EntityValue_Int32 entityValue;
+			private Parameter_List    m_parameter;
+			private EntityValue_Int32 m_entityValue;
 		}
 
 
 		private class ParameterProxy_Vector3 : ParameterProxy
 		{
-			public ParameterProxy_Vector3(Parameter_Vector3 _parameter, EntityData _entity) :
-				base(_parameter, _entity)
+			public ParameterProxy_Vector3(SynchronisedParameters _parent, Parameter_Vector3 _parameter) :
+				base(_parent, _parameter)
 			{
-				parameter = _parameter;
-				if (_entity.State == EntityData.EntityState.Registered)
+				m_parameter = _parameter;
+				if (m_parent.Entity.State == EntityData.EntityState.Registered)
 				{
-					entityValue = _entity.GetValue_Vector3D(parameter.Name);
+					m_entityValue = m_parent.Entity.GetValue_Vector3D(m_parameter.Name);
 				}
 				else
 				{
-					entityValue = _entity.AddValue_Vector3D(parameter.Name, parameter.Value);
+					m_entityValue = m_parent.Entity.AddValue_Vector3D(m_parameter.Name, m_parameter.Value);
 				}
 			}
 
 
 			public override void TransferValueFromParameterToEntity()
 			{
-				entityValue.Modify(parameter.Value);
+				m_entityValue.Modify(m_parameter.Value);
 			}
 
 
 			public override void TransferValueFromEntityToParameter()
 			{
-				parameter.Value = entityValue.Value;
+				m_parameter.Value = m_entityValue.Value;
 			}
 
 
 			public override bool IsValid()
 			{
-				return entityValue != null;
+				return m_entityValue != null;
 			}
 
 
@@ -530,10 +544,20 @@ namespace SentienceLab.MajorDomo
 			}
 
 
-			private Parameter_Vector3    parameter;
-			private EntityValue_Vector3D entityValue;
+			private Parameter_Vector3    m_parameter;
+			private EntityValue_Vector3D m_entityValue;
 		}
 
+
+		protected enum ESyncState {
+			Idle,
+			RequestSyncToEntity, DoneSyncToEntity,
+			RequestSyncFromEntity, DoneSyncFromEntity,
+			SyncFinished,
+			Revoked
+		}
+
+		protected ESyncState m_syncState;
 
 		private List<ParameterProxy> m_proxies;
 	}

@@ -56,7 +56,7 @@ namespace SentienceLab.MajorDomo
 			// replace template string
 			EntityName = EntityName.Replace("{GAMEOBJECT}", this.gameObject.name);
 
-			m_entity = null;
+			Entity = null;
 
 			MajorDomoManager.Instance.OnClientUnregistered   += delegate (ClientData _c)       { CheckEntity(); };
 			MajorDomoManager.Instance.OnEntitiesPublished    += delegate (List<EntityData> _l) { CheckEntity(); };
@@ -72,14 +72,14 @@ namespace SentienceLab.MajorDomo
 
 		public void Update()
 		{
-			if ((m_entity != null) && (m_entity.State == EntityData.EntityState.Registered))
+			if ((Entity != null) && (Entity.State == EntityData.EntityState.Registered))
 			{
 				if (SynchronisationMode == MajorDomoManager.SynchronisationMode.Server)
 				{
-					if (m_entity.IsUpdated())
+					if (Entity.IsUpdated())
 					{
 						SynchroniseFromEntity();
-						m_entity.ResetUpdated();
+						Entity.ResetUpdated();
 					}
 				}
 				else
@@ -112,21 +112,21 @@ namespace SentienceLab.MajorDomo
 
 		protected void CheckEntity()
 		{
-			if (m_entity == null)
+			if (Entity == null)
 			{
 				// entity not found/created yet. Let's search first
-				m_entity = MajorDomoManager.Instance.FindEntity(EntityName);
-				if (m_entity != null)
+				Entity = MajorDomoManager.Instance.FindEntity(EntityName);
+				if (Entity != null)
 				{
 					// found it > find the variables, too
 					FindVariables();
 
-					Persistent    = m_entity.IsPersistent();
-					SharedControl = m_entity.AllowsSharedControl();
+					Persistent    = Entity.IsPersistent();
+					SharedControl = Entity.AllowsSharedControl();
 
 					if (SynchronisationMode == MajorDomoManager.SynchronisationMode.Server)
 					{
-						m_entity.OnEntityUpdated += Update;
+						Entity.OnEntityUpdated += Update;
 						SynchroniseFromEntity();
 					}
 					else
@@ -139,7 +139,7 @@ namespace SentienceLab.MajorDomo
 					}
 
 					Debug.LogFormat("{0} '{1}' synchronised with entity '{2}'",
-						GetEntityTypeName(), name, m_entity.ToString(true, true));
+						GetEntityTypeName(), name, Entity.ToString(true, true));
 				}
 				else
 				{
@@ -163,12 +163,12 @@ namespace SentienceLab.MajorDomo
 					}
 				}
 			}
-			else if (m_entity.State == EntityData.EntityState.Revoked)
+			else if (Entity.State == EntityData.EntityState.Revoked)
 			{
 				// entity was revoked > remove references
 
 				Debug.LogFormat("{0} '{1}' lost synchronisation with entity '{2}'",
-					GetEntityTypeName(), name, m_entity.ToString(true, false));
+					GetEntityTypeName(), name, Entity.ToString(true, false));
 
 				DestroyVariables();
 
@@ -177,7 +177,7 @@ namespace SentienceLab.MajorDomo
 					if (CanDisableGameObject()) gameObject.SetActive(false);
 				}
 
-				m_entity = null;
+				Entity = null;
 			}
 			else
 			{
@@ -198,7 +198,7 @@ namespace SentienceLab.MajorDomo
 
 		public bool IsControlledByClient()
 		{
-			return m_entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID);
+			return Entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID);
 		}
 
 
@@ -220,6 +220,6 @@ namespace SentienceLab.MajorDomo
 
 		private bool m_initialised = false;
 
-		protected EntityData m_entity;
+		protected EntityData Entity { get; private set; }
 	}
 }

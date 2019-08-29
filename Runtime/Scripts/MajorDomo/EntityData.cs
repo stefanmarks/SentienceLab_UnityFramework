@@ -26,6 +26,8 @@ namespace SentienceLab.MajorDomo
 		public uint ClientUID { get; private set; }
 
 		public enum EntityState { Created, Registered, Revoked }
+
+		/// <summary> State of the entity </summary>
 		public EntityState State { get; private set; }
 
 		/// <summary> Entity UID while it is not registered with the server </summary>
