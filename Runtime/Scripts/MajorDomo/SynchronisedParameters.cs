@@ -67,9 +67,6 @@ namespace SentienceLab.MajorDomo
 					Debug.LogWarningFormat("Could not create proxy for type of parameter '{0}'", param.Name);
 				}
 			}
-
-			_entity.OnEntityUpdated  += EntityValueChanged;
-			_entity.OnControlChanged += EntityControlChanged;
 		}
 
 

@@ -198,7 +198,7 @@ namespace SentienceLab.MajorDomo
 
 		public bool IsControlledByClient()
 		{
-			return Entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID);
+			return (Entity != null) && Entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID);
 		}
 
 
