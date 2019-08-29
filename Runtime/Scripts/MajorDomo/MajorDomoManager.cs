@@ -176,6 +176,8 @@ namespace SentienceLab.MajorDomo
 			m_workerThread = new Thread(WorkerThread);
 			m_workerThread.Start();
 
+			ReplaceSpecialApplicationNameParts();
+
 			if (AutoConnect) StartCoroutine(AutoConnectAsync());
 
 			// auto-register objects that use MajorDomo
@@ -239,7 +241,6 @@ namespace SentienceLab.MajorDomo
 
 		protected void WorkerThread()
 		{
-			ReplaceSpecialApplicationNameParts();
 			m_state = ManagerState.Disconnected;
 
 			m_client.OnClientRegistered   += ClientRegisteredHandler;
