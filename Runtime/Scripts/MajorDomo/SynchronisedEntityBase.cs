@@ -99,8 +99,9 @@ namespace SentienceLab.MajorDomo
 				{
 					SynchroniseFromEntity();
 					Entity.ResetUpdated();
-					// counteract callbacks from changing values
+					// counteract callbacks from changing values, and prevent control change for at least 2 frames
 					ResetModified();
+					m_controlChangeCooldown = 2;
 				}
 				else if (SynchronisationMode == ESynchronisationMode.ClientAndServer)
 				{
