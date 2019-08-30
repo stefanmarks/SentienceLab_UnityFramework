@@ -97,13 +97,14 @@ namespace SentienceLab.MajorDomo
 		{
 			if ((Entity == null) || (Entity.State != EntityData.EntityState.Registered)) return;
 			
-			if (SynchronisationMode == ESynchronisationMode.Server || SynchronisationMode == ESynchronisationMode.ClientAndServer)
+			if ((SynchronisationMode == ESynchronisationMode.Server) || 
+				(SynchronisationMode == ESynchronisationMode.ClientAndServer))
 			{
-				if (Entity.IsUpdated())
+				if (!IsControlledByClient && Entity.IsUpdated())
 				{
 					SynchroniseFromEntity();
 					Entity.ResetUpdated();
-					m_controlChangeCooldown = 2;
+					m_controlChangeCooldown = 10;
 				}
 				else if (SynchronisationMode == ESynchronisationMode.ClientAndServer)
 				{
@@ -123,7 +124,8 @@ namespace SentienceLab.MajorDomo
 				}
 			}
 			
-			if (SynchronisationMode == ESynchronisationMode.Client)
+			if ((SynchronisationMode == ESynchronisationMode.Client) ||
+				(SynchronisationMode == ESynchronisationMode.ClientAndServer))
 			{
 				// client control
 				if (IsModified() && IsControlledByClient)
@@ -181,9 +183,9 @@ namespace SentienceLab.MajorDomo
 					SharedControl = Entity.AllowsSharedControl();
 
 					// client+server and NOT shared doesn't work 
-					if (!SharedControl && SynchronisationMode == ESynchronisationMode.ClientAndServer)
+					if (SynchronisationMode == ESynchronisationMode.ClientAndServer && !SharedControl)
 					{
-						Debug.LogFormat("'{0}' mode on non-shared entity '{0'} not possible. Switching to '{2}' only.",
+						Debug.LogWarningFormat("'{0}' mode on non-shared entity '{1}' not possible. Switching to '{2}' only.",
 							ESynchronisationMode.ClientAndServer, Entity.ToString(true, true), ESynchronisationMode.Server);
 						SynchronisationMode = ESynchronisationMode.Server;
 					}
