@@ -870,6 +870,7 @@ namespace SentienceLab.MajorDomo
 				if (entity != null)
 				{
 					entity.SetClientUID(newClientUID);
+					entities.Add(entity);
 				}
 			}
 			if (entities.Count > 0)

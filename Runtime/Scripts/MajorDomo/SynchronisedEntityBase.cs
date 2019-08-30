@@ -213,7 +213,6 @@ namespace SentienceLab.MajorDomo
 			else
 			{
 				// control might have changed. check for that
-
 				if (SynchronisationMode == ESynchronisationMode.Server && IsControlledByClient())
 				{
 					// this entity is now controlled by this client
