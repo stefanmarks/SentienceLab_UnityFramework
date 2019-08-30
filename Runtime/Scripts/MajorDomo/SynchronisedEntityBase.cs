@@ -23,11 +23,19 @@ namespace SentienceLab.MajorDomo
 		public enum ESynchronisationMode
 		{
 			Client,
-			Server
+			Server,
+			ClientAndServer
 		}
 
 		[Tooltip("Mode for the entity.\nClient: object is controlled by the client.\nServer: objects is controlled by the server/another client")]
 		public ESynchronisationMode SynchronisationMode = ESynchronisationMode.Client;
+
+		public bool IsControlledByClient {
+			get {
+				return (Entity != null) && Entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID);
+			}
+			private set { }
+		}
 
 		[Tooltip("Entity control can be shared with other clients")]
 		public bool SharedControl = false;
@@ -85,7 +93,7 @@ namespace SentienceLab.MajorDomo
 		{
 			if ((Entity == null) || (Entity.State != EntityData.EntityState.Registered)) return;
 			
-			if (SynchronisationMode == ESynchronisationMode.Server)
+			if (SynchronisationMode == ESynchronisationMode.Server || SynchronisationMode == ESynchronisationMode.ClientAndServer)
 			{
 				if (Entity.IsUpdated())
 				{
@@ -94,24 +102,24 @@ namespace SentienceLab.MajorDomo
 					// counteract callbacks from changing values
 					ResetModified();
 				}
-				else if (SharedControl && IsModified() && (m_controlChangeCooldown == 0))
+				else if (SynchronisationMode == ESynchronisationMode.ClientAndServer)
 				{
-					if (!IsControlledByClient())
+					if (IsModified() && (m_controlChangeCooldown == 0))
 					{
-						// no updates for some time and client wants to take control
-						MajorDomoManager.Instance.RequestControl(Entity);
-					}
-					else
-					{
-						// server control, but owned by this client, that is the wrong mode. Better check
-						CheckSynchronisationMode();
+						if (!IsControlledByClient)
+						{
+							// no updates for some time and client wants to take control
+							MajorDomoManager.Instance.RequestControl(Entity);
+							m_controlChangeCooldown = 10;
+						}
 					}
 				}
 			}
-			else
+			
+			if (SynchronisationMode == ESynchronisationMode.Client)
 			{
 				// client control
-				if (IsModified() && IsControlledByClient())
+				if (IsModified() && IsControlledByClient)
 				{
 					SynchroniseToEntity();
 					ResetModified();
@@ -128,7 +136,8 @@ namespace SentienceLab.MajorDomo
 		public void OnDisable()
 		{
 			// make sure last state is synchronised
-			if (SynchronisationMode == ESynchronisationMode.Client)
+			if ((SynchronisationMode == ESynchronisationMode.Client) || 
+				((SynchronisationMode == ESynchronisationMode.ClientAndServer) && IsControlledByClient))
 			{
 				SynchroniseToEntity();
 			}
@@ -138,7 +147,8 @@ namespace SentienceLab.MajorDomo
 		public void OnEnable()
 		{
 			// make sure current state is synchronised
-			if (SynchronisationMode == ESynchronisationMode.Client)
+			if ((SynchronisationMode == ESynchronisationMode.Client) ||
+				((SynchronisationMode == ESynchronisationMode.ClientAndServer) && IsControlledByClient))
 			{
 				SynchroniseToEntity();
 			}
@@ -163,7 +173,16 @@ namespace SentienceLab.MajorDomo
 					Persistent    = Entity.IsPersistent();
 					SharedControl = Entity.AllowsSharedControl();
 
-					if (SynchronisationMode == ESynchronisationMode.Server || Persistent)
+					// client+server and NOT shared doesn't work 
+					if (!SharedControl && SynchronisationMode == ESynchronisationMode.ClientAndServer)
+					{
+						Debug.LogFormat("'{0}' mode on non-shared entity '{0'} not possible. Switching to '{2}' only.",
+							ESynchronisationMode.ClientAndServer, Entity.ToString(true, true), ESynchronisationMode.Server);
+						SynchronisationMode = ESynchronisationMode.Server;
+					}
+
+					if ((SynchronisationMode == ESynchronisationMode.Server) || 
+						(SynchronisationMode == ESynchronisationMode.ClientAndServer) || Persistent)
 					{
 						// server authority or persistent > update immediately
 						SynchroniseFromEntity();
@@ -180,7 +199,7 @@ namespace SentienceLab.MajorDomo
 					// either when in client mode, or when in shared+server mode
 					if (MajorDomoManager.Instance.IsConnected() &&
 						( (SynchronisationMode == ESynchronisationMode.Client) ||
-						  ((SynchronisationMode == ESynchronisationMode.Server) && SharedControl) ) )
+						  ((SynchronisationMode == ESynchronisationMode.ClientAndServer) && SharedControl) ) )
 					{
 						// Create and publish entity and then wait for the callback when server has acknowledged
 						// then find the actual variables in the acknowledged entity version
@@ -208,45 +227,13 @@ namespace SentienceLab.MajorDomo
 
 				DestroyVariables();
 
-				if (SynchronisationMode == ESynchronisationMode.Server)
+				if (!IsControlledByClient)
 				{
 					if (CanDisableGameObject()) gameObject.SetActive(false);
 				}
 
 				Entity = null;
 			}
-			else
-			{
-				// control might have changed. check for that
-				CheckSynchronisationMode();
-			}
-		}
-
-
-		protected void CheckSynchronisationMode()
-		{
-			if (SynchronisationMode == ESynchronisationMode.Server && IsControlledByClient())
-			{
-				// this entity is now controlled by this client
-				SynchronisationMode = ESynchronisationMode.Client;
-				m_controlChangeCooldown = 10;
-				Debug.LogFormat("{0} entity '{1}' controlled by client",
-					GetEntityTypeName(), Entity.ToString(true, false));
-			}
-			else if (SynchronisationMode == ESynchronisationMode.Client && !IsControlledByClient())
-			{
-				// this object is now controlled by the server
-				SynchronisationMode = ESynchronisationMode.Server;
-				m_controlChangeCooldown = 10;
-				Debug.LogFormat("{0} '{1}' controlled by server",
-					GetEntityTypeName(), gameObject.name);
-			}
-		}
-
-
-		public bool IsControlledByClient()
-		{
-			return (Entity != null) && Entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID);
 		}
 
 
