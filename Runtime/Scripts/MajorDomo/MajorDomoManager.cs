@@ -588,17 +588,6 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		/// <summary>
-		/// Mode of synchronisation. Which part of the connection is the "master" and in control.
-		/// </summary>
-		/// 
-		public enum SynchronisationMode
-		{
-			Client,
-			Server
-		}
-
-
 		protected enum ManagerState
 		{
 			Preparing,
