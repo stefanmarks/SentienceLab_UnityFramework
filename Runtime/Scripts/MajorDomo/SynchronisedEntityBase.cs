@@ -79,6 +79,7 @@ namespace SentienceLab.MajorDomo
 
 			Entity = null;
 			m_controlChangeCooldown = 0;
+			m_oldControlledByClient = IsControlledByClient;
 
 			MajorDomoManager.Instance.OnClientUnregistered   += delegate (ClientData _c)       { CheckEntity(); };
 			MajorDomoManager.Instance.OnEntitiesPublished    += delegate (List<EntityData> _l) { CheckEntity(); };
@@ -102,8 +103,6 @@ namespace SentienceLab.MajorDomo
 				{
 					SynchroniseFromEntity();
 					Entity.ResetUpdated();
-					// counteract callbacks from changing values, and prevent control change for at least 2 frames
-					ResetModified();
 					m_controlChangeCooldown = 2;
 				}
 				else if (SynchronisationMode == ESynchronisationMode.ClientAndServer)
@@ -114,9 +113,13 @@ namespace SentienceLab.MajorDomo
 						{
 							// no updates for some time and client wants to take control
 							MajorDomoManager.Instance.RequestControl(Entity);
-							m_controlChangeCooldown = 10;
 						}
 					}
+				}
+				if (m_controlChangeCooldown > 0)
+				{
+					// prevent control takeover from old modified state
+					ResetModified();
 				}
 			}
 			
@@ -243,7 +246,7 @@ namespace SentienceLab.MajorDomo
 				Debug.LogFormat("Control changed for entity '{0}' to '{1}'",
 					Entity.ToString(true, false), IsControlledByClient ? "client" : "server");
 				m_oldControlledByClient = IsControlledByClient;
-				m_controlChangeCooldown = 10;
+				m_controlChangeCooldown = 100;
 			}
 		}
 
