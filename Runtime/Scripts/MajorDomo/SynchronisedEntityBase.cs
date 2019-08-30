@@ -96,8 +96,16 @@ namespace SentienceLab.MajorDomo
 				}
 				else if (SharedControl && IsModified() && (m_controlChangeCooldown == 0))
 				{
-					// no updates for some time and client wants to take control
-					MajorDomoManager.Instance.RequestControl(Entity);
+					if (!IsControlledByClient())
+					{
+						// no updates for some time and client wants to take control
+						MajorDomoManager.Instance.RequestControl(Entity);
+					}
+					else
+					{
+						// server control, but owned by this client, that is the wrong mode. Better check
+						CheckSynchronisationMode();
+					}
 				}
 			}
 			else
@@ -169,7 +177,10 @@ namespace SentienceLab.MajorDomo
 				else
 				{
 					// entity not found. let's create and publish it
-					if ((SynchronisationMode == ESynchronisationMode.Client) && MajorDomoManager.Instance.IsConnected())
+					// either when in client mode, or when in shared+server mode
+					if (MajorDomoManager.Instance.IsConnected() &&
+						( (SynchronisationMode == ESynchronisationMode.Client) ||
+						  ((SynchronisationMode == ESynchronisationMode.Server) && SharedControl) ) )
 					{
 						// Create and publish entity and then wait for the callback when server has acknowledged
 						// then find the actual variables in the acknowledged entity version
@@ -207,22 +218,28 @@ namespace SentienceLab.MajorDomo
 			else
 			{
 				// control might have changed. check for that
-				if (SynchronisationMode == ESynchronisationMode.Server && IsControlledByClient())
-				{
-					// this entity is now controlled by this client
-					SynchronisationMode = ESynchronisationMode.Client;
-					m_controlChangeCooldown = 10;
-					Debug.LogFormat("{0} entity '{1}' controlled by client",
-						GetEntityTypeName(), Entity.ToString(true, false));
-				}
-				else if (SynchronisationMode == ESynchronisationMode.Client && !IsControlledByClient())
-				{
-					// this object is now controlled by the server
-					SynchronisationMode = ESynchronisationMode.Server;
-					m_controlChangeCooldown = 10;
-					Debug.LogFormat("{0} '{1}' controlled by server",
-						GetEntityTypeName(), gameObject.name);
-				}
+				CheckSynchronisationMode();
+			}
+		}
+
+
+		protected void CheckSynchronisationMode()
+		{
+			if (SynchronisationMode == ESynchronisationMode.Server && IsControlledByClient())
+			{
+				// this entity is now controlled by this client
+				SynchronisationMode = ESynchronisationMode.Client;
+				m_controlChangeCooldown = 10;
+				Debug.LogFormat("{0} entity '{1}' controlled by client",
+					GetEntityTypeName(), Entity.ToString(true, false));
+			}
+			else if (SynchronisationMode == ESynchronisationMode.Client && !IsControlledByClient())
+			{
+				// this object is now controlled by the server
+				SynchronisationMode = ESynchronisationMode.Server;
+				m_controlChangeCooldown = 10;
+				Debug.LogFormat("{0} '{1}' controlled by server",
+					GetEntityTypeName(), gameObject.name);
 			}
 		}
 
