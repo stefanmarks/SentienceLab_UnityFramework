@@ -94,18 +94,19 @@ namespace SentienceLab.MajorDomo
 					// counteract callbacks from changing values
 					ResetModified();
 				}
+				else if (SharedControl && IsModified() && (m_controlChangeCooldown == 0))
+				{
+					// no updates for some time and client wants to take control
+					MajorDomoManager.Instance.RequestControl(Entity);
+				}
 			}
-			else if (IsModified())
+			else
 			{
-				if (IsControlledByClient())
+				// client control
+				if (IsModified() && IsControlledByClient())
 				{
 					SynchroniseToEntity();
 					ResetModified();
-				}
-				else if (SharedControl && (m_controlChangeCooldown == 0))
-				{
-					// local object was modified, but client is not yet in control > request
-					MajorDomoManager.Instance.RequestControl(Entity);
 				}
 			}
 
@@ -150,28 +151,20 @@ namespace SentienceLab.MajorDomo
 				{
 					// found it > find the variables, too
 					FindVariables();
-
+					// adjust flags from entity
 					Persistent    = Entity.IsPersistent();
 					SharedControl = Entity.AllowsSharedControl();
 
-					if (SynchronisationMode == ESynchronisationMode.Server)
+					if (SynchronisationMode == ESynchronisationMode.Server || Persistent)
 					{
-						// server authority > update immediately
+						// server authority or persistent > update immediately
 						SynchroniseFromEntity();
-					}
-					else
-					{
-						// if this entity is persistent, get an update from the server first
-						if (Persistent)
-						{
-							SynchroniseFromEntity();
-						}
 					}
 
 					Entity.OnEntityUpdated += Update;
 
 					Debug.LogFormat("{0} '{1}' synchronised with entity '{2}'",
-						GetEntityTypeName(), name, Entity.ToString(true, true));
+						GetEntityTypeName(), gameObject.name, Entity.ToString(true, true));
 				}
 				else
 				{
@@ -200,7 +193,7 @@ namespace SentienceLab.MajorDomo
 				// entity was revoked > remove references
 
 				Debug.LogFormat("{0} '{1}' lost synchronisation with entity '{2}'",
-					GetEntityTypeName(), name, Entity.ToString(true, false));
+					GetEntityTypeName(), gameObject.name, Entity.ToString(true, false));
 
 				DestroyVariables();
 
@@ -219,12 +212,16 @@ namespace SentienceLab.MajorDomo
 					// this entity is now controlled by this client
 					SynchronisationMode = ESynchronisationMode.Client;
 					m_controlChangeCooldown = 10;
+					Debug.LogFormat("{0} entity '{1}' controlled by client",
+						GetEntityTypeName(), Entity.ToString(true, false));
 				}
 				else if (SynchronisationMode == ESynchronisationMode.Client && !IsControlledByClient())
 				{
-					// this entity is now controlled by the server
+					// this object is now controlled by the server
 					SynchronisationMode = ESynchronisationMode.Server;
 					m_controlChangeCooldown = 10;
+					Debug.LogFormat("{0} '{1}' controlled by server",
+						GetEntityTypeName(), gameObject.name);
 				}
 			}
 		}
