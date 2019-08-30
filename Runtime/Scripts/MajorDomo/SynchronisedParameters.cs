@@ -20,9 +20,8 @@ namespace SentienceLab.MajorDomo
 		
 		protected override void Initialise()
 		{
-			m_proxies   = new List<ParameterProxy>();
-			m_syncState = ESyncState.Idle;
-
+			m_proxies = new List<ParameterProxy>();
+			
 			if (ParameterBaseNode == null)
 			{
 				ParameterBaseNode = this.gameObject;
@@ -101,12 +100,12 @@ namespace SentienceLab.MajorDomo
 		{
 			ParameterProxy proxy = null;
 
-			if      (param is Parameter_Boolean)     { proxy = new ParameterProxy_Boolean(    this, _entity, (Parameter_Boolean)     param); }
-			else if (param is Parameter_Integer)     { proxy = new ParameterProxy_Integer(    this, _entity, (Parameter_Integer)     param); }
-			else if (param is Parameter_Double)      { proxy = new ParameterProxy_Double(     this, _entity, (Parameter_Double)      param); }
-			else if (param is Parameter_DoubleRange) { proxy = new ParameterProxy_DoubleRange(this, _entity, (Parameter_DoubleRange) param); }
-			else if (param is Parameter_List)        { proxy = new ParameterProxy_List(       this, _entity, (Parameter_List)        param); }
-			else if (param is Parameter_Vector3)     { proxy = new ParameterProxy_Vector3(    this, _entity, (Parameter_Vector3)     param); }
+			if      (param is Parameter_Boolean)     { proxy = new ParameterProxy_Boolean(    _entity, (Parameter_Boolean)     param); }
+			else if (param is Parameter_Integer)     { proxy = new ParameterProxy_Integer(    _entity, (Parameter_Integer)     param); }
+			else if (param is Parameter_Double)      { proxy = new ParameterProxy_Double(     _entity, (Parameter_Double)      param); }
+			else if (param is Parameter_DoubleRange) { proxy = new ParameterProxy_DoubleRange(_entity, (Parameter_DoubleRange) param); }
+			else if (param is Parameter_List)        { proxy = new ParameterProxy_List(       _entity, (Parameter_List)        param); }
+			else if (param is Parameter_Vector3)     { proxy = new ParameterProxy_Vector3(    _entity, (Parameter_Vector3)     param); }
 
 			return proxy;
 		}
@@ -119,8 +118,6 @@ namespace SentienceLab.MajorDomo
 				proxy.Destroy();
 			}
 			m_proxies.Clear();
-
-			m_syncState = ESyncState.Revoked;
 		}
 
 
@@ -135,21 +132,28 @@ namespace SentienceLab.MajorDomo
 
 		protected override bool IsModified()
 		{
-			return m_syncState == ESyncState.ParameterModified;
+			foreach (var proxy in m_proxies)
+			{
+				if (proxy.IsModified()) return true;
+			}
+			return false;
 		}
 
 
 		protected override void SynchroniseToEntity()
 		{
-			m_syncState = ESyncState.Idle;
+			foreach (var proxy in m_proxies)
+			{
+				proxy.TransferValueFromParameterToEntity();
+			}
 		}
 
 
 		protected override void ResetModified()
 		{
-			if (m_syncState != ESyncState.Revoked)
+			foreach (var proxy in m_proxies)
 			{
-				m_syncState = ESyncState.Idle;
+				proxy.ResetModified();
 			}
 		}
 
@@ -176,11 +180,10 @@ namespace SentienceLab.MajorDomo
 
 		private abstract class ParameterProxy
 		{
-			protected ParameterProxy(SynchronisedParameters _parent, ParameterBase _parameter)
+			protected ParameterProxy(ParameterBase _parameter)
 			{
 				m_baseParameter = _parameter;
 				m_baseParameter.OnValueChanged += ParameterValueChanged;
-				m_parent = _parent;
 			}
 
 
@@ -192,10 +195,19 @@ namespace SentienceLab.MajorDomo
 
 			private void ParameterValueChanged(ParameterBase _parameter)
 			{
-				if (m_parent.m_syncState == ESyncState.Idle) 
-				{
-					m_parent.m_syncState = ESyncState.ParameterModified;
-				}
+				m_modified = true;
+			}
+
+
+			public bool IsModified()
+			{
+				return m_modified;
+			}
+
+
+			public void ResetModified()
+			{
+				m_modified = false;
 			}
 
 			
@@ -205,15 +217,15 @@ namespace SentienceLab.MajorDomo
 			public abstract string GetTypeName();
 
 
-			protected SynchronisedParameters m_parent;
-			protected ParameterBase          m_baseParameter;
+			protected bool           m_modified;
+			protected ParameterBase  m_baseParameter;
 		}
 
 
 		private class ParameterProxy_Boolean : ParameterProxy
 		{
-			public ParameterProxy_Boolean(SynchronisedParameters _parent, EntityData _entity, Parameter_Boolean _parameter) :
-				base(_parent, _parameter)
+			public ParameterProxy_Boolean(EntityData _entity, Parameter_Boolean _parameter) :
+				base(_parameter)
 			{
 				m_parameter = _parameter;
 				if (_entity.State == EntityData.EntityState.Registered)
@@ -258,8 +270,8 @@ namespace SentienceLab.MajorDomo
 
 		private class ParameterProxy_Integer : ParameterProxy
 		{
-			public ParameterProxy_Integer(SynchronisedParameters _parent, EntityData _entity, Parameter_Integer _parameter) :
-				base(_parent, _parameter)
+			public ParameterProxy_Integer(EntityData _entity, Parameter_Integer _parameter) :
+				base(_parameter)
 			{
 				m_parameter = _parameter;
 				if (_entity.State == EntityData.EntityState.Registered)
@@ -304,8 +316,8 @@ namespace SentienceLab.MajorDomo
 
 		private class ParameterProxy_Double : ParameterProxy
 		{
-			public ParameterProxy_Double(SynchronisedParameters _parent, EntityData _entity, Parameter_Double _parameter) :
-				base(_parent, _parameter)
+			public ParameterProxy_Double(EntityData _entity, Parameter_Double _parameter) :
+				base(_parameter)
 			{
 				m_parameter = _parameter;
 				if (_entity.State == EntityData.EntityState.Registered)
@@ -350,8 +362,8 @@ namespace SentienceLab.MajorDomo
 
 		private class ParameterProxy_DoubleRange : ParameterProxy
 		{
-			public ParameterProxy_DoubleRange(SynchronisedParameters _parent, EntityData _entity, Parameter_DoubleRange _parameter) :
-				base(_parent, _parameter)
+			public ParameterProxy_DoubleRange(EntityData _entity, Parameter_DoubleRange _parameter) :
+				base(_parameter)
 			{
 				m_parameter = _parameter;
 				if (_entity.State == EntityData.EntityState.Registered)
@@ -400,8 +412,8 @@ namespace SentienceLab.MajorDomo
 
 		private class ParameterProxy_List : ParameterProxy
 		{
-			public ParameterProxy_List(SynchronisedParameters _parent, EntityData _entity, Parameter_List _parameter) :
-				base(_parent, _parameter)
+			public ParameterProxy_List(EntityData _entity, Parameter_List _parameter) :
+				base(_parameter)
 			{
 				m_parameter = _parameter;
 				if (_entity.State == EntityData.EntityState.Registered)
@@ -446,8 +458,8 @@ namespace SentienceLab.MajorDomo
 
 		private class ParameterProxy_Vector3 : ParameterProxy
 		{
-			public ParameterProxy_Vector3(SynchronisedParameters _parent, EntityData _entity, Parameter_Vector3 _parameter) :
-				base(_parent, _parameter)
+			public ParameterProxy_Vector3(EntityData _entity, Parameter_Vector3 _parameter) :
+				base(_parameter)
 			{
 				m_parameter = _parameter;
 				if (_entity.State == EntityData.EntityState.Registered)
@@ -489,13 +501,6 @@ namespace SentienceLab.MajorDomo
 			private EntityValue_Vector3D m_entityValue;
 		}
 
-
-		protected enum ESyncState
-		{
-			Idle, ParameterModified, Revoked
-		}
-
-		protected ESyncState m_syncState;
 
 		private List<ParameterProxy> m_proxies;
 	}
