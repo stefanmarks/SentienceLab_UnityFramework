@@ -146,12 +146,25 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		protected override bool IsModified()
+		{
+			// assume constant movement
+			return true;
+		}
+
+
 		protected override void SynchroniseToEntity()
 		{
 			if (m_valEnabled  != null) m_valEnabled.Modify(TargetTransform.gameObject.activeSelf);
 			if (m_valPosition != null) m_valPosition.Modify(ReferenceTransform.InverseTransformPoint(TargetTransform.position));
 			if (m_valRotation != null) m_valRotation.Modify(Quaternion.Inverse(ReferenceTransform.rotation) * TargetTransform.rotation);
 			if (m_valScale    != null) m_valScale.Modify(TargetTransform.localScale);
+		}
+
+
+		protected override void ResetModified()
+		{
+			// nothing to do
 		}
 
 

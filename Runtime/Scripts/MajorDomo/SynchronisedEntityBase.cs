@@ -80,11 +80,22 @@ namespace SentienceLab.MajorDomo
 					{
 						SynchroniseFromEntity();
 						Entity.ResetUpdated();
+						// counteract callbacks from changing values
+						ResetModified();
 					}
 				}
-				else
+				else if (IsModified())
 				{
-					SynchroniseToEntity();
+					if (IsControlledByClient())
+					{
+						SynchroniseToEntity();
+						ResetModified();
+					}
+					else if (SharedControl)
+					{
+						// local object was modified, but client is not yet in control > request
+						MajorDomoManager.Instance.RequestControl(Entity);
+					}
 				}
 			}
 		}
@@ -214,7 +225,11 @@ namespace SentienceLab.MajorDomo
 
 		protected abstract void SynchroniseFromEntity();
 
+		protected abstract bool IsModified();
+
 		protected abstract void SynchroniseToEntity();
+
+		protected abstract void ResetModified();
 
 		protected abstract bool CanDisableGameObject();
 

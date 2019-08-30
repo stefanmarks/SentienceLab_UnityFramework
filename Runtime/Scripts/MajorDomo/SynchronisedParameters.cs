@@ -20,7 +20,7 @@ namespace SentienceLab.MajorDomo
 		
 		protected override void Initialise()
 		{
-			m_proxies    = new List<ParameterProxy>();
+			m_proxies   = new List<ParameterProxy>();
 			m_syncState = ESyncState.Idle;
 
 			if (ParameterBaseNode == null)
@@ -94,9 +94,6 @@ namespace SentienceLab.MajorDomo
 					Debug.LogWarningFormat("Could not create proxy for type of parameter '{0}'", param.Name);
 				}
 			}
-
-			Entity.OnEntityUpdated  += EntityValueChanged;
-			Entity.OnControlChanged += EntityControlChanged;
 		}
 
 
@@ -123,9 +120,6 @@ namespace SentienceLab.MajorDomo
 			}
 			m_proxies.Clear();
 
-			Entity.OnEntityUpdated  -= EntityValueChanged;
-			Entity.OnControlChanged -= EntityControlChanged;
-
 			m_syncState = ESyncState.Revoked;
 		}
 
@@ -136,19 +130,28 @@ namespace SentienceLab.MajorDomo
 			{
 				proxy.TransferValueFromEntityToParameter();
 			}
-			ResetSyncState();
+		}
+
+
+		protected override bool IsModified()
+		{
+			return m_syncState == ESyncState.ParameterModified;
 		}
 
 
 		protected override void SynchroniseToEntity()
 		{
-			foreach (var proxy in m_proxies)
-			{
-				proxy.TransferValueFromParameterToEntity();
-			}
-			ResetSyncState();
+			m_syncState = ESyncState.Idle;
 		}
 
+
+		protected override void ResetModified()
+		{
+			if (m_syncState != ESyncState.Revoked)
+			{
+				m_syncState = ESyncState.Idle;
+			}
+		}
 
 		protected override bool CanDisableGameObject()
 		{
@@ -162,58 +165,11 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		protected void ResetSyncState()
-		{
-			if (m_syncState == ESyncState.DoneSyncFromEntity ||
-				m_syncState == ESyncState.DoneSyncToEntity)
-			{
-				// sync done, give it one more cycle before becoming idle
-				m_syncState = ESyncState.SyncFinished;
-			}
-			else if (m_syncState == ESyncState.SyncFinished)
-			{
-				// "rest" cycle done
-				m_syncState = ESyncState.Idle;
-			}
-		}
-
-
 		public bool Registered
 		{
 			get
 			{
 				return Entity.State == EntityData.EntityState.Registered;
-			}
-		}
-
-
-		private void EntityControlChanged(uint _newClientUID)
-		{
-			if (Entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID) && (m_syncState == ESyncState.RequestSyncToEntity))
-			{
-				// entity is under control now > copy parameter values over
-				SynchroniseToEntity();
-				m_syncState = ESyncState.DoneSyncToEntity;
-			}
-			else if (Entity.State == EntityData.EntityState.Revoked)
-			{
-				Debug.LogWarningFormat("Parameter entity {0} was revoked", Entity.Name);
-				m_syncState = ESyncState.Revoked;
-			}
-			else if (Entity.ClientUID == ClientData.UID_SERVER)
-			{
-				Debug.LogFormat("Parameter entity {0} was released to server", Entity.Name);
-			}
-		}
-
-
-		private void EntityValueChanged()
-		{
-			if (Registered && ((m_syncState == ESyncState.Idle) || (m_syncState == ESyncState.DoneSyncFromEntity)))
-			{
-				m_syncState = ESyncState.RequestSyncFromEntity;
-				SynchroniseFromEntity();
-				m_syncState = ESyncState.DoneSyncFromEntity;
 			}
 		}
 
@@ -236,21 +192,9 @@ namespace SentienceLab.MajorDomo
 
 			private void ParameterValueChanged(ParameterBase _parameter)
 			{
-				if (m_parent.Registered && 
-					((m_parent.m_syncState == ESyncState.Idle) || (m_parent.m_syncState == ESyncState.DoneSyncToEntity)))
+				if (m_parent.m_syncState == ESyncState.Idle) 
 				{
-					m_parent.m_syncState = ESyncState.RequestSyncToEntity;
-					if (m_parent.Entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID))
-					{
-						// transfer directly
-						TransferValueFromParameterToEntity();
-						m_parent.m_syncState = ESyncState.DoneSyncToEntity;
-					}
-					else
-					{
-						// need to request control first and copy value when that is done
-						MajorDomoManager.Instance.RequestControl(m_parent.Entity);
-					}
+					m_parent.m_syncState = ESyncState.ParameterModified;
 				}
 			}
 
@@ -546,12 +490,9 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		protected enum ESyncState {
-			Idle,
-			RequestSyncToEntity, DoneSyncToEntity,
-			RequestSyncFromEntity, DoneSyncFromEntity,
-			SyncFinished,
-			Revoked
+		protected enum ESyncState
+		{
+			Idle, ParameterModified, Revoked
 		}
 
 		protected ESyncState m_syncState;
