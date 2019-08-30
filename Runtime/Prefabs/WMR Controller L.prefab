@@ -836,6 +836,7 @@ MonoBehaviour:
   trackingLostBehaviour: 1
   updateType: 0
   PositionOffset: {x: 0, y: 0, z: 0}
+  RotationOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &4938461545883612572
 GameObject:
   m_ObjectHideFlags: 0
