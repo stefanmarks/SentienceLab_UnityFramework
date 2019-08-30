@@ -238,6 +238,13 @@ namespace SentienceLab.MajorDomo
 
 				Entity = null;
 			}
+			else if (m_oldControlledByClient != IsControlledByClient)
+			{
+				Debug.LogFormat("Control changed for entity '{0}' to '{1}'",
+					Entity.ToString(true, false), IsControlledByClient ? "client" : "server");
+				m_oldControlledByClient = IsControlledByClient;
+				m_controlChangeCooldown = 10;
+			}
 		}
 
 
@@ -263,7 +270,8 @@ namespace SentienceLab.MajorDomo
 
 		private bool m_initialised = false;
 
-		private int m_controlChangeCooldown = 0;
+		private bool m_oldControlledByClient;
+		private int  m_controlChangeCooldown = 0;
 
 		protected EntityData Entity { get; private set; }
 	}
