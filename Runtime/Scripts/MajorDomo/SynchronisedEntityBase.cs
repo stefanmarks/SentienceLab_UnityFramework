@@ -67,6 +67,7 @@ namespace SentienceLab.MajorDomo
 			EntityName = EntityName.Replace("{GAMEOBJECT}", this.gameObject.name);
 
 			Entity = null;
+			m_controlChangeCooldown = 0;
 
 			MajorDomoManager.Instance.OnClientUnregistered   += delegate (ClientData _c)       { CheckEntity(); };
 			MajorDomoManager.Instance.OnEntitiesPublished    += delegate (List<EntityData> _l) { CheckEntity(); };
