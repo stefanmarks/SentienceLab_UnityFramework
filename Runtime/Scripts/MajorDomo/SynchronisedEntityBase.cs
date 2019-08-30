@@ -16,8 +16,18 @@ namespace SentienceLab.MajorDomo
 				 "The string \"{GAMEOBJECT}\" will be automatically replaced by the game object name.")]
 		public string EntityName = "";
 
+		/// <summary>
+		/// Mode of synchronisation. Which part of the connection is the "master" and in control.
+		/// </summary>
+		/// 
+		public enum ESynchronisationMode
+		{
+			Client,
+			Server
+		}
+
 		[Tooltip("Mode for the entity.\nClient: object is controlled by the client.\nServer: objects is controlled by the server/another client")]
-		public MajorDomoManager.SynchronisationMode SynchronisationMode = MajorDomoManager.SynchronisationMode.Client;
+		public ESynchronisationMode SynchronisationMode = ESynchronisationMode.Client;
 
 		[Tooltip("Entity control can be shared with other clients")]
 		public bool SharedControl = false;
@@ -63,7 +73,7 @@ namespace SentienceLab.MajorDomo
 			MajorDomoManager.Instance.OnEntitiesRevoked      += delegate (List<EntityData> _l) { CheckEntity(); };
 			MajorDomoManager.Instance.OnEntityControlChanged += delegate (List<EntityData> _l) { CheckEntity(); };
 
-			if (SynchronisationMode == MajorDomoManager.SynchronisationMode.Server)
+			if (SynchronisationMode == ESynchronisationMode.Server)
 			{
 				if (CanDisableGameObject()) gameObject.SetActive(false);
 			}
@@ -72,31 +82,35 @@ namespace SentienceLab.MajorDomo
 
 		public void Update()
 		{
-			if ((Entity != null) && (Entity.State == EntityData.EntityState.Registered))
+			if ((Entity == null) || (Entity.State != EntityData.EntityState.Registered)) return;
+			
+			if (SynchronisationMode == ESynchronisationMode.Server)
 			{
-				if (SynchronisationMode == MajorDomoManager.SynchronisationMode.Server)
+				if (Entity.IsUpdated())
 				{
-					if (Entity.IsUpdated())
-					{
-						SynchroniseFromEntity();
-						Entity.ResetUpdated();
-						// counteract callbacks from changing values
-						ResetModified();
-					}
+					SynchroniseFromEntity();
+					Entity.ResetUpdated();
+					// counteract callbacks from changing values
+					ResetModified();
 				}
-				else if (IsModified())
+			}
+			else if (IsModified())
+			{
+				if (IsControlledByClient())
 				{
-					if (IsControlledByClient())
-					{
-						SynchroniseToEntity();
-						ResetModified();
-					}
-					else if (SharedControl)
-					{
-						// local object was modified, but client is not yet in control > request
-						MajorDomoManager.Instance.RequestControl(Entity);
-					}
+					SynchroniseToEntity();
+					ResetModified();
 				}
+				else if (SharedControl && (m_controlChangeCooldown == 0))
+				{
+					// local object was modified, but client is not yet in control > request
+					MajorDomoManager.Instance.RequestControl(Entity);
+				}
+			}
+
+			if (m_controlChangeCooldown > 0) 
+			{
+				m_controlChangeCooldown--;
 			}
 		}
 
@@ -104,7 +118,7 @@ namespace SentienceLab.MajorDomo
 		public void OnDisable()
 		{
 			// make sure last state is synchronised
-			if (SynchronisationMode == MajorDomoManager.SynchronisationMode.Client)
+			if (SynchronisationMode == ESynchronisationMode.Client)
 			{
 				SynchroniseToEntity();
 			}
@@ -114,9 +128,13 @@ namespace SentienceLab.MajorDomo
 		public void OnEnable()
 		{
 			// make sure current state is synchronised
-			if (SynchronisationMode == MajorDomoManager.SynchronisationMode.Client)
+			if (SynchronisationMode == ESynchronisationMode.Client)
 			{
 				SynchroniseToEntity();
+			}
+			else
+			{
+				SynchroniseFromEntity();
 			}
 		}
 
@@ -135,7 +153,7 @@ namespace SentienceLab.MajorDomo
 					Persistent    = Entity.IsPersistent();
 					SharedControl = Entity.AllowsSharedControl();
 
-					if (SynchronisationMode == MajorDomoManager.SynchronisationMode.Server)
+					if (SynchronisationMode == ESynchronisationMode.Server)
 					{
 						// server authority > update immediately
 						SynchroniseFromEntity();
@@ -157,7 +175,7 @@ namespace SentienceLab.MajorDomo
 				else
 				{
 					// entity not found. let's create and publish it
-					if ((SynchronisationMode == MajorDomoManager.SynchronisationMode.Client) && MajorDomoManager.Instance.IsConnected())
+					if ((SynchronisationMode == ESynchronisationMode.Client) && MajorDomoManager.Instance.IsConnected())
 					{
 						// Create and publish entity and then wait for the callback when server has acknowledged
 						// then find the actual variables in the acknowledged entity version
@@ -185,7 +203,7 @@ namespace SentienceLab.MajorDomo
 
 				DestroyVariables();
 
-				if (SynchronisationMode == MajorDomoManager.SynchronisationMode.Server)
+				if (SynchronisationMode == ESynchronisationMode.Server)
 				{
 					if (CanDisableGameObject()) gameObject.SetActive(false);
 				}
@@ -196,14 +214,17 @@ namespace SentienceLab.MajorDomo
 			{
 				// control might have changed. check for that
 
-				if (IsControlledByClient())
+				if (SynchronisationMode == ESynchronisationMode.Server && IsControlledByClient())
 				{
 					// this entity is now controlled by this client
-					SynchronisationMode = MajorDomoManager.SynchronisationMode.Client;
+					SynchronisationMode = ESynchronisationMode.Client;
+					m_controlChangeCooldown = 10;
 				}
-				else
+				else if (SynchronisationMode == ESynchronisationMode.Client && !IsControlledByClient())
 				{
-					SynchronisationMode = MajorDomoManager.SynchronisationMode.Server;
+					// this entity is now controlled by the server
+					SynchronisationMode = ESynchronisationMode.Server;
+					m_controlChangeCooldown = 10;
 				}
 			}
 		}
@@ -236,6 +257,8 @@ namespace SentienceLab.MajorDomo
 		protected abstract string GetEntityTypeName();
 
 		private bool m_initialised = false;
+
+		private int m_controlChangeCooldown = 0;
 
 		protected EntityData Entity { get; private set; }
 	}
