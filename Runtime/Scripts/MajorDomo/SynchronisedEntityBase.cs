@@ -32,10 +32,10 @@ namespace SentienceLab.MajorDomo
 
 		public bool IsControlledByClient {
 			get {
-				return 
-					(Entity != null) && (MajorDomoManager.Instance != null) &&
-					MajorDomoManager.Instance.IsConnected() && 
-					Entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID);
+				if (Entity == null) return true;
+				if (MajorDomoManager.Instance == null) return true;
+				if (!MajorDomoManager.Instance.IsConnected()) return true;
+				return Entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID);
 			}
 			private set { }
 		}

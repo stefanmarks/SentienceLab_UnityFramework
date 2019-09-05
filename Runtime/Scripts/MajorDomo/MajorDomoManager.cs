@@ -45,7 +45,7 @@ namespace SentienceLab.MajorDomo
 			[Tooltip("List of MajorDomo servers/ports to query and their timeout values in seconds")]
 			public List<ServerInfo> Servers;
 
-			[Tooltip("Automatic connect delay after startup in seconds")]
+			[Tooltip("Automatic connect delay after startup in seconds (0: Don't Autoconnect)")]
 			public float AutoConnectDelay = 0.1f;
 
 			[Tooltip("Automatic disconnect delay after receiving server shutdown event in seconds")]
@@ -58,12 +58,6 @@ namespace SentienceLab.MajorDomo
 		[ContextMenuItem("Load configuration from config file", "LoadConfiguration")]
 		[ContextMenuItem("Save configuration to config file", "SaveConfiguration")]
 		public Configuration configuration;
-
-		[Tooltip("The client automatically connects after start or disconnect")]
-		public bool AutoConnect = true;
-
-		[Tooltip("Display buttons for connect/disconnect")]
-		public bool UseGUI = false;
 
 
 		/// <summary>
@@ -178,7 +172,7 @@ namespace SentienceLab.MajorDomo
 
 			ReplaceSpecialApplicationNameParts();
 
-			if (AutoConnect) StartCoroutine(AutoConnectAsync());
+			if (configuration.AutoConnectDelay > 0) StartCoroutine(AutoConnectAsync());
 
 			// auto-register objects that use MajorDomo
 			IAutoRegister[] autoRegisterObjects = Resources.FindObjectsOfTypeAll<SynchronisedEntityBase>();
@@ -503,28 +497,6 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public void OnGUI()
-		{
-			if (UseGUI)
-			{
-				if (m_state == ManagerState.Disconnected)
-				{
-					if (GUI.Button(m_rectConnectBtnPos, "Connect"))
-					{
-						Connect();
-					}
-				}
-				else if (m_state == ManagerState.Connected)
-				{
-					if (GUI.Button(m_rectConnectBtnPos, "Disconnect"))
-					{
-						Disconnect();
-					}
-				}
-			}
-		}
-
-
 		public void OnApplicationQuit()
 		{
 			// just to be sure...
@@ -571,11 +543,8 @@ namespace SentienceLab.MajorDomo
 
 		private IEnumerator AutoConnectAsync()
 		{
-			while (AutoConnect && !IsConnected())
-			{
-				yield return new WaitForSeconds(configuration.AutoConnectDelay);
-				Connect();
-			}
+			yield return new WaitForSeconds(configuration.AutoConnectDelay);
+			Connect();
 		}
 
 
