@@ -183,7 +183,7 @@ namespace SentienceLab.MajorDomo
 			{
 				m_valRotation.Modify(ReferenceTransform != null ?
 					Quaternion.Inverse(ReferenceTransform.rotation) * TargetTransform.rotation :
-					ReferenceTransform.rotation
+					TargetTransform.rotation
 				);
 			}
 
