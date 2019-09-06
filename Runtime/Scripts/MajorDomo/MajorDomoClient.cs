@@ -807,6 +807,8 @@ namespace SentienceLab.MajorDomo
 
 		private void ServerEvent_ClientConnected(AUT_WH.MajorDomoProtocol.ServerEvent_ClientConnected _event)
 		{
+			if (!_event.Client.HasValue) return;
+
 			var clientInformation = _event.Client.Value;
 			ClientData client = new ClientData(clientInformation);
 			// don't react to this client being announced
