@@ -93,6 +93,7 @@ namespace SentienceLab.MajorDomo
 			{
 				_entity.AddValue_Vector3D(EntityValue.POSITION, transform.localPosition);
 			}
+
 			if (DoRot())
 			{
 				_entity.AddValue_Quaternion(EntityValue.ROTATION, transform.localRotation);
@@ -158,8 +159,15 @@ namespace SentienceLab.MajorDomo
 
 		protected override bool IsModified()
 		{
-			// assume constant movement
-			return true;
+			if (!m_modified)
+			{
+				if (DoTrans() && ((m_oldPosition - this.transform.position).magnitude > 0.01) )
+				{
+					m_modified = true;
+					m_oldPosition = this.transform.position;
+				}
+			}
+			return m_modified;
 		}
 
 
@@ -196,7 +204,7 @@ namespace SentienceLab.MajorDomo
 
 		protected override void ResetModified()
 		{
-			// nothing to do
+			m_modified = false;
 		}
 
 
@@ -217,5 +225,8 @@ namespace SentienceLab.MajorDomo
 		private EntityValue_Quaternion m_valRotation;
 		private EntityValue_Vector3D   m_valScale;
 		private EntityValue_Colour     m_valueColour;
+
+		private Vector3 m_oldPosition;
+		private bool    m_modified;
 	}
 }
