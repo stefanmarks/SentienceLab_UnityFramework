@@ -54,11 +54,6 @@ namespace SentienceLab.MajorDomo
 
 		protected override void Initialise()
 		{
-			if (ReferenceTransform == null)
-			{
-				ReferenceTransform = transform.root;
-			}
-
 			if (TargetTransform == null)
 			{
 				TargetTransform = this.transform;
@@ -140,9 +135,24 @@ namespace SentienceLab.MajorDomo
 				TargetTransform.gameObject.SetActive(true);
 			}
 
-			if (m_valPosition != null) TargetTransform.position   = ReferenceTransform.TransformPoint(m_valPosition.Value);
-			if (m_valRotation != null) TargetTransform.rotation   = ReferenceTransform.rotation * m_valRotation.Value;
-			if (m_valScale    != null) TargetTransform.localScale = m_valScale.Value;
+			if (m_valPosition != null)
+			{
+				TargetTransform.position = ReferenceTransform != null ?
+					ReferenceTransform.TransformPoint(m_valPosition.Value) :
+					m_valPosition.Value;
+			}
+
+			if (m_valRotation != null)
+			{
+				TargetTransform.rotation = ReferenceTransform != null ?
+					ReferenceTransform.rotation * m_valRotation.Value :
+					m_valRotation.Value;
+			}
+
+			if (m_valScale != null)
+			{
+				TargetTransform.localScale = m_valScale.Value;
+			}
 		}
 
 
@@ -155,10 +165,32 @@ namespace SentienceLab.MajorDomo
 
 		protected override void SynchroniseToEntity()
 		{
-			if (m_valEnabled  != null) m_valEnabled.Modify(TargetTransform.gameObject.activeSelf);
-			if (m_valPosition != null) m_valPosition.Modify(ReferenceTransform.InverseTransformPoint(TargetTransform.position));
-			if (m_valRotation != null) m_valRotation.Modify(Quaternion.Inverse(ReferenceTransform.rotation) * TargetTransform.rotation);
-			if (m_valScale    != null) m_valScale.Modify(TargetTransform.localScale);
+			if (m_valEnabled != null)
+			{
+				m_valEnabled.Modify(TargetTransform.gameObject.activeSelf);
+			}
+
+			if (m_valPosition != null)
+			{
+				m_valPosition.Modify(
+					ReferenceTransform != null ?
+						ReferenceTransform.InverseTransformPoint(TargetTransform.position) :
+						TargetTransform.position
+				);
+			}
+
+			if (m_valRotation != null)
+			{
+				m_valRotation.Modify(ReferenceTransform != null ?
+					Quaternion.Inverse(ReferenceTransform.rotation) * TargetTransform.rotation :
+					ReferenceTransform.rotation
+				);
+			}
+
+			if (m_valScale != null)
+			{
+				m_valScale.Modify(TargetTransform.localScale);
+			}
 		}
 
 
