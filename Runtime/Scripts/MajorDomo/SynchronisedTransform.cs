@@ -51,6 +51,9 @@ namespace SentienceLab.MajorDomo
 		[Tooltip("What to do when the synchronisation is lost")]
 		public ESyncLostBehaviour SyncLostBehaviour = ESyncLostBehaviour.Disable;
 
+		[Tooltip("How much translation can happen before synchronisation is requested")]
+		public float MovementThreshold = 0.001f;
+
 
 		protected override void Initialise()
 		{
@@ -161,7 +164,7 @@ namespace SentienceLab.MajorDomo
 		{
 			if (!m_modified)
 			{
-				if (DoTrans() && ((m_oldPosition - this.transform.position).magnitude > 0.01) )
+				if (DoTrans() && ((m_oldPosition - this.transform.position).magnitude > MovementThreshold) )
 				{
 					m_modified = true;
 					m_oldPosition = this.transform.position;
