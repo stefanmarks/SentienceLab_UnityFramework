@@ -749,32 +749,53 @@ namespace SentienceLab.MajorDomo
 				switch (m_serverEvent.EventType)
 				{
 					case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_ClientConnected:
-						ServerEvent_ClientConnected(m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ClientConnected>().Value);
-						break;
+						{
+							var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ClientConnected>();
+							if (evt.HasValue) ServerEvent_ClientConnected(evt.Value);
+							break;
+						}
 
 					case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_ClientDisconnected:
-						ServerEvent_ClientDisconnected(m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ClientDisconnected>().Value);
-						break;
+						{
+							var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ClientDisconnected>();
+							if (evt.HasValue) ServerEvent_ClientDisconnected(evt.Value);
+							break;
+						}
 
 					case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_EntitiesPublished:
-						ServerEvent_EntitiesPublished(m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_EntitiesPublished>().Value);
-						break;
+						{
+							var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_EntitiesPublished>();
+							if (evt.HasValue) ServerEvent_EntitiesPublished(evt.Value);
+							break;
+						}
 
 					case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_EntitiesRevoked:
-						ServerEvent_EntitiesRevoked(m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_EntitiesRevoked>().Value);
-						break;
+						{
+							var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_EntitiesRevoked>();
+							if (evt.HasValue) ServerEvent_EntitiesRevoked(evt.Value);
+							break;
+						}
 
 					case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_EntitiesChangedClient:
-						ServerEvent_EntityControlChanged(m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_EntitiesChangedClient>().Value);
-						break;
+						{
+							var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_EntitiesChangedClient>();
+							if (evt.HasValue) ServerEvent_EntityControlChanged(evt.Value);
+							break;
+						}
 
 					case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_ClientBroadcast:
-						ServerEvent_ClientBroadcast(m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ClientBroadcast>().Value);
-						break;
+						{
+							var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ClientBroadcast>();
+							if (evt.HasValue) ServerEvent_ClientBroadcast(evt.Value);
+							break;
+						}
 
 					case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_ServerShutdown:
-						ServerEvent_ServerShutdown(m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ServerShutdown>().Value);
-						break;
+						{
+							var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ServerShutdown>();
+							if (evt.HasValue) ServerEvent_ServerShutdown(evt.Value);
+							break;
+						}
 
 					default:
 						Debug.LogWarning("Unhandled server event " + m_serverEvent.EventType.ToString());
