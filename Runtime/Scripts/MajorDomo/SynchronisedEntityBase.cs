@@ -30,12 +30,25 @@ namespace SentienceLab.MajorDomo
 		[Tooltip("Mode for the entity.\nClient: object is controlled by the client.\nServer: objects is controlled by the server/another client")]
 		public ESynchronisationMode SynchronisationMode = ESynchronisationMode.Client;
 
-		public bool IsControlledByClient {
+		public bool IsControlledByClient
+		{
 			get {
-				if (Entity == null) return true;
-				if (MajorDomoManager.Instance == null) return true;
-				if (!MajorDomoManager.Instance.IsConnected()) return true;
+				if (Entity == null) return false;
+				if (MajorDomoManager.Instance == null) return false;
+				if (!MajorDomoManager.Instance.IsConnected()) return false;
 				return Entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID);
+			}
+			private set { }
+		}
+
+		public bool IsControlledByServer
+		{
+			get
+			{
+				if (Entity == null) return false;
+				if (MajorDomoManager.Instance == null) return false;
+				if (!MajorDomoManager.Instance.IsConnected()) return false;
+				return !Entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID);
 			}
 			private set { }
 		}
@@ -115,7 +128,7 @@ namespace SentienceLab.MajorDomo
 			if ((SynchronisationMode == ESynchronisationMode.Server) || 
 				(SynchronisationMode == ESynchronisationMode.ClientAndServer))
 			{
-				if (!IsControlledByClient && Entity.IsUpdated())
+				if (IsControlledByServer && Entity.IsUpdated())
 				{
 					SynchroniseFromEntity();
 					Entity.ResetUpdated();
@@ -126,7 +139,7 @@ namespace SentienceLab.MajorDomo
 				{
 					if (IsModified() && (m_controlChangeCooldown == 0))
 					{
-						if (!IsControlledByClient)
+						if (IsControlledByServer)
 						{
 							// no server updates for some time and client wants to take control
 							MajorDomoManager.Instance.RequestControl(Entity);
@@ -165,7 +178,8 @@ namespace SentienceLab.MajorDomo
 				SynchroniseToEntity();
 				ResetModified();
 			}
-			else
+			else if((SynchronisationMode == ESynchronisationMode.Server) ||
+				    ((SynchronisationMode == ESynchronisationMode.ClientAndServer) && IsControlledByServer))
 			{
 				SynchroniseFromEntity();
 				Entity.ResetUpdated();
@@ -241,7 +255,7 @@ namespace SentienceLab.MajorDomo
 
 				DestroyVariables();
 
-				if (!IsControlledByClient)
+				if (IsControlledByServer)
 				{
 					if (CanDisableGameObject()) gameObject.SetActive(false);
 				}
@@ -253,7 +267,7 @@ namespace SentienceLab.MajorDomo
 				Debug.LogFormat("Control changed for entity '{0}' to '{1}'",
 					Entity.ToString(true, false), IsControlledByClient ? "client" : "server");
 				m_oldControlledByClient = IsControlledByClient;
-				m_controlChangeCooldown = !IsControlledByClient ? CONTROL_COOLDOWN_COUNT : 0;
+				m_controlChangeCooldown = m_oldControlledByClient ? 0 : CONTROL_COOLDOWN_COUNT;
 			}
 		}
 
