@@ -159,6 +159,8 @@ namespace SentienceLab.MajorDomo
 
 		public void OnDisable()
 		{
+			if (Entity == null) return;
+			
 			// make sure last state is synchronised
 			if ((SynchronisationMode == ESynchronisationMode.Client) || 
 				((SynchronisationMode == ESynchronisationMode.ClientAndServer) && IsControlledByClient))
@@ -171,6 +173,8 @@ namespace SentienceLab.MajorDomo
 
 		public void OnEnable()
 		{
+			if (Entity == null) return;
+
 			// make sure current state is synchronised
 			if ((SynchronisationMode == ESynchronisationMode.Client) ||
 				((SynchronisationMode == ESynchronisationMode.ClientAndServer) && IsControlledByClient))
@@ -178,7 +182,7 @@ namespace SentienceLab.MajorDomo
 				SynchroniseToEntity();
 				ResetModified();
 			}
-			else if((SynchronisationMode == ESynchronisationMode.Server) ||
+			else if ((SynchronisationMode == ESynchronisationMode.Server) ||
 				    ((SynchronisationMode == ESynchronisationMode.ClientAndServer) && IsControlledByServer))
 			{
 				SynchroniseFromEntity();
