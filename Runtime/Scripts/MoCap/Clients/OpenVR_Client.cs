@@ -99,7 +99,7 @@ namespace SentienceLab.MoCap
 					TrackedDevice trackedDevice = null;
 
 					string deviceName = GetPropertyString(index, ETrackedDeviceProperty.Prop_ModelNumber_String);
-					ProcessDeviceName(ref deviceName);
+					ProcessDeviceName(ref deviceName, deviceClass);
 					DetermineDeviceIndex(ref deviceName);
 
 					if (deviceClass == ETrackedDeviceClass.Controller)
@@ -188,13 +188,23 @@ namespace SentienceLab.MoCap
 		}
 
 
-		private void ProcessDeviceName(ref string deviceName)
+		private void ProcessDeviceName(ref string deviceName, ETrackedDeviceClass _class)
 		{
 			// remove spaces and dashes
 			deviceName = deviceName.Replace(" ", "").Replace("-", "");
 			// handle product names
 			deviceName = deviceName.Replace("MixedReality", "MR").Replace("WindowsMR", "WMR");
 			deviceName = deviceName.Replace("VIVE", "Vive");
+			
+			if (deviceName.Length == 0)
+			{
+				// shouldn't happen, ugly fix for the Tracker V1 not having a name
+				if (_class== ETrackedDeviceClass.GenericTracker)
+				{
+					deviceName = "ViveTracker";
+				}
+			}
+
 			// handle IDs for left/right handed
 			if (deviceName.Contains(":0x045E/0x065B"))
 			{
