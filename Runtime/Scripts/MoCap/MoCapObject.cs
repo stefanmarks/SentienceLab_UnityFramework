@@ -235,7 +235,7 @@ namespace SentienceLab.MoCap
 					if ( (trackingUsage == TrackingUsage.PositionOnly) ||
 						 (trackingUsage == TrackingUsage.PositionAndRotation))
 					{
-						obj.transform.localPosition = data.pos + PositionOffset;
+						obj.transform.localPosition = data.pos + (obj.transform.localRotation * PositionOffset);
 					}
 					obj.SetActive(true);
 					disabled = false;
