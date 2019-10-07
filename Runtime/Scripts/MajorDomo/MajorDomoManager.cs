@@ -140,6 +140,8 @@ namespace SentienceLab.MajorDomo
 
 		public void Awake()
 		{
+			configuration.LoadConfiguration();
+
 			// force instantiation
 			m_client = new MajorDomoClient();
 

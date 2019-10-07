@@ -309,6 +309,8 @@ namespace SentienceLab.MoCap
 		/// 
 		private void CreateManager()
 		{
+			configuration.LoadConfiguration();
+
 			sceneListeners = new List<SceneListener>();
 
 			clientMutex.WaitOne();

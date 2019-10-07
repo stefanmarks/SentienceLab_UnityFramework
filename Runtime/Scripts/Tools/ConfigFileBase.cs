@@ -18,17 +18,17 @@ namespace SentienceLab
 
 		protected string ConfigFilePurpose;
 
-        public ConfigFileBase(string _filename, string _purpose)
+		public ConfigFileBase(string _filename, string _purpose)
 		{
 			ConfigFileName    = _filename;
 			ConfigFilePurpose = _purpose;
-        }
+		}
 
 
-        public void LoadConfiguration()
-        {
-            try
-            {
+		public void LoadConfiguration()
+		{
+			try
+			{
 				string configFilePath = Path.Combine(Application.dataPath, "../");
 				configFilePath = Path.Combine(configFilePath, ConfigFileName);
 				configFilePath = Path.GetFullPath(configFilePath);
@@ -39,15 +39,15 @@ namespace SentienceLab
 				JsonUtility.FromJsonOverwrite(json, this);
 
 				json = JsonUtility.ToJson(this);
-                Debug.LogFormat("Configuration for {0}: {1}", 
+				Debug.LogFormat("Configuration for {0}: {1}", 
 					ConfigFilePurpose, json);
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogWarningFormat("Error while loading {0} configuration: ({1})",
+			}
+			catch (System.Exception e)
+			{
+				Debug.LogWarningFormat("Error while loading {0} configuration: ({1})",
 					ConfigFilePurpose, e);
-            }
-        }
+			}
+		}
 
 		public void SaveConfiguration()
 		{
