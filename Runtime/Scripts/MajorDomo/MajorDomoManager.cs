@@ -501,7 +501,8 @@ namespace SentienceLab.MajorDomo
 		{
 			// just to be sure...
 			m_runThread = false;
-			m_workerThread.Join();
+			m_workerThread?.Join();
+			m_workerThread = null;
 		}
 
 
