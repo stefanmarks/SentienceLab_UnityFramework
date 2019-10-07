@@ -104,6 +104,7 @@ namespace SentienceLab.MajorDomo
 			else if (param is Parameter_Integer)     { proxy = new ParameterProxy_Integer(    _entity, (Parameter_Integer)     param); }
 			else if (param is Parameter_Double)      { proxy = new ParameterProxy_Double(     _entity, (Parameter_Double)      param); }
 			else if (param is Parameter_DoubleRange) { proxy = new ParameterProxy_DoubleRange(_entity, (Parameter_DoubleRange) param); }
+			else if (param is Parameter_String)      { proxy = new ParameterProxy_String(     _entity, (Parameter_String)      param); }
 			else if (param is Parameter_List)        { proxy = new ParameterProxy_List(       _entity, (Parameter_List)        param); }
 			else if (param is Parameter_Vector3)     { proxy = new ParameterProxy_Vector3(    _entity, (Parameter_Vector3)     param); }
 
@@ -407,6 +408,52 @@ namespace SentienceLab.MajorDomo
 
 			private Parameter_DoubleRange m_parameter;
 			private EntityValue_Float64   m_entityValueMin, m_entityValueMax;
+		}
+
+
+		private class ParameterProxy_String : ParameterProxy
+		{
+			public ParameterProxy_String(EntityData _entity, Parameter_String _parameter) :
+				base(_parameter)
+			{
+				m_parameter = _parameter;
+				if (_entity.State == EntityData.EntityState.Registered)
+				{
+					m_entityValue = _entity.GetValue_String(m_parameter.Name);
+				}
+				else
+				{
+					m_entityValue = _entity.AddValue_String(m_parameter.Name, m_parameter.Value);
+				}
+			}
+
+
+			public override void TransferValueFromParameterToEntity()
+			{
+				m_entityValue.Modify(m_parameter.Value);
+			}
+
+
+			public override void TransferValueFromEntityToParameter()
+			{
+				m_parameter.Value = m_entityValue.Value;
+			}
+
+
+			public override bool IsValid()
+			{
+				return (m_entityValue != null);
+			}
+
+
+			public override string GetTypeName()
+			{
+				return "string";
+			}
+
+
+			private Parameter_String   m_parameter;
+			private EntityValue_String m_entityValue;
 		}
 
 
