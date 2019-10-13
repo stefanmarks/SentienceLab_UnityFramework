@@ -64,7 +64,7 @@ namespace SentienceLab
 				controllerCamera.nearClipPlane   = 0.05f;
 				controllerCamera.farClipPlane    = maxRange;
 				controllerCamera.stereoTargetEye = StereoTargetEyeMask.None;
-				PhysicsRaycaster prc = (PhysicsRaycaster) controllerCamera.gameObject.AddComponent<PhysicsRaycaster>();
+				PhysicsRaycaster prc = controllerCamera.gameObject.AddComponent<PhysicsRaycaster>();
 				prc.eventMask = layerMask;
 
 				// assign event camera to all canvasses
