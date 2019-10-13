@@ -94,8 +94,10 @@ namespace SentienceLab.Data
 			if (!m_updating)
 			{
 				m_updating = true;
-				minimumSlider.value = (float)Warp(Parameter.MapTo01(Parameter.ValueMin));
-				maximumSlider.value = (float)Warp(Parameter.MapTo01(Parameter.ValueMax));
+				float fmin = (float)Warp(Parameter.MapTo01(Parameter.ValueMin));
+				minimumSlider.value = fmin;
+				float fmax = (float)Warp(Parameter.MapTo01(Parameter.ValueMax));
+				maximumSlider.value = fmax;
 				m_updating = false;
 			}
 		}

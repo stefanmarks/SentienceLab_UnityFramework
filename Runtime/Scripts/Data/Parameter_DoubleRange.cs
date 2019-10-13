@@ -146,7 +146,8 @@ namespace SentienceLab.Data
 		///
 		public double MapTo01(double value)
 		{
-			return ((value - this.value.limitMin) / (this.value.limitMax - this.value.limitMin));
+			double range = this.value.limitMax - this.value.limitMin;
+			return (range != 0.0) ? ((value - this.value.limitMin) / range) : 0;
 		}
 
 		/// <summary>
