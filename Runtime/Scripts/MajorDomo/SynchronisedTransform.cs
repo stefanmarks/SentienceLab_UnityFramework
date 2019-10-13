@@ -130,7 +130,7 @@ namespace SentienceLab.MajorDomo
 
 		protected override void SynchroniseFromEntity()
 		{
-			if (m_valEnabled != null)
+			if (m_valEnabled != null && CanDisableGameObject())
 			{
 				TargetTransform.gameObject.SetActive(m_valEnabled.Value);
 			}
@@ -227,7 +227,6 @@ namespace SentienceLab.MajorDomo
 		private EntityValue_Vector3D   m_valPosition;
 		private EntityValue_Quaternion m_valRotation;
 		private EntityValue_Vector3D   m_valScale;
-		private EntityValue_Colour     m_valueColour;
 
 		private Vector3 m_oldPosition;
 		private bool    m_modified;
