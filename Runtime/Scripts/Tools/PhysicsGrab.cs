@@ -15,8 +15,8 @@ namespace SentienceLab.Tools
 		[Tooltip("Name of the input that starts the grab action")]
 		public string InputName;
 
-		[Tooltip("Force to apply")]
-		public float Force = 10;
+		[Tooltip("Grab PID controller")]
+		public PID_Controller3D PID;
 
 		[Tooltip("Tag of elements that can be grabbed")]
 		public string CanGrabTag = "grab";
@@ -58,17 +58,12 @@ namespace SentienceLab.Tools
 		{
 			if (m_handlerActive.IsActive() && (m_activeBody != null))
 			{
-				// calculate necessary velocity to maintain grab
-				Vector3 newPos    = this.transform.position;
+				// set new target position
+				PID.Setpoint = transform.position;
+				// let PID controller work
 				Vector3 grabPoint = m_activeBody.transform.TransformPoint(m_localGrabPoint);
-				Vector3 deltaPos  = newPos - grabPoint;
-				
-				// compensate by body movement
-				Vector3 velocity = m_activeBody.GetPointVelocity(grabPoint);
-				deltaPos -= 0.5f * velocity;
-				if (deltaPos.magnitude > 1) deltaPos.Normalize();
-				Vector3 force = deltaPos * Force;
-				m_activeBody.AddForceAtPosition(force, this.transform.position, ForceMode.Force);
+				Vector3 force = PID.Process(grabPoint);
+				m_activeBody.AddForceAtPosition(force, grabPoint, ForceMode.Force);
 			}
 		}
 
