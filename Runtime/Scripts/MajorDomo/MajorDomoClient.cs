@@ -85,7 +85,9 @@ namespace SentienceLab.MajorDomo
 			if (!IsConnected())
 			{
 				string address = "tcp://" + _serverAddress + ":" + _serverPort;
-				Debug.Log("Trying to connect to MajorDomo server at " + address + "...");
+				Debug.LogFormat(
+					"Trying to connect to MajorDomo server at '{0}'...", 
+					address);
 				try
 				{
 					m_clientRequestSocket = new NetMQ.Sockets.RequestSocket();
@@ -95,7 +97,9 @@ namespace SentienceLab.MajorDomo
 				}
 				catch (Exception e)
 				{
-					Debug.LogWarning("Could not connect to MajorDomo server at " + address + ": " + e.Message);
+					Debug.LogWarningFormat(
+						"Could not connect to MajorDomo server at '{0}': {1}",
+						address, e.Message);
 					Cleanup();
 					return false;
 				}
@@ -141,19 +145,19 @@ namespace SentienceLab.MajorDomo
 						// create other connections for:
 						// server events
 						string serverEventSocket = "tcp://" + _serverAddress + ":" + ack.ServerEventPort;
-						Debug.Log("Server event socket: " + serverEventSocket);
+						Debug.LogFormat("Server event socket: {0}", serverEventSocket);
 						m_serverEventSocket = new NetMQ.Sockets.SubscriberSocket(serverEventSocket);
 						m_serverEventSocket.SubscribeToAnyTopic();
 						m_serverEventSocket.ReceiveReady += ServerEvent_ReceiveReady;
 					
 						// Client updates
 						string clientUpdateSocket = "tcp://" + _serverAddress + ":" + ack.ClientUpdatePort;
-						Debug.Log("Client update socket: " + clientUpdateSocket);
+						Debug.LogFormat("Client update socket: {0}", clientUpdateSocket);
 						m_clientUpdateSocket = new NetMQ.Sockets.PushSocket(clientUpdateSocket);
 					
 						// Server updates
 						string serverUpdateSocket = "tcp://" + _serverAddress + ":" + ack.ServerUpdatePort;
-						Debug.Log("Server update socket: " + serverUpdateSocket);
+						Debug.LogFormat("Server update socket: {0}", serverUpdateSocket);
 						m_serverUpdateSocket = new NetMQ.Sockets.SubscriberSocket(serverUpdateSocket);
 						m_serverUpdateSocket.SubscribeToAnyTopic();
 						m_serverUpdateSocket.ReceiveReady += ServerUpdate_ReceiveReady;
@@ -176,13 +180,17 @@ namespace SentienceLab.MajorDomo
 					else if (m_serverReply.RepType == AUT_WH.MajorDomoProtocol.UServerReply.SvRep_Error)
 					{
 						var error = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_Error>().Value;
-						Debug.LogWarning("MajorDomo server signalled error: " + error.Message);
+						Debug.LogWarningFormat(
+							"MajorDomo server signalled error: {0}",
+							error.Message);
 						Cleanup();
 					}
 				}
 				else
 				{
-					Debug.LogWarning("Could not connect to MajorDomo server at " + address + ": Timeout");
+					Debug.LogWarningFormat(
+						"Could not connect to MajorDomo server at '{0}': Timeout",
+						address);
 					Cleanup();
 				}
 			}
@@ -714,7 +722,9 @@ namespace SentienceLab.MajorDomo
 						if (m_serverReply.RepType == AUT_WH.MajorDomoProtocol.UServerReply.SvRep_Error)
 						{
 							var error = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_Error>().Value;
-							Debug.LogWarning("MajorDomo server signalled error: " + error.Message);
+							Debug.LogWarningFormat(
+								"MajorDomo server signalled error: {0}",
+								error.Message);
 						}
 						else
 						{
@@ -729,7 +739,9 @@ namespace SentienceLab.MajorDomo
 			}
 			catch (Exception e)
 			{
-				Debug.LogWarning("Exception while sending: " + e.Message);
+				Debug.LogWarningFormat(
+					"Exception while sending: {0}", 
+					e.Message);
 			}
 
 			return success;
@@ -798,7 +810,9 @@ namespace SentienceLab.MajorDomo
 						}
 
 					default:
-						Debug.LogWarning("Unhandled server event " + m_serverEvent.EventType.ToString());
+						Debug.LogWarningFormat(
+							"Unhandled server event {0}",
+							m_serverEvent.EventType.ToString());
 						break;
 				}
 			}
@@ -814,7 +828,9 @@ namespace SentienceLab.MajorDomo
 			// don't react to this client being announced
 			if (client.ClientUID != m_client.ClientUID)
 			{
-				Debug.Log("Server event: client connected " + client.ToString());
+				Debug.LogFormat(
+					"Server event: client {0} connected",
+					client.ToString());
 				ClientManager.AddClient(client);
 				OnClientRegistered?.Invoke(client);
 			}
@@ -827,7 +843,9 @@ namespace SentienceLab.MajorDomo
 			ClientData client = ClientManager.GetClientByUID(clientUID);
 			if (client != null)
 			{
-				Debug.Log("Server event: client disconnected " + client.ToString());
+				Debug.LogFormat(
+					"Server event: client {0} disconnected",
+					client.ToString());
 				OnClientUnregistered?.Invoke(client);
 				ClientManager.RemoveClient(client);
 			}
@@ -846,7 +864,8 @@ namespace SentienceLab.MajorDomo
 				{
 					entity = EntityManager.AddEntity(entity);
 					publishedEntities.Add(entity);
-					dbg += entity.ToString(false, false) + ", ";
+					if (dbg.Length > 0) dbg += ", ";
+					dbg += entity.ToString(false, false);
 				}
 			}
 			if (publishedEntities.Count > 0)
@@ -870,7 +889,8 @@ namespace SentienceLab.MajorDomo
 					EntityManager.RemoveEntity(entity);
 					entity.SetRevoked();
 					revokedEntities.Add(entity);
-					dbg += entity.ToString(false, false) + ", ";
+					if (dbg.Length > 0) dbg += ", ";
+					dbg += entity.ToString(false, false);
 				}
 			}
 			// were any of the revoked entities from other clients?
@@ -910,7 +930,9 @@ namespace SentienceLab.MajorDomo
 			// is client valid and not myself?
 			if ((client != null) && (client.ClientUID != m_client.ClientUID))
 			{
-				Debug.Log("Server event: broadcast from client " + client.Name);
+				Debug.LogFormat(
+					"Server event: broadcast from client {0}",
+					client.ToString());
 				Broadcast broadcast = new Broadcast(client, _event);
 				OnClientBroadcastReceived?.Invoke(broadcast);
 			}
@@ -919,7 +941,9 @@ namespace SentienceLab.MajorDomo
 
 		private void ServerEvent_ServerShutdown(AUT_WH.MajorDomoProtocol.ServerEvent_ServerShutdown _event)
 		{
-			Debug.Log("Server event: " + (_event.Rebooting ? "rebooting" : "shutdown"));
+			Debug.LogFormat(
+				"Server event: {0}",
+				(_event.Rebooting ? "rebooting" : "shutdown"));
 			OnServerShutdown?.Invoke(_event.Rebooting);
 		}
 

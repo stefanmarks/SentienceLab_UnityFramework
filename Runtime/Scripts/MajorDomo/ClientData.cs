@@ -31,5 +31,10 @@ namespace SentienceLab.MajorDomo
 			Name = _information.Name;
 			ClientUID = _information.Uid;
 		}
+
+		override public string ToString() 
+		{ 
+			return Name + ":" + ClientUID;
+		}
 	}
 }

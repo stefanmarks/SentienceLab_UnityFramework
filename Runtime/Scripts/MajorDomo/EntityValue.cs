@@ -457,6 +457,11 @@ namespace SentienceLab.MajorDomo
 			}
 		}
 
+		public void Modify(byte[] _value)
+		{
+			Value = _value; // don't bother comparing for difference
+			m_modified = true;
+		}
 
 		override public string ToString() { return base.ToString() + "=byte[" + m_data.Length + "]"; }
 	}
@@ -505,8 +510,13 @@ namespace SentienceLab.MajorDomo
 			}
 		}
 
+		public void Modify(float[] _value)
+		{
+			Value = _value; // don't bother comparing for difference
+			m_modified = true;
+		}
 
-		override public string ToString() { return base.ToString() + "=[" + m_tmpArray.Length + "]"; }
+		override public string ToString() { return base.ToString() + "=[" + m_data.Length / sizeof(float) + "]"; }
 
 		private float[] m_tmpArray = null;
 	}
