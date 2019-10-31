@@ -54,6 +54,9 @@ namespace SentienceLab.MajorDomo
 		[Tooltip("How much translation can happen before synchronisation is requested")]
 		public float MovementThreshold = 0.001f;
 
+		[Tooltip("How much rotation (degrees) can happen before synchronisation is requested")]
+		public float RotationThreshold = 0.1f;
+
 
 		protected override void Initialise()
 		{
@@ -169,6 +172,15 @@ namespace SentienceLab.MajorDomo
 					m_modified = true;
 					m_oldPosition = this.transform.position;
 				}
+				if (DoRot())
+				{
+					float angle = Quaternion.Angle(this.transform.rotation, m_oldRotation);
+					if (angle > RotationThreshold)
+					{
+						m_modified = true;
+						m_oldRotation = this.transform.rotation;
+					}
+				}
 			}
 			return m_modified;
 		}
@@ -228,7 +240,8 @@ namespace SentienceLab.MajorDomo
 		private EntityValue_Quaternion m_valRotation;
 		private EntityValue_Vector3D   m_valScale;
 
-		private Vector3 m_oldPosition;
-		private bool    m_modified;
+		private Vector3    m_oldPosition;
+		private Quaternion m_oldRotation;
+		private bool       m_modified;
 	}
 }
