@@ -157,6 +157,12 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		private void EntityUpdated(EntityData _)
+		{
+			Update();
+		}
+
+
 		public void OnDisable()
 		{
 			if (Entity == null) return;
@@ -220,7 +226,7 @@ namespace SentienceLab.MajorDomo
 						SynchroniseFromEntity();
 					}
 
-					Entity.OnEntityUpdated += Update;
+					Entity.OnEntityUpdated += EntityUpdated;
 
 					Debug.LogFormat("{0} '{1}' synchronised with entity '{2}'",
 						GetEntityTypeName(), gameObject.name, Entity.ToString(true, true));

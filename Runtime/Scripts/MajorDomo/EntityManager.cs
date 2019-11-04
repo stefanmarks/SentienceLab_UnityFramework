@@ -14,36 +14,40 @@ namespace SentienceLab.MajorDomo
 
 		public EntityManager()
 		{
-			entityUidMap = null;
+			m_entityUidMap     = new SortedList<uint, EntityData>();
+			m_clientUID        = ClientData.UID_UNASSIGNED;
+			m_clientEntityList = new List<EntityData>();
+			m_modifiedEntities = new List<EntityData>();
 			Reset();
+		}
+
+
+		public void SetClientUID(uint _clientUID)
+		{
+			m_clientUID = _clientUID;
+			m_rebuildClientEntityList = true;
 		}
 
 
 		public void Reset()
 		{
-			if (entityUidMap == null)
+			while (m_entityUidMap.Count > 0)
 			{
-				entityUidMap = new SortedList<uint, EntityData>();
+				EntityData entity = m_entityUidMap.Values[0];
+				RemoveEntity(entity);
+				entity.SetRevoked();
 			}
-			else
-			{
-				while (entityUidMap.Count > 0)
-				{
-					EntityData entity = entityUidMap.Values[0];
-					RemoveEntity(entity);
-					entity.SetRevoked();
-				}
-			}
+			m_rebuildClientEntityList = true;
 		}
 
 
-		public EntityData CreateClientEntity(string _name, uint _clientUID)
+		public EntityData CreateClientEntity(string _name)
 		{
 			EntityData entity = FindEntity(_name);
 			if (entity != null)
 			{
 				// name is already registered
-				if ((entity.ClientUID != ClientData.UID_SERVER) && (entity.ClientUID != _clientUID))
+				if ((entity.ClientUID != ClientData.UID_SERVER) && (entity.ClientUID != m_clientUID))
 				{
 					// but to some other client. sorry...
 					entity = null;
@@ -56,7 +60,7 @@ namespace SentienceLab.MajorDomo
 
 			if (entity != null)
 			{
-				entity.SetClientUID(_clientUID);
+				entity.SetClientUID(m_clientUID);
 			}
 			return entity;
 		}
@@ -66,7 +70,7 @@ namespace SentienceLab.MajorDomo
 		{
 			EntityData registeredEntity = null;
 		
-			if (entityUidMap.TryGetValue(_entity.EntityUID, out registeredEntity))
+			if (m_entityUidMap.TryGetValue(_entity.EntityUID, out registeredEntity))
 			{
 				if (!_entity.Equals(registeredEntity))
 				{
@@ -76,20 +80,21 @@ namespace SentienceLab.MajorDomo
 			else
 			{
 				registeredEntity = _entity;
-				entityUidMap[_entity.EntityUID] = _entity;
+				m_entityUidMap[_entity.EntityUID] = _entity;
 				Debug.Log("Added entity " + _entity.ToString(true, true));
+				m_rebuildClientEntityList = true;
 			}
 			return registeredEntity;
 		}
 
 
-		public void UpdateEntity(AUT_WH.MajorDomoProtocol.EntityUpdate _update, uint _localClientUID)
+		public EntityData UpdateEntity(AUT_WH.MajorDomoProtocol.EntityUpdate _update)
 		{
 			EntityData entity = null;
-			if (entityUidMap.TryGetValue(_update.EntityUID, out entity))
+			if (m_entityUidMap.TryGetValue(_update.EntityUID, out entity))
 			{
 				// do not update own clients' entities
-				if (entity.ClientUID != _localClientUID)
+				if (entity.ClientUID != m_clientUID)
 				{
 					entity.ReadEntityUpdate(_update);
 				}
@@ -98,13 +103,14 @@ namespace SentienceLab.MajorDomo
 			{
 				Debug.LogWarning("Trying to update invalid server entity with UID = " + _update.EntityUID);
 			}
+			return entity;
 		}
 
 
 		public EntityData FindEntity(uint _uid)
 		{
 			EntityData entity = null;
-			entityUidMap.TryGetValue(_uid, out entity);
+			m_entityUidMap.TryGetValue(_uid, out entity);
 			return entity;
 		}
 
@@ -112,7 +118,7 @@ namespace SentienceLab.MajorDomo
 		public EntityData FindEntity(string _name)
 		{
 			EntityData entity = null;
-			foreach (EntityData e in entityUidMap.Values)
+			foreach (EntityData e in m_entityUidMap.Values)
 			{
 				if (e.Name == _name)
 				{
@@ -124,25 +130,51 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public List<EntityData> GetClientEntities(uint _clientUID)
+		public List<EntityData> GetClientEntities()
 		{
-			List<EntityData> clientEntities = new List<EntityData>();
-			foreach (EntityData entity in entityUidMap.Values)
+			if (m_rebuildClientEntityList)
 			{
-				if (entity.ClientUID == _clientUID)
+				m_clientEntityList.Clear();
+				foreach (EntityData entity in m_entityUidMap.Values)
 				{
-					clientEntities.Add(entity);
+					if (entity.ClientUID == m_clientUID)
+					{
+						m_clientEntityList.Add(entity);
+					}
 				}
+				m_rebuildClientEntityList = false;
 			}
-			return clientEntities;
+			return m_clientEntityList;
+		}
+
+
+		public List<EntityData> GetModifiedEntities()
+		{
+			m_modifiedEntities.Clear();
+			foreach (var entity in GetClientEntities())
+			{
+				if (entity.IsModified()) m_modifiedEntities.Add(entity);
+			}
+			return m_modifiedEntities;
+		}
+
+
+		public void ResetModifiedEntities()
+		{
+			foreach(var entity in m_modifiedEntities)
+			{
+				entity.ResetModified();
+			}
+			m_modifiedEntities.Clear();
 		}
 
 
 		public void RemoveEntity(EntityData _entity)
 		{
-			if (entityUidMap.Remove(_entity.EntityUID))
+			if (m_entityUidMap.Remove(_entity.EntityUID))
 			{
 				Debug.Log("Removed entity " + _entity.ToString(true, false));
+				m_clientEntityList.Remove(_entity); // remove from this list as well (if existing)
 			}
 			else
 			{
@@ -151,6 +183,17 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		private SortedList<uint, EntityData> entityUidMap;
+		public void ChangeEntityControl(EntityData _entity, uint _clientUID)
+		{
+			_entity.SetClientUID(_clientUID);
+			m_rebuildClientEntityList = true;
+		}
+
+
+		private uint                         m_clientUID;
+		private SortedList<uint, EntityData> m_entityUidMap;
+		private readonly List<EntityData>    m_clientEntityList;
+		private bool                         m_rebuildClientEntityList;
+		private readonly List<EntityData>    m_modifiedEntities;
 	}
 }

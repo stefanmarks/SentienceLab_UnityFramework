@@ -73,8 +73,7 @@ namespace SentienceLab.MajorDomo
 			m_clientUpdateSocket  = null;
 			m_serverUpdateSocket  = null;
 
-			clientEntitiesCache = null;
-			m_lastUpdateSent    = DateTime.Now;
+			m_lastUpdateSent = DateTime.Now;
 		}
 
 
@@ -139,6 +138,7 @@ namespace SentienceLab.MajorDomo
 							") with Client UID " + ack.ClientUID);
 
 						m_client = new ClientData(_applicationName, ack.ClientUID);
+						EntityManager.SetClientUID(ack.ClientUID);
 
 						// TODO: Catch any exceptions happening during the following three connections
 
@@ -166,7 +166,7 @@ namespace SentienceLab.MajorDomo
 						m_heartbeatInterval = ack.HeartbeatInterval / 1000.0f;
 
 						m_entityListRetrieved = false;
-
+						
 						success = true;
 
 						if (_retrieveLists)
@@ -282,12 +282,15 @@ namespace SentienceLab.MajorDomo
 
 						Debug.Log(output);
 						m_entityListRetrieved = true;
-						clientEntitiesCache = null; // force re-caching
 
 						success = true;
 
 						// call event handlers
 						OnEntitiesPublished?.Invoke(retrievedEntites);
+						foreach (var entity in retrievedEntites)
+						{
+							entity.InvokeUpdateHandlers();
+						}
 					}
 				}
 			}
@@ -301,7 +304,7 @@ namespace SentienceLab.MajorDomo
 			EntityData entity = null;
 			if ((m_client != null) && m_entityListRetrieved)
 			{
-				entity = EntityManager.CreateClientEntity(_name, m_client.ClientUID);
+				entity = EntityManager.CreateClientEntity(_name);
 			}
 			return entity;
 		}
@@ -356,8 +359,6 @@ namespace SentienceLab.MajorDomo
 
 				if (dbgOK.Length > 0) Debug.Log("Published entities:\n" + dbgOK);
 				if (dbgFail.Length > 0) Debug.LogWarning("Entities that could not be published:\n" + dbgFail);
-
-				clientEntitiesCache = null; // force re-caching
 
 				// call event handlers
 				if (publishedEntities.Count > 0)
@@ -417,8 +418,6 @@ namespace SentienceLab.MajorDomo
 				if (dbgOK.Length > 0) Debug.Log("Revoked entities:\n" + dbgOK);
 				if (dbgFail.Length > 0) Debug.LogWarning("Entities that could not be revoked:\n" + dbgFail);
 
-				clientEntitiesCache = null; // force rebuild of this list
-
 				// call event handlers
 				if (revokedEntities.Count > 0)
 				{
@@ -432,7 +431,7 @@ namespace SentienceLab.MajorDomo
 		{
 			if (m_client == null) return;
 
-			List<EntityData> entities = EntityManager.GetClientEntities(m_client.ClientUID);
+			List<EntityData> entities = EntityManager.GetClientEntities();
 			if (!_includePersistent)
 			{
 				// remove persistent entities
@@ -476,7 +475,7 @@ namespace SentienceLab.MajorDomo
 					if (entityUID > 0)
 					{
 						EntityData entity = EntityManager.FindEntity(entityUID);
-						entity.SetClientUID(m_client.ClientUID);
+						EntityManager.ChangeEntityControl(entity, m_client.ClientUID);
 						controlledEntities.Add(entity);
 						_entities.Remove(entity);
 						dbgOK += "- " + entity.ToString(true, true) + "\n";
@@ -490,8 +489,6 @@ namespace SentienceLab.MajorDomo
 					dbgFail += "- " + _entities[idx].ToString(true, true) + "\n";
 				}
 				if (dbgFail.Length > 0) Debug.LogWarning("Entities that could not be controlled:\n" + dbgFail);
-
-				clientEntitiesCache = null; // force rebuild of this list
 
 				// call event handlers
 				if (controlledEntities.Count > 0)
@@ -528,7 +525,7 @@ namespace SentienceLab.MajorDomo
 					if (entityUID > 0)
 					{
 						EntityData entity = EntityManager.FindEntity(entityUID);
-						entity.SetClientUID(ClientData.UID_SERVER);
+						EntityManager.ChangeEntityControl(entity, ClientData.UID_SERVER);
 						releasedEntities.Add(entity);
 						_entities.Remove(entity);
 						dbgOK += "- " + entity.ToString(true, true) + "\n";
@@ -542,8 +539,6 @@ namespace SentienceLab.MajorDomo
 					dbgFail += "- " + _entities[idx].ToString(true, true) + "\n";
 				}
 				if (dbgFail.Length > 0) Debug.LogWarning("Entities that could not be released:\n" + dbgFail);
-
-				clientEntitiesCache = null; // force rebuild of this list
 
 				// call event handlers
 				if (releasedEntities.Count > 0)
@@ -870,9 +865,12 @@ namespace SentienceLab.MajorDomo
 			}
 			if (publishedEntities.Count > 0)
 			{
-				clientEntitiesCache = null; // force re-caching
 				Debug.Log("Server event: publish entities " + dbg);
 				OnEntitiesPublished?.Invoke(publishedEntities);
+				foreach (var entity in publishedEntities)
+				{
+					entity.InvokeUpdateHandlers();
+				}
 			}
 		}
 
@@ -896,7 +894,6 @@ namespace SentienceLab.MajorDomo
 			// were any of the revoked entities from other clients?
 			if (revokedEntities.Count > 0)
 			{
-				clientEntitiesCache = null; // force re-caching
 				Debug.Log("Server event: revoke entities " + dbg);
 				OnEntitiesRevoked?.Invoke(revokedEntities);
 			}
@@ -912,7 +909,7 @@ namespace SentienceLab.MajorDomo
 				EntityData entity = EntityManager.FindEntity(_event.EntityUIDs(idx));
 				if (entity != null)
 				{
-					entity.SetClientUID(newClientUID);
+					EntityManager.ChangeEntityControl(entity, newClientUID);
 					entities.Add(entity);
 				}
 			}
@@ -950,33 +947,23 @@ namespace SentienceLab.MajorDomo
 
 		private void ProcessModifiedEntities()
 		{
-			// find client entities (or used cached list)
-			if (clientEntitiesCache == null)
-			{
-				clientEntitiesCache = EntityManager.GetClientEntities(m_client.ClientUID);
-			}
+			// find client entities 
+			List<EntityData> modifiedEntities = EntityManager.GetModifiedEntities();
 		
 			// send a packet regularly as heartbeat, even if empty
 			bool sendHeartbeat = (DateTime.Now - m_lastUpdateSent).TotalSeconds > m_heartbeatInterval;
 
 			// is there anything to send at all?
-			if (!sendHeartbeat && clientEntitiesCache.Count == 0) return;
+			if (!sendHeartbeat && modifiedEntities.Count == 0) return;
 
 			// prepare update packet
 			//string dbg = "";
 			m_bufOut.Clear();
 			var listUpdates = new List<FlatBuffers.Offset<AUT_WH.MajorDomoProtocol.EntityUpdate>>();
-			foreach (var entity in clientEntitiesCache)
+			foreach (var entity in modifiedEntities)
 			{
-				if (entity.IsModified())
-				{
-					//dbg += entity.Name + ",";
-					listUpdates.Add(entity.WriteEntityUpdate(m_bufOut, true));
-				}
+				listUpdates.Add(entity.WriteEntityUpdate(m_bufOut));
 			}
-
-			// were there any updates?
-			if (!sendHeartbeat && listUpdates.Count == 0) return;
 
 			//Debug.Log("Sending update for entities " + dbg);
 			var entityInfos = AUT_WH.MajorDomoProtocol.EntityUpdates.CreateUpdatesVector(m_bufOut, listUpdates.ToArray());
@@ -991,6 +978,8 @@ namespace SentienceLab.MajorDomo
 			m_clientUpdateSocket.TrySend(ref m_msgOut, TimeSpan.Zero, false);
 			// remember last update time
 			m_lastUpdateSent = DateTime.Now;
+
+			EntityManager.ResetModifiedEntities();
 		}
 
 
@@ -1003,10 +992,12 @@ namespace SentienceLab.MajorDomo
 				m_entityUpdates = AUT_WH.MajorDomoProtocol.EntityUpdates.GetRootAsEntityUpdates(m_bufIn, m_entityUpdates);
 
 				if (!IsConnected()) return; // in case this packet comes too late
-				uint clientUID = m_client.ClientUID; // cache client UID (in case m_client turns null)
+
+				// read all updates first, then call handlers
+				List<EntityData> updatedEntities = new List<EntityData>();
 
 				// only apply updates from other clients
-				if (m_entityUpdates.ClientUID != clientUID)
+				if (m_entityUpdates.ClientUID != m_client.ClientUID)
 				{
 					// Debug.Log("cUID:" + m_entityUpdates.ClientUID + " " + m_entityUpdates.UpdatesLength + " " + m_entityUpdates.Timestamp);
 					for (int idxUpdate = 0; idxUpdate < m_entityUpdates.UpdatesLength; idxUpdate++)
@@ -1014,16 +1005,25 @@ namespace SentienceLab.MajorDomo
 						var update = m_entityUpdates.Updates(idxUpdate);
 						if (update.HasValue)
 						{
-							EntityManager.UpdateEntity(update.Value, clientUID);
+							EntityData updatedEntity = EntityManager.UpdateEntity(update.Value);
+							if (updatedEntity != null)
+							{
+								updatedEntities.Add(updatedEntity);
+							}
 						}
 					}
+				}
+
+				foreach (var entity in updatedEntities)
+				{
+					entity.InvokeUpdateHandlers();
 				}
 			}
 		}
 
 
-		private DateTime   m_startTime;
-		private ClientData m_client;
+		private readonly DateTime   m_startTime;
+		private          ClientData m_client;
 
 		private NetMQ.Sockets.RequestSocket    m_clientRequestSocket;
 		private NetMQ.Sockets.SubscriberSocket m_serverEventSocket;
@@ -1044,7 +1044,5 @@ namespace SentienceLab.MajorDomo
 		private AUT_WH.MajorDomoProtocol.ServerEvent   m_serverEvent;
 
 		private bool m_entityListRetrieved;
-
-		List<EntityData> clientEntitiesCache;
 	}
 }

@@ -37,10 +37,10 @@ namespace SentienceLab.MajorDomo
 		public static readonly byte MAX_VALUE_COUNT = 250;
 
 
-		public delegate void EntityUpdated();
+		public delegate void EntityUpdated(EntityData _entity);
 		public event EntityUpdated OnEntityUpdated;
 
-		public delegate void ControlChanged(uint _newClientUID);
+		public delegate void ControlChanged(EntityData _entity, uint _oldClientUID);
 		public event ControlChanged OnControlChanged;
 
 
@@ -52,7 +52,8 @@ namespace SentienceLab.MajorDomo
 			State     = EntityState.Created;
 
 			m_properties = _information.Properties;
-			m_values = new List<EntityValue>();
+			m_values     = new List<EntityValue>();
+			m_updated    = false;
 
 			ReadEntityValues(_information);
 
@@ -110,7 +111,7 @@ namespace SentienceLab.MajorDomo
 
 			if (ClientUID != oldClientUID)
 			{
-				OnControlChanged?.Invoke(_clientUID);
+				OnControlChanged?.Invoke(this, oldClientUID);
 			}
 		}
 
@@ -383,14 +384,11 @@ namespace SentienceLab.MajorDomo
 					Debug.LogWarning("Could not create entity value '" + valueInformation.Name + "' for " + ToString());
 				}
 			}
-
-			OnEntityUpdated?.Invoke();
 		}
 
 
 		public void ReadEntityUpdate(AUT_WH.MajorDomoProtocol.EntityUpdate _update)
 		{
-			bool updated = false;
 			// go through the update list
 			for (int valueIdx = 0; valueIdx < _update.ValuesLength; valueIdx++)
 			{
@@ -403,15 +401,10 @@ namespace SentienceLab.MajorDomo
 					if (value.Type == valueUpdate.Type)
 					{
 						// read value and remember if this changed it
-						updated |= value.ReadEntityValue(valueUpdate);
+						m_updated |= value.ReadEntityValue(valueUpdate);
 						// Debug.Log("updated " + Name + "/" + value.Name + ":" + updated);
 					}
 				}
-			}
-		
-			if (updated)
-			{
-				OnEntityUpdated?.Invoke();
 			}
 		}
 
@@ -434,7 +427,7 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public FlatBuffers.Offset<AUT_WH.MajorDomoProtocol.EntityUpdate> WriteEntityUpdate(FlatBuffers.FlatBufferBuilder _builder, bool _resetModifiedFlag)
+		public FlatBuffers.Offset<AUT_WH.MajorDomoProtocol.EntityUpdate> WriteEntityUpdate(FlatBuffers.FlatBufferBuilder _builder)
 		{
 			// prepare list of modified entity values
 			List<FlatBuffers.Offset<AUT_WH.MajorDomoProtocol.EntityValue>> entityValues = new List<FlatBuffers.Offset<AUT_WH.MajorDomoProtocol.EntityValue>>();
@@ -443,7 +436,6 @@ namespace SentienceLab.MajorDomo
 				if (value.IsModified())
 				{
 					entityValues.Add(value.WriteEntityValue(_builder));
-					if (_resetModifiedFlag) value.ResetModified();
 				}
 			}
 			// build the rest of the update structure
@@ -507,13 +499,27 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public bool IsUpdated()
+		public void ResetModified()
 		{
 			foreach (var value in m_values)
 			{
-				if (value.IsUpdated()) return true;
+				value.ResetModified();
 			}
-			return false;
+		}
+
+
+		public bool IsUpdated()
+		{
+			return m_updated;
+		}
+
+
+		public void InvokeUpdateHandlers()
+		{
+			if (IsUpdated())
+			{
+				OnEntityUpdated?.Invoke(this);
+			}
 		}
 
 
@@ -523,6 +529,7 @@ namespace SentienceLab.MajorDomo
 			{
 				value.ResetUpdated();
 			}
+			m_updated = false;
 		}
 
 
@@ -563,6 +570,8 @@ namespace SentienceLab.MajorDomo
 		private ushort m_properties;
 
 		/// <summary>List of entity values</summary>
-		private List<EntityValue> m_values;
+		private readonly List<EntityValue> m_values;
+
+		private bool m_updated;
 	}
 }
