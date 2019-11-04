@@ -73,6 +73,8 @@ namespace SentienceLab.MajorDomo
 			m_clientUpdateSocket  = null;
 			m_serverUpdateSocket  = null;
 
+			m_updatedEntities = new List<EntityData>();
+
 			m_lastUpdateSent = DateTime.Now;
 		}
 
@@ -993,12 +995,12 @@ namespace SentienceLab.MajorDomo
 
 				if (!IsConnected()) return; // in case this packet comes too late
 
-				// read all updates first, then call handlers
-				List<EntityData> updatedEntities = new List<EntityData>();
-
 				// only apply updates from other clients
 				if (m_entityUpdates.ClientUID != m_client.ClientUID)
 				{
+					// read all updates first, then call handlers
+					m_updatedEntities.Clear();
+
 					// Debug.Log("cUID:" + m_entityUpdates.ClientUID + " " + m_entityUpdates.UpdatesLength + " " + m_entityUpdates.Timestamp);
 					for (int idxUpdate = 0; idxUpdate < m_entityUpdates.UpdatesLength; idxUpdate++)
 					{
@@ -1008,15 +1010,14 @@ namespace SentienceLab.MajorDomo
 							EntityData updatedEntity = EntityManager.UpdateEntity(update.Value);
 							if (updatedEntity != null)
 							{
-								updatedEntities.Add(updatedEntity);
+								m_updatedEntities.Add(updatedEntity);
 							}
 						}
 					}
-				}
-
-				foreach (var entity in updatedEntities)
-				{
-					entity.InvokeUpdateHandlers();
+					foreach (var entity in m_updatedEntities)
+					{
+						entity.InvokeUpdateHandlers();
+					}
 				}
 			}
 		}
@@ -1042,6 +1043,8 @@ namespace SentienceLab.MajorDomo
 		private AUT_WH.MajorDomoProtocol.ServerReply   m_serverReply;
 		private AUT_WH.MajorDomoProtocol.EntityUpdates m_entityUpdates;
 		private AUT_WH.MajorDomoProtocol.ServerEvent   m_serverEvent;
+
+		private readonly List<EntityData> m_updatedEntities;
 
 		private bool m_entityListRetrieved;
 	}

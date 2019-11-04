@@ -69,7 +69,8 @@ namespace SentienceLab.MajorDomo
 			State     = EntityState.Created;
 
 			m_properties = 0;
-			m_values = new List<EntityValue>();
+			m_values  = new List<EntityValue>();
+			m_updated = false;
 		}
 
 
@@ -378,6 +379,7 @@ namespace SentienceLab.MajorDomo
 				{
 					m_values.Add(value);
 					value.ReadEntityValue(valueInformation);
+					m_updated = true;
 				}
 				else
 				{
