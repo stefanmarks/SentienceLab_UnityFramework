@@ -453,12 +453,6 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public static bool IsEntityPersistent(EntityData entity)
-		{
-			return entity.IsPersistent();
-		}
-
-
 		public void SetPersistent(bool _persistent)
 		{
 			if (_persistent)

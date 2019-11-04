@@ -383,10 +383,15 @@ namespace SentienceLab.MajorDomo
 		{
 			if (_entities.Count == 0) return;
 
+			// work on copy of list
+			List<EntityData> entitiesToRevoke = new List<EntityData>(_entities);
+			// don't revoke twice
+			entitiesToRevoke.RemoveAll(entity => entity.State == EntityData.EntityState.Revoked);
+
 			// prepare revoke packet
 			m_bufOut.Clear();
-			m_bufOut.StartVector(sizeof(uint), _entities.Count, sizeof(int));
-			foreach (var entity in _entities)
+			m_bufOut.StartVector(sizeof(uint), entitiesToRevoke.Count, sizeof(int));
+			foreach (var entity in entitiesToRevoke)
 			{
 				m_bufOut.AddUint(entity.EntityUID);
 			}
@@ -402,19 +407,46 @@ namespace SentienceLab.MajorDomo
 				var repEntityList = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_RevokeEntities>().Value;
 				for (int idx = 0; idx < repEntityList.EntityUIDsLength; idx++)
 				{
+					// get next revoked entity UID
 					uint entityUID = repEntityList.EntityUIDs(idx);
-					EntityData entity = _entities[idx];
-					if (entityUID > 0)
+					// find corresponding entity - first by array index
+					EntityData entity = null;
+					if ((idx >= 0) && (idx < entitiesToRevoke.Count))
+					{
+						entity = entitiesToRevoke[idx];
+						// UID match?
+						if (entity.EntityUID != entityUID)
+						{
+							entity = null;
+						}
+					}
+					if (entity == null)
+					{
+						// not found: brute force search
+						foreach (var e in entitiesToRevoke)
+						{
+							if (e.EntityUID == entityUID)
+							{
+								entity = e;
+								break;
+							}
+						}
+					}
+
+					if (entity != null) 
 					{
 						EntityManager.RemoveEntity(entity);
 						entity.SetRevoked();
+						entitiesToRevoke.Remove(entity); //remove from list for later
 						revokedEntities.Add(entity);
 						dbgOK += "- " + entity.ToString(true, true) + "\n";
 					}
-					else
-					{
-						dbgFail += "- " + entity.ToString(true, true) + "\n";
-					}
+				}
+
+				// which entities were not revoked? (left in the list)
+				foreach (var entity in entitiesToRevoke)
+				{
+					dbgFail += "- " + entity.ToString(true, true) + "\n";
 				}
 
 				if (dbgOK.Length > 0) Debug.Log("Revoked entities:\n" + dbgOK);
@@ -437,7 +469,7 @@ namespace SentienceLab.MajorDomo
 			if (!_includePersistent)
 			{
 				// remove persistent entities
-				entities.RemoveAll(EntityData.IsEntityPersistent);
+				entities.RemoveAll(entity => entity.IsPersistent());
 			}
 			RevokeEntities(entities);
 		}
@@ -1014,6 +1046,7 @@ namespace SentienceLab.MajorDomo
 							}
 						}
 					}
+
 					foreach (var entity in m_updatedEntities)
 					{
 						entity.InvokeUpdateHandlers();
