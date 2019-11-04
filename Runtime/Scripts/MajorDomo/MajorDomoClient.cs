@@ -411,7 +411,7 @@ namespace SentienceLab.MajorDomo
 					uint entityUID = repEntityList.EntityUIDs(idx);
 					// find corresponding entity - first by array index
 					EntityData entity = null;
-					if ((idx >= 0) && (idx < entitiesToRevoke.Count))
+					if (idx < entitiesToRevoke.Count)
 					{
 						entity = entitiesToRevoke[idx];
 						// UID match?
