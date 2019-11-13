@@ -105,15 +105,23 @@ namespace SentienceLab.MajorDomo
 
 		public void SetClientUID(uint _clientUID)
 		{
-			uint oldClientUID = ClientUID;
-
 			ClientUID = _clientUID;
 			CheckRegistered();
+		}
 
-			if (ClientUID != oldClientUID)
+		public bool ChangeClientUID(uint _clientUID)
+		{
+			bool controlChanged = false;
+			uint oldClientUID   = ClientUID;
+
+			SetClientUID(_clientUID);
+			
+			if (controlChanged)
 			{
 				OnControlChanged?.Invoke(this, oldClientUID);
 			}
+
+			return controlChanged;
 		}
 
 

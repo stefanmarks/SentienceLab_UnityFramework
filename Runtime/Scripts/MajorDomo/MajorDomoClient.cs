@@ -509,10 +509,12 @@ namespace SentienceLab.MajorDomo
 					if (entityUID > 0)
 					{
 						EntityData entity = EntityManager.FindEntity(entityUID);
-						EntityManager.ChangeEntityControl(entity, m_client.ClientUID);
-						controlledEntities.Add(entity);
+						if (EntityManager.ChangeEntityControl(entity, m_client.ClientUID))
+						{
+							controlledEntities.Add(entity);
+							dbgOK += "- " + entity.ToString(true, true) + "\n";
+						}
 						_entities.Remove(entity);
-						dbgOK += "- " + entity.ToString(true, true) + "\n";
 					}
 				}
 				if (dbgOK.Length > 0) Debug.Log("Controlled entities:\n" + dbgOK);
@@ -559,10 +561,12 @@ namespace SentienceLab.MajorDomo
 					if (entityUID > 0)
 					{
 						EntityData entity = EntityManager.FindEntity(entityUID);
-						EntityManager.ChangeEntityControl(entity, ClientData.UID_SERVER);
-						releasedEntities.Add(entity);
+						if (EntityManager.ChangeEntityControl(entity, ClientData.UID_SERVER))
+						{
+							releasedEntities.Add(entity);
+							dbgOK += "- " + entity.ToString(true, true) + "\n";
+						}
 						_entities.Remove(entity);
-						dbgOK += "- " + entity.ToString(true, true) + "\n";
 					}
 				}
 				if (dbgOK.Length > 0) Debug.Log("Released entities:\n" + dbgOK);
@@ -943,8 +947,10 @@ namespace SentienceLab.MajorDomo
 				EntityData entity = EntityManager.FindEntity(_event.EntityUIDs(idx));
 				if (entity != null)
 				{
-					EntityManager.ChangeEntityControl(entity, newClientUID);
-					entities.Add(entity);
+					if (EntityManager.ChangeEntityControl(entity, newClientUID))
+					{
+						entities.Add(entity);
+					}
 				}
 			}
 			if (entities.Count > 0)

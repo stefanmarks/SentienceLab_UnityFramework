@@ -62,6 +62,7 @@ namespace SentienceLab.MajorDomo
 			{
 				entity.SetClientUID(m_clientUID);
 			}
+
 			return entity;
 		}
 
@@ -183,10 +184,11 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public void ChangeEntityControl(EntityData _entity, uint _clientUID)
+		public bool ChangeEntityControl(EntityData _entity, uint _clientUID)
 		{
-			_entity.SetClientUID(_clientUID);
-			m_rebuildClientEntityList = true;
+			bool controlChanged = _entity.ChangeClientUID(_clientUID);
+			if (controlChanged) m_rebuildClientEntityList = true;
+			return controlChanged;
 		}
 
 
