@@ -4,7 +4,7 @@ namespace NetMQ.Core.Transports
 {
     internal class RawDecoder : DecoderBase
     {
-        //private readonly long m_maxMsgSize;
+        private readonly long m_maxMsgSize;
 
         private IMsgSink m_msgSink;
         private Msg m_inProgress;
@@ -16,7 +16,7 @@ namespace NetMQ.Core.Transports
             : base(bufferSize, endianness)
         {
             m_msgSink = msgSink;
-            //m_maxMsgSize = maxMsgSize;
+            m_maxMsgSize = maxMsgSize;
         }
 
         public override void SetMsgSink(IMsgSink msgSink)

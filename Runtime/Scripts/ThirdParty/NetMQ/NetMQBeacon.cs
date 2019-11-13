@@ -110,8 +110,12 @@ namespace NetMQ
 							// on windows any interface can recieve broadcast by requesting to enable broadcast on the socket
 							// on linux to recieve broadcast you must bind to the broadcast address specifically
 							//bindTo = @interface.Address;
-                            sendTo = @interface.BroadcastAddress;
-							if (Environment.OSVersion.Platform == PlatformID.Unix)
+							sendTo = @interface.BroadcastAddress;
+#if NET35 || NET40 || NET47
+							if (Environment.OSVersion.Platform==PlatformID.Unix)
+#else
+							if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+#endif
 							{
 								bindTo = @interface.BroadcastAddress;
 							}
@@ -178,8 +182,7 @@ namespace NetMQ
 
             private void OnUdpReady(Socket socket)
             {
-                string peerName;
-                var frame = ReceiveUdpFrame(out peerName);
+                var frame = ReceiveUdpFrame(out string peerName);
 
                 // If filter is set, check that beacon matches it
                 var isValid = frame.MessageSize >= m_filter?.MessageSize && Compare(frame, m_filter, m_filter.MessageSize);
@@ -239,7 +242,19 @@ namespace NetMQ
 
             private void SendUdpFrame(NetMQFrame frame)
             {
-                m_udpSocket.SendTo(frame.Buffer, 0, frame.MessageSize, SocketFlags.None, m_broadcastAddress);
+                try
+                {
+                    m_udpSocket.SendTo(frame.Buffer, 0, frame.MessageSize, SocketFlags.None, m_broadcastAddress);
+                }
+                catch (SocketException ex)
+                {
+                    if (ex.SocketErrorCode != SocketError.AddressNotAvailable) { throw; }
+
+                    // Initiate Creation of new Udp here to solve issue related to 'sudden' network change.
+                    // On windows (7 OR 10) incorrect/previous ip address might still exist instead of new Ip
+                    // due to network change which causes crash (if no try/catch and keep trying to send to incorrect/not available address.
+                    // This approach would solve the issue...
+                }
             }
 
             private NetMQFrame ReceiveUdpFrame(out string peerName)
@@ -264,14 +279,14 @@ namespace NetMQ
         [CanBeNull] private string m_hostName;
         private int m_isDisposed;
 
-		void OnReceive(object sender, NetMQActorEventArgs e) => m_receiveEvent.Fire(this, new NetMQBeaconEventArgs(this));
-
-		/// <summary>
-		/// Create a new NetMQBeacon.
-		/// </summary>
-		public NetMQBeacon()
+        /// <summary>
+        /// Create a new NetMQBeacon.
+        /// </summary>
+        public NetMQBeacon()
         {
             m_actor = NetMQActor.Create(new Shim());
+
+            void OnReceive(object sender, NetMQActorEventArgs e) => m_receiveEvent.Fire(this, new NetMQBeaconEventArgs(this));
 
             m_receiveEvent = new EventDelegator<NetMQBeaconEventArgs>(
                 () => m_actor.ReceiveReady += OnReceive,
@@ -310,7 +325,7 @@ namespace NetMQ
 
                 try
                 {
-#if NETSTANDARD1_3 || UAP
+#if NETSTANDARD1_6
                     return m_hostName = Dns.GetHostEntryAsync(boundTo).Result.HostName;
 #else
                     return m_hostName = Dns.GetHostEntry(boundTo).HostName;
@@ -338,8 +353,8 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQBeaconEventArgs> ReceiveReady
         {
-            add { m_receiveEvent.Event += value; }
-            remove { m_receiveEvent.Event -= value; }
+            add => m_receiveEvent.Event += value;
+            remove => m_receiveEvent.Event -= value;
         }
 
         /// <summary>
@@ -464,8 +479,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a beacon message was received, otherwise <c>false</c>.</returns>
         public bool TryReceive(TimeSpan timeout, out BeaconMessage message)
         {
-            string peerName;
-            if (!m_actor.TryReceiveFrameString(timeout, out peerName))
+            if (!m_actor.TryReceiveFrameString(timeout, out string peerName))
             {
                 message = default(BeaconMessage);
                 return false;

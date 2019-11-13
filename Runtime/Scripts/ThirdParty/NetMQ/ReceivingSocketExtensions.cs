@@ -43,8 +43,7 @@ namespace NetMQ
         [NotNull]
         public static byte[] ReceiveFrameBytes([NotNull] this IReceivingSocket socket)
         {
-            bool more;
-            return socket.ReceiveFrameBytes(out more);
+            return socket.ReceiveFrameBytes(out bool more);
         }
 
         /// <summary>
@@ -83,8 +82,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameBytes([NotNull] this IReceivingSocket socket, out byte[] bytes)
         {
-            bool more;
-            return socket.TryReceiveFrameBytes(out bytes, out more);
+            return socket.TryReceiveFrameBytes(out bytes, out bool more);
         }
 
         /// <summary>
@@ -115,8 +113,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameBytes([NotNull] this IReceivingSocket socket, TimeSpan timeout, out byte[] bytes)
         {
-            bool more;
-            return socket.TryReceiveFrameBytes(timeout, out bytes, out more);
+            return socket.TryReceiveFrameBytes(timeout, out bytes, out bool more);
         }
 
         /// <summary>
@@ -273,8 +270,7 @@ namespace NetMQ
         [NotNull]
         public static string ReceiveFrameString([NotNull] this IReceivingSocket socket)
         {
-            bool more;
-            return socket.ReceiveFrameString(SendReceiveConstants.DefaultEncoding, out more);
+            return socket.ReceiveFrameString(SendReceiveConstants.DefaultEncoding, out bool more);
         }
 
         /// <summary>
@@ -299,8 +295,7 @@ namespace NetMQ
         [NotNull]
         public static string ReceiveFrameString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding)
         {
-            bool more;
-            return socket.ReceiveFrameString(encoding, out more);
+            return socket.ReceiveFrameString(encoding, out bool more);
         }
 
         /// <summary>
@@ -342,8 +337,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, out string frameString)
         {
-            bool more;
-            return socket.TryReceiveFrameString(TimeSpan.Zero, SendReceiveConstants.DefaultEncoding, out frameString, out more);
+            return socket.TryReceiveFrameString(TimeSpan.Zero, SendReceiveConstants.DefaultEncoding, out frameString, out bool more);
         }
 
         /// <summary>
@@ -369,8 +363,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, [NotNull] Encoding encoding, out string frameString)
         {
-            bool more;
-            return socket.TryReceiveFrameString(TimeSpan.Zero, encoding, out frameString, out more);
+            return socket.TryReceiveFrameString(TimeSpan.Zero, encoding, out frameString, out bool more);
         }
 
         /// <summary>
@@ -401,8 +394,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, TimeSpan timeout, out string frameString)
         {
-            bool more;
-            return socket.TryReceiveFrameString(timeout, SendReceiveConstants.DefaultEncoding, out frameString, out more);
+            return socket.TryReceiveFrameString(timeout, SendReceiveConstants.DefaultEncoding, out frameString, out bool more);
         }
 
         /// <summary>
@@ -430,8 +422,7 @@ namespace NetMQ
         /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
         public static bool TryReceiveFrameString([NotNull] this IReceivingSocket socket, TimeSpan timeout, [NotNull] Encoding encoding, out string frameString)
         {
-            bool more;
-            return socket.TryReceiveFrameString(timeout, encoding, out frameString, out more);
+            return socket.TryReceiveFrameString(timeout, encoding, out frameString, out bool more);
         }
 
         /// <summary>
@@ -1016,6 +1007,110 @@ namespace NetMQ
         }
 
         #endregion
+
+        #endregion
+
+        #region Receiving a routing key
+
+        /// <summary>
+        /// Receive a routing-key from <paramref name="socket"/>, blocking until one arrives.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <returns>The routing key.</returns>
+        public static RoutingKey ReceiveRoutingKey([NotNull] this IReceivingSocket socket)
+        {
+            return new RoutingKey(socket.ReceiveFrameBytes(out bool more));
+        }
+
+        /// <summary>
+        /// Receive a routing-key from <paramref name="socket"/>, blocking until one arrives.
+        /// Indicate whether further frames exist via <paramref name="more"/>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="more"><c>true</c> if another frame of the same message follows, otherwise <c>false</c>.</param>
+        /// <returns>The routing key.</returns>
+        public static RoutingKey ReceiveRoutingKey([NotNull] this IReceivingSocket socket, out bool more)
+        {
+            return new RoutingKey(socket.ReceiveFrameBytes(out more));
+        }
+
+        /// <summary>
+        /// Attempt to receive a routing-key from <paramref name="socket"/>.
+        /// If no message is immediately available, return <c>false</c>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="routingKey">The routing-key of the received message frame.</param>
+        /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
+        public static bool TryReceiveRoutingKey([NotNull] this IReceivingSocket socket, ref RoutingKey routingKey)
+        {
+            if (socket.TryReceiveFrameBytes(out byte[] bytes))
+            {
+                routingKey = new RoutingKey(bytes);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Attempt to receive a routing-key from <paramref name="socket"/>.
+        /// If no message is immediately available, return <c>false</c>.
+        /// Indicate whether further frames exist via <paramref name="more"/>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="more"><c>true</c> if another frame of the same message follows, otherwise <c>false</c>.</param>
+        /// <param name="routingKey">The routing-key of the received message frame.</param>
+        /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
+        public static bool TryReceiveRoutingKey([NotNull] this IReceivingSocket socket, ref RoutingKey routingKey, out bool more)
+        {
+            if (socket.TryReceiveFrameBytes(out byte[] bytes, out more))
+            {
+                routingKey = new RoutingKey(bytes);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Attempt to receive a routing-key from <paramref name="socket"/>.
+        /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="timeout">The maximum period of time to wait for a message to become available.</param>
+        /// <param name="routingKey">The routing-key of the received message frame.</param>
+        /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
+        public static bool TryReceiveRoutingKey([NotNull] this IReceivingSocket socket, TimeSpan timeout, ref RoutingKey routingKey)
+        {
+            if (socket.TryReceiveFrameBytes(timeout, out byte[] bytes, out bool more))
+            {
+                routingKey = new RoutingKey(bytes);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Attempt to receive a routing-key from <paramref name="socket"/>.
+        /// If no message is available within <paramref name="timeout"/>, return <c>false</c>.
+        /// Indicate whether further frames exist via <paramref name="more"/>.
+        /// </summary>
+        /// <param name="socket">The socket to receive from.</param>
+        /// <param name="more"><c>true</c> if another frame of the same message follows, otherwise <c>false</c>.</param>
+        /// <param name="timeout">The maximum period of time to wait for a message to become available.</param>
+        /// <param name="routingKey">The routing-key of the received message frame.</param>
+        /// <returns><c>true</c> if a message was available, otherwise <c>false</c>.</returns>
+        public static bool TryReceiveRoutingKey([NotNull] this IReceivingSocket socket, TimeSpan timeout, ref RoutingKey routingKey, out bool more)
+        {
+            if (socket.TryReceiveFrameBytes(timeout, out byte[] bytes, out more))
+            {
+                routingKey = new RoutingKey(bytes);
+                return true;
+            }
+
+            return false;
+        }
 
         #endregion
     }

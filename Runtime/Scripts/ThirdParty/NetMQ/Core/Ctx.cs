@@ -211,8 +211,7 @@ namespace NetMQ.Core
                 }
 
                 // Wait till reaper thread closes all the sockets.
-                Command command;
-                var found = m_termMailbox.TryRecv(-1, out command);
+                var found = m_termMailbox.TryRecv(-1, out Command command);
 
                 Debug.Assert(found);
                 Debug.Assert(command.CommandType == CommandType.Done);
@@ -234,7 +233,7 @@ namespace NetMQ.Core
 
         public int IOThreadCount
         {
-            get { return m_ioThreadCount; }
+            get => m_ioThreadCount;
             set
             {
                 if (value < 0)
@@ -246,7 +245,7 @@ namespace NetMQ.Core
 
         public int MaxSockets
         {
-            get { return m_maxSockets; }
+            get => m_maxSockets;
             set
             {
                 if (value <= 0)
@@ -456,9 +455,8 @@ namespace NetMQ.Core
         {
             lock (m_endpointsSync)
             {
-                Endpoint endpoint;
 
-                if (!m_endpoints.TryGetValue(address, out endpoint))
+                if (!m_endpoints.TryGetValue(address, out Endpoint endpoint))
                     return false;
 
                 if (socket != endpoint.Socket)

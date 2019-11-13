@@ -225,27 +225,19 @@ namespace NetMQ.Core.Transports.Tcp
                 Close();
 
                 // Try again to connect after a time,
-                // as long as the error is one of these..
-                if (socketError == SocketError.ConnectionRefused || socketError == SocketError.TimedOut ||
-                    socketError == SocketError.ConnectionAborted ||
-                    socketError == SocketError.HostUnreachable || socketError == SocketError.NetworkUnreachable ||
-                    socketError == SocketError.NetworkDown || socketError == SocketError.AccessDenied ||
-                    socketError == SocketError.OperationAborted)
-                {
-                    if (m_options.ReconnectIvl >= 0)
-                        AddReconnectTimer();
-                }
-                else
-                {
-                    throw NetMQException.Create(socketError);
-                }
+                if (m_options.ReconnectIvl >= 0)
+                    AddReconnectTimer();
             }
             else
             {
                 m_ioObject.RemoveSocket(m_s);
                 m_handleValid = false;
 
-                m_s.NoDelay = true;
+                try {
+                    m_s.NoDelay = true;
+                } catch (ArgumentException) {
+                    // OSX sometime fail while the socket is still connecting
+                }
 
                 // As long as the TCP keep-alive option is not -1 (indicating no change),
                 if (m_options.TcpKeepalive != -1)

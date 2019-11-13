@@ -20,13 +20,9 @@ namespace NetMQ.Core.Utils
 
         private class Item
         {
-            public Item([NotNull] IProactorEvents proactorEvents)
-            {
-                ProactorEvents = proactorEvents;
-                Cancelled = false;
-            }
+            public Item([NotNull] IProactorEvents proactorEvents) => ProactorEvents = proactorEvents;
 
-            [NotNull] 
+            [NotNull]
             public IProactorEvents ProactorEvents { get; }
             public bool Cancelled { get; set; }
         }
@@ -101,8 +97,7 @@ namespace NetMQ.Core.Utils
                 // Execute any due timers.
                 int timeout = ExecuteTimers();
 
-				int removed;
-                if (!m_completionPort.GetMultipleQueuedCompletionStatus(timeout != 0 ? timeout : -1, completions, out removed))
+                if (!m_completionPort.GetMultipleQueuedCompletionStatus(timeout != 0 ? timeout : -1, completions, out int removed))
                     continue;
 
                 for (int i = 0; i < removed; i++)

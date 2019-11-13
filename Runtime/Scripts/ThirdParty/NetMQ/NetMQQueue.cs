@@ -9,7 +9,7 @@ namespace NetMQ
 {
     public sealed class NetMQQueueEventArgs<T> : EventArgs
     {
-		public NetMQQueueEventArgs(NetMQQueue<T> queue) { Queue = queue; }
+        public NetMQQueueEventArgs(NetMQQueue<T> queue) => Queue = queue;
         public NetMQQueue<T> Queue { get; }
     }
 
@@ -35,9 +35,10 @@ namespace NetMQ
                 throw new ArgumentOutOfRangeException(nameof(capacity));
 
             m_queue = new ConcurrentQueue<T>();
-            PairSocket.CreateSocketPair(out m_writer, out m_reader);
-
-            m_writer.Options.SendHighWatermark = m_reader.Options.ReceiveHighWatermark = capacity / 2;
+            PairSocket.CreateSocketPair(out m_writer,
+                                        out m_reader,
+                                        writer => writer.Options.SendHighWatermark = capacity / 2,
+                                        reader => reader.Options.ReceiveHighWatermark = capacity / 2);
 
             m_eventDelegator = new EventDelegator<NetMQQueueEventArgs<T>>(
                 () => m_reader.ReceiveReady += OnReceiveReady,
@@ -57,8 +58,8 @@ namespace NetMQ
         /// </summary>
         public event EventHandler<NetMQQueueEventArgs<T>> ReceiveReady
         {
-            add { m_eventDelegator.Event += value; }
-            remove { m_eventDelegator.Event -= value; }
+            add => m_eventDelegator.Event += value;
+            remove => m_eventDelegator.Event -= value;
         }
 
         NetMQSocket ISocketPollable.Socket => m_reader;
@@ -91,8 +92,7 @@ namespace NetMQ
         {
             m_reader.TryReceive(ref m_dequeueMsg, SendReceiveConstants.InfiniteTimeout);
 
-            T result;
-            m_queue.TryDequeue(out result);
+            m_queue.TryDequeue(out T result);
 
             return result;
         }

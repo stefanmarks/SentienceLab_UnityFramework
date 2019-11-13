@@ -419,10 +419,8 @@ namespace NetMQ.Core
             // Process pending commands, if any.
             ProcessCommands(0, false);
 
-            string protocol;
-            string address;
 
-            DecodeAddress(addr, out address, out protocol);
+            DecodeAddress(addr, out string address, out string protocol);
 
             CheckProtocol(protocol);
 
@@ -543,9 +541,7 @@ namespace NetMQ.Core
         /// <exception cref="FaultException">the socket bind failed</exception>
         public int BindRandomPort([NotNull] string addr)
         {
-            string address, protocol;
-
-            DecodeAddress(addr, out address, out protocol);
+            DecodeAddress(addr, out string address, out string protocol);
 
             if (protocol != Address.TcpProtocol)
                 throw new ProtocolNotSupportedException("Address must use the TCP protocol.");
@@ -575,9 +571,7 @@ namespace NetMQ.Core
             // Process pending commands, if any.
             ProcessCommands(0, false);
 
-            string address;
-            string protocol;
-            DecodeAddress(addr, out address, out protocol);
+            DecodeAddress(addr, out string address, out string protocol);
 
             CheckProtocol(protocol);
 
@@ -773,10 +767,8 @@ namespace NetMQ.Core
             //  (from launch_child() for example) we're asked to terminate now.
             ProcessCommands(0, false);
 
-            string protocol;
-            string address;
 
-            DecodeAddress(addr, out address, out protocol);
+            DecodeAddress(addr, out string address, out string protocol);
 
             CheckProtocol(protocol);
 
@@ -785,8 +777,7 @@ namespace NetMQ.Core
                 if (UnregisterEndpoint(addr, this))
                     return;
 
-                Pipe pipe;
-                if (!m_inprocs.TryGetValue(addr, out pipe))
+                if (!m_inprocs.TryGetValue(addr, out Pipe pipe))
                     throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
 
                 pipe.Terminate(true);
@@ -794,8 +785,7 @@ namespace NetMQ.Core
             }
             else
             {
-                Endpoint endpoint;
-                if (!m_endpoints.TryGetValue(addr, out endpoint))
+                if (!m_endpoints.TryGetValue(addr, out Endpoint endpoint))
                     throw new EndpointNotFoundException("Endpoint was not found and cannot be disconnected");
 
                 endpoint.Pipe?.Terminate(false);
@@ -1358,9 +1348,7 @@ namespace NetMQ.Core
                 return;
             }
 
-            string address;
-            string protocol;
-            DecodeAddress(addr, out address, out protocol);
+            DecodeAddress(addr, out string address, out string protocol);
 
             CheckProtocol(protocol);
 

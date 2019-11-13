@@ -19,7 +19,7 @@ namespace SentienceLab.MajorDomo
 		// Client Version number
 		public const int VERSION_MAJOR    = 0;
 		public const int VERSION_MINOR    = 4;
-		public const int VERSION_REVISION = 7;
+		public const int VERSION_REVISION = 8;
 
 
 		public ClientManager ClientManager { get; private set; }
