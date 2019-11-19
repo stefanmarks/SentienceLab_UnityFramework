@@ -748,7 +748,7 @@ namespace SentienceLab.MajorDomo
 				if (m_clientRequestSocket.TrySend(ref m_msgOut, TimeSpan.Zero, false))
 				{
 					m_msgIn.InitEmpty();
-					if (m_clientRequestSocket.TryReceive(ref m_msgIn, TimeSpan.FromSeconds(m_timeoutInterval)))
+					if (m_clientRequestSocket.TryReceive(ref m_msgIn, TimeSpan.FromSeconds(m_timeoutInterval)) && (m_msgIn.Data != null))
 					{
 						m_bufIn = new FlatBuffers.ByteBuffer(m_msgIn.Data);
 						m_serverReply = AUT_WH.MajorDomoProtocol.ServerReply.GetRootAsServerReply(m_bufIn, m_serverReply);
@@ -784,7 +784,7 @@ namespace SentienceLab.MajorDomo
 		private void ServerEvent_ReceiveReady(object sender, NetMQ.NetMQSocketEventArgs e)
 		{
 			m_msgIn.InitEmpty();
-			if (e.Socket.TryReceive(ref m_msgIn, TimeSpan.Zero))
+			if (e.Socket.TryReceive(ref m_msgIn, TimeSpan.Zero) && (m_msgIn.Data != null))
 			{
 				m_bufIn = new FlatBuffers.ByteBuffer(m_msgIn.Data);
 				m_serverEvent = AUT_WH.MajorDomoProtocol.ServerEvent.GetRootAsServerEvent(m_bufIn, m_serverEvent);
@@ -1026,7 +1026,7 @@ namespace SentienceLab.MajorDomo
 		private void ServerUpdate_ReceiveReady(object sender, NetMQ.NetMQSocketEventArgs e)
 		{
 			m_msgIn.InitEmpty();
-			if (e.Socket.TryReceive(ref m_msgIn, TimeSpan.Zero))
+			if (e.Socket.TryReceive(ref m_msgIn, TimeSpan.Zero) && (m_msgIn.Data != null))
 			{
 				m_bufIn = new FlatBuffers.ByteBuffer(m_msgIn.Data);
 				m_entityUpdates = AUT_WH.MajorDomoProtocol.EntityUpdates.GetRootAsEntityUpdates(m_bufIn, m_entityUpdates);
