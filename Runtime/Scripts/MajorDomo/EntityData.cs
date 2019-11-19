@@ -37,6 +37,9 @@ namespace SentienceLab.MajorDomo
 		public static readonly byte MAX_VALUE_COUNT = 250;
 
 
+		public delegate void EntityModified(EntityData _entity);
+		public event EntityModified OnEntityModified;
+
 		public delegate void EntityUpdated(EntityData _entity);
 		public event EntityUpdated OnEntityUpdated;
 
@@ -506,6 +509,15 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		public void InvokeOnModifiedHandlers()
+		{
+			if (IsModified())
+			{
+				OnEntityModified?.Invoke(this);
+			}
+		}
+
+
 		public void ResetModified()
 		{
 			foreach (var value in m_values)
@@ -521,7 +533,7 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public void InvokeUpdateHandlers()
+		public void InvokeOnUpdatedHandlers()
 		{
 			if (IsUpdated())
 			{

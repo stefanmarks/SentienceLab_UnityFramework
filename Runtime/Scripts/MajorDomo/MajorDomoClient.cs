@@ -291,7 +291,7 @@ namespace SentienceLab.MajorDomo
 						OnEntitiesPublished?.Invoke(retrievedEntites);
 						foreach (var entity in retrievedEntites)
 						{
-							entity.InvokeUpdateHandlers();
+							entity.InvokeOnUpdatedHandlers();
 						}
 					}
 				}
@@ -907,7 +907,7 @@ namespace SentienceLab.MajorDomo
 				OnEntitiesPublished?.Invoke(publishedEntities);
 				foreach (var entity in publishedEntities)
 				{
-					entity.InvokeUpdateHandlers();
+					entity.InvokeOnUpdatedHandlers();
 				}
 			}
 		}
@@ -941,6 +941,7 @@ namespace SentienceLab.MajorDomo
 		private void ServerEvent_EntityControlChanged(AUT_WH.MajorDomoProtocol.ServerEvent_EntitiesChangedClient _event)
 		{
 			List<EntityData> entities = new List<EntityData>();
+			string dbg = "";
 			uint newClientUID = _event.ClientUID;
 			for (int idx = 0; idx < _event.EntityUIDsLength; idx++)
 			{
@@ -950,11 +951,14 @@ namespace SentienceLab.MajorDomo
 					if (EntityManager.ChangeEntityControl(entity, newClientUID))
 					{
 						entities.Add(entity);
+						if (dbg.Length > 0) dbg += ", ";
+						dbg += entity.ToString(false, false);
 					}
 				}
 			}
 			if (entities.Count > 0)
 			{
+				Debug.Log("Server event: change entity control " + dbg);
 				OnEntityControlChanged?.Invoke(entities);
 			}
 		}
@@ -1019,6 +1023,11 @@ namespace SentienceLab.MajorDomo
 			// remember last update time
 			m_lastUpdateSent = DateTime.Now;
 
+			foreach (var entity in modifiedEntities)
+			{
+				entity.InvokeOnModifiedHandlers();
+			}
+
 			EntityManager.ResetModifiedEntities();
 		}
 
@@ -1055,7 +1064,7 @@ namespace SentienceLab.MajorDomo
 
 					foreach (var entity in m_updatedEntities)
 					{
-						entity.InvokeUpdateHandlers();
+						entity.InvokeOnUpdatedHandlers();
 					}
 				}
 			}
