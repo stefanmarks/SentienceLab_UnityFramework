@@ -109,6 +109,7 @@ namespace SentienceLab.MajorDomo
 			CheckRegistered();
 		}
 
+
 		public bool ChangeClientUID(uint _clientUID)
 		{
 			bool controlChanged = false;
@@ -116,8 +117,10 @@ namespace SentienceLab.MajorDomo
 
 			SetClientUID(_clientUID);
 			
-			if (controlChanged)
+			if (ClientUID != oldClientUID)
 			{
+				// control effectively changed > call event handlers
+				controlChanged = true;
 				OnControlChanged?.Invoke(this, oldClientUID);
 			}
 
