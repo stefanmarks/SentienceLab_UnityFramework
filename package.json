@@ -1,8 +1,8 @@
 {
   "name": "nz.ac.aut.sentiencelab",
   "displayName": "Sentience Lab Unity Framework",
-  "version": "1.1.0",
-  "unity": "2019.1",
+  "version": "1.2.0",
+  "unity": "2019.2",
   "description": "A framework for multiuser VR development",
   "keywords": [
     "vr",

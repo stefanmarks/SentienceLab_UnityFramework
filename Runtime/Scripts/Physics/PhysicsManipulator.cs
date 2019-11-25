@@ -50,7 +50,7 @@ namespace SentienceLab
 				{
 					// no PointerRay > do a quick and simple raycast
 					Ray tempRay = new Ray(transform.position, transform.forward);
-					Physics.Raycast(tempRay, out target);
+					UnityEngine.Physics.Raycast(tempRay, out target);
 				}
 
 				// any rigidbody attached?

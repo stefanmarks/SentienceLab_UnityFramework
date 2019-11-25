@@ -109,7 +109,7 @@ namespace SentienceLab
 				if (!overrideTarget)
 				{
 					// do raycast
-					hit = Physics.Raycast(ray, out rayTarget, rayRange);
+					hit = UnityEngine.Physics.Raycast(ray, out rayTarget, rayRange);
 
 					// test tags
 					if (hit && (tagList.Length > 0))
@@ -126,7 +126,7 @@ namespace SentienceLab
 						if (!hit)
 						{
 							// tag test negative > reset raycast structure
-							Physics.Raycast(ray, out rayTarget, 0);
+							UnityEngine.Physics.Raycast(ray, out rayTarget, 0);
 						}
 					}
 
@@ -153,7 +153,7 @@ namespace SentienceLab
 				}
 				else
 				{
-					Physics.Raycast(ray, out rayTarget, 0); // reset structure
+					UnityEngine.Physics.Raycast(ray, out rayTarget, 0); // reset structure
 					rayTarget.point = overridePoint;        // override point
 					hit = true;
 				}

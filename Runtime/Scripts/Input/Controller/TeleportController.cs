@@ -87,7 +87,7 @@ namespace SentienceLab
 			{
 				// no ray component > do a basic raycast here
 				Ray tempRay = new Ray(transform.position, transform.forward);
-				Physics.Raycast(tempRay, out hit);
+				UnityEngine.Physics.Raycast(tempRay, out hit);
 			}
 
 			if ((hit.distance > 0) && (hit.transform != null) && hit.transform.gameObject.tag.Equals(groundTag))

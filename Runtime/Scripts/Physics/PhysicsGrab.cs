@@ -6,7 +6,7 @@
 using UnityEngine;
 using SentienceLab.Input;
 
-namespace SentienceLab.Tools
+namespace SentienceLab.Physics
 {
 	[AddComponentMenu("Physics/Controller Grab")]
 	[RequireComponent(typeof(Collider))]
@@ -22,7 +22,7 @@ namespace SentienceLab.Tools
 		public string CanGrabTag = "grab";
 
 		[Tooltip("Default rigidbody that can be grabbed without having a collider (e.g., the only main object in the scene)")]
-		public Rigidbody DefaultRigidBody = null;
+		public InteractiveRigidbody DefaultRigidBody = null;
 
 
 		public void Start()
@@ -61,19 +61,16 @@ namespace SentienceLab.Tools
 				// set new target position
 				PID.Setpoint = transform.position;
 				// let PID controller work
-				Vector3 grabPoint = m_activeBody.transform.TransformPoint(m_localGrabPoint);
+				Vector3 grabPoint = GetGrabPoint();
 				Vector3 force = PID.Process(grabPoint);
-				m_activeBody.AddForceAtPosition(force, grabPoint, ForceMode.Force);
+				m_activeBody.Rigidbody.AddForceAtPosition(force, grabPoint, ForceMode.Force);
 			}
 		}
 
 
 		public void OnTriggerEnter(Collider other)
 		{
-			if (other.gameObject.tag.Equals(CanGrabTag))
-			{
-				m_candidate = other.GetComponentInParent<Rigidbody>();
-			}
+			m_candidate = other.GetComponentInParent<InteractiveRigidbody>();
 		}
 
 
@@ -83,8 +80,20 @@ namespace SentienceLab.Tools
 		}
 
 
-		private InputHandler m_handlerActive;
-		private Vector3      m_localGrabPoint;
-		private Rigidbody    m_candidate, m_activeBody;
+		public Vector3 GetGrabPoint()
+		{
+			return m_activeBody.transform.TransformPoint(m_localGrabPoint);
+		}
+
+
+		public InteractiveRigidbody GetActiveBody()
+		{
+			return m_activeBody;
+		}
+
+
+		private InputHandler         m_handlerActive;
+		private Vector3              m_localGrabPoint;
+		private InteractiveRigidbody m_candidate, m_activeBody;
 	}
 }
