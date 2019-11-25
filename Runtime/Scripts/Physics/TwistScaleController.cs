@@ -32,7 +32,7 @@ namespace SentienceLab.Physics
 		/// <summary>
 		/// Update mesh polling center position to camera.
 		/// </summary>
-		void Update()
+		void FixedUpdate()
 		{
 			if (m_handlerActive != null)
 			{
@@ -43,7 +43,6 @@ namespace SentienceLab.Physics
 				}
 				else if (m_handlerActive.IsActive())
 				{
-					InteractiveRigidbody irb = m_physicsGrabScript.GetActiveBody();
 					Vector3 newRot = transform.rotation.eulerAngles;
 					// find delta rotation
 					float deltaRot = newRot.z - m_lastRotation.z;
@@ -61,18 +60,17 @@ namespace SentienceLab.Physics
 						Curve.keys[0].time,
 						Curve.keys[Curve.length - 1].time);
 					// actually change parameter
-		
-					if (Mathf.Abs(m_rotation) > 1)
+
+					InteractiveRigidbody irb = m_physicsGrabScript.GetActiveBody();
+					if ((Mathf.Abs(m_rotation) > 1) && (irb != null) && irb.CanScale)
 					{
-						// scale with centre point 1m in front of the observer
-						float relScaleFactor = 1.0f + Curve.Evaluate(m_rotation) * Time.deltaTime;
-						Vector3 oldScale = transform.localScale;
+						float relScaleFactor = 1.0f + Curve.Evaluate(m_rotation) * Time.fixedDeltaTime;
+						Vector3 oldScale = irb.Rigidbody.transform.localScale;
 						Vector3 newScale = oldScale * relScaleFactor;
-						Vector3 pivot    = this.transform.position;
-						if (m_physicsGrabScript != null) pivot = m_physicsGrabScript.GetGrabPoint();
-						Vector3 posDiff  = transform.position - pivot;
-						transform.position   = pivot + posDiff * relScaleFactor;
-						transform.localScale = newScale;
+						Vector3 pivot    = m_physicsGrabScript.GetGrabPoint();
+						Vector3 posDiff  = irb.Rigidbody.transform.position - pivot;
+						irb.Rigidbody.MovePosition(pivot + posDiff * relScaleFactor);
+						irb.Rigidbody.transform.localScale = newScale;
 					}
 					m_lastRotation = newRot;
 				}
