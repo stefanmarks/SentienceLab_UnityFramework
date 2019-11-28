@@ -44,11 +44,13 @@ namespace SentienceLab.Physics
 				m_activeBody = m_candidate;
 				if (m_activeBody != null)
 				{
+					m_activeBody?.InvokeGrabStart(this.gameObject);
 					m_localGrabPoint = m_activeBody.transform.InverseTransformPoint(this.transform.position);
 				}
 			}
 			else if (m_handlerActive.IsDeactivated())
 			{
+				m_activeBody?.InvokeGrabEnd(this.gameObject);
 				m_activeBody = null;
 			}
 		}
@@ -71,11 +73,13 @@ namespace SentienceLab.Physics
 		public void OnTriggerEnter(Collider other)
 		{
 			m_candidate = other.GetComponentInParent<InteractiveRigidbody>();
+			m_candidate?.InvokeHoverStart(this.gameObject);
 		}
 
 
 		public void OnTriggerExit(Collider other)
 		{
+			m_candidate?.InvokeHoverEnd(this.gameObject);
 			m_candidate = DefaultRigidBody;
 		}
 
