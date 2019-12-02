@@ -211,9 +211,9 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public EntityValue_Colour GetValue_Colour(string _name)
+		public EntityValue_Color GetValue_Color(string _name)
 		{
-			return (EntityValue_Colour)GetValue(_name, AUT_WH.MajorDomoProtocol.EntityValueType.Colour);
+			return (EntityValue_Color)GetValue(_name, AUT_WH.MajorDomoProtocol.EntityValueType.Color);
 		}
 
 
@@ -341,9 +341,9 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public EntityValue_Colour AddValue_Colour(string _name, Color _value)
+		public EntityValue_Color AddValue_Color(string _name, Color _value)
 		{
-			EntityValue_Colour value = (EntityValue_Colour)AddEntityValue(_name, AUT_WH.MajorDomoProtocol.EntityValueType.Colour);
+			EntityValue_Color value = (EntityValue_Color)AddEntityValue(_name, AUT_WH.MajorDomoProtocol.EntityValueType.Color);
 			value.Value = _value;
 			return value;
 		}

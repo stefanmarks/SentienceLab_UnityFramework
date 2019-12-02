@@ -175,7 +175,7 @@ namespace SentienceLab.MajorDomo
 				case AUT_WH.MajorDomoProtocol.EntityValueType.Float32:    return new EntityValue_Float32(_name, _index);
 				case AUT_WH.MajorDomoProtocol.EntityValueType.Float64:    return new EntityValue_Float64(_name, _index);
 				case AUT_WH.MajorDomoProtocol.EntityValueType.String:     return new EntityValue_String(_name, _index);
-				case AUT_WH.MajorDomoProtocol.EntityValueType.Colour:     return new EntityValue_Colour(_name, _index);
+				case AUT_WH.MajorDomoProtocol.EntityValueType.Color:      return new EntityValue_Color(_name, _index);
 				case AUT_WH.MajorDomoProtocol.EntityValueType.Vector3D:   return new EntityValue_Vector3D(_name, _index);
 				case AUT_WH.MajorDomoProtocol.EntityValueType.Quaternion: return new EntityValue_Quaternion(_name, _index);
 				case AUT_WH.MajorDomoProtocol.EntityValueType.ByteArray:  return new EntityValue_ByteArray(_name, _index);
@@ -298,15 +298,15 @@ namespace SentienceLab.MajorDomo
 	}
 
 
-	public class EntityValue_Colour : EntityValue
+	public class EntityValue_Color : EntityValue
 	{
-		public EntityValue_Colour(string _name, byte _index, Color32 _value) :
-			base(_name, AUT_WH.MajorDomoProtocol.EntityValueType.Colour, _index, 4)
+		public EntityValue_Color(string _name, byte _index, Color32 _value) :
+			base(_name, AUT_WH.MajorDomoProtocol.EntityValueType.Color, _index, 4)
 		{
 			Value = _value;
 		}
 
-		public EntityValue_Colour(string _name, byte _index) :
+		public EntityValue_Color(string _name, byte _index) :
 			this(_name, _index, Color.black)
 		{ }
 
@@ -315,11 +315,11 @@ namespace SentienceLab.MajorDomo
 			get
 			{
 				// order: ARGB
-				m_tmpColour.a = m_data[0];
-				m_tmpColour.r = m_data[1];
-				m_tmpColour.g = m_data[2];
-				m_tmpColour.b = m_data[3];
-				return m_tmpColour;
+				m_tmpColor.a = m_data[0];
+				m_tmpColor.r = m_data[1];
+				m_tmpColor.g = m_data[2];
+				m_tmpColor.b = m_data[3];
+				return m_tmpColor;
 			}
 			set
 			{
@@ -338,7 +338,7 @@ namespace SentienceLab.MajorDomo
 
 		override public string ToString() { return base.ToString() + "=(" + Value.ToString() + ")"; }
 
-		private Color32 m_tmpColour = Color.black;
+		private Color32 m_tmpColor = Color.black;
 	}
 
 

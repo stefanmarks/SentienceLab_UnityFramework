@@ -11,8 +11,8 @@ using global::FlatBuffers;
 public enum EProtocolVersion : sbyte
 {
   MAJOR = 0,
-  MINOR = 4,
-  REVISION = 8,
+  REVISION = 1,
+  MINOR = 5,
 };
 
 /// Types of entity values
@@ -26,7 +26,7 @@ public enum EntityValueType : sbyte
   Float32 = 5,
   Float64 = 6,
   String = 7,
-  Colour = 8,
+  Color = 8,
   Vector3D = 9,
   Quaternion = 10,
   ByteArray = 11,
@@ -109,13 +109,13 @@ public struct Version : IFlatbufferObject
   }
 };
 
-/// Colour (ARGB, 32 bit)
-public struct Colour : IFlatbufferObject
+/// Color (ARGB, 32 bit)
+public struct Color : IFlatbufferObject
 {
   private Struct __p;
   public ByteBuffer ByteBuffer { get { return __p.bb; } }
   public void __init(int _i, ByteBuffer _bb) { __p = new Struct(_i, _bb); }
-  public Colour __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+  public Color __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public sbyte A { get { return __p.bb.GetSbyte(__p.bb_pos + 0); } }
   public void MutateA(sbyte a) { __p.bb.PutSbyte(__p.bb_pos + 0, a); }
@@ -126,13 +126,13 @@ public struct Colour : IFlatbufferObject
   public sbyte B { get { return __p.bb.GetSbyte(__p.bb_pos + 3); } }
   public void MutateB(sbyte b) { __p.bb.PutSbyte(__p.bb_pos + 3, b); }
 
-  public static Offset<AUT_WH.MajorDomoProtocol.Colour> CreateColour(FlatBufferBuilder builder, sbyte A, sbyte R, sbyte G, sbyte B) {
+  public static Offset<AUT_WH.MajorDomoProtocol.Color> CreateColor(FlatBufferBuilder builder, sbyte A, sbyte R, sbyte G, sbyte B) {
     builder.Prep(1, 4);
     builder.PutSbyte(B);
     builder.PutSbyte(G);
     builder.PutSbyte(R);
     builder.PutSbyte(A);
-    return new Offset<AUT_WH.MajorDomoProtocol.Colour>(builder.Offset);
+    return new Offset<AUT_WH.MajorDomoProtocol.Color>(builder.Offset);
   }
 };
 
