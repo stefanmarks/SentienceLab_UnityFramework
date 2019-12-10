@@ -282,6 +282,8 @@ namespace NetMQ.Core.Utils
                 try
                 {
                     timeout = timeout != 0 ? timeout * 1000 : -1;
+                    // The -1 makes the code hang on Unity. Switch to 0.1s instead
+                    if (timeout < 0) timeout = 100000;
 #if NETFRAMEWORK
                     Socket.Select(readList, null, errorList, timeout);
 #else
