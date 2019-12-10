@@ -1,9 +1,8 @@
 {
-    "name": "nz.ac.aut.sentiencelab",
+    "name": "Unity.SentienceLab",
     "references": [
         "GUID:75469ad4d38634e559750d17036d5f7c"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": true,

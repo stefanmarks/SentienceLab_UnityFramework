@@ -43,7 +43,7 @@ namespace SentienceLab.MajorDomo
 			}
 
 			[Tooltip("List of MajorDomo servers/ports to query and their timeout values in seconds")]
-			public List<ServerInfo> Servers;
+			public List<ServerInfo> Servers = new List<ServerInfo>();
 
 			[Tooltip("Automatic connect delay after startup in seconds (0: Don't Autoconnect)")]
 			public float AutoConnectDelay = 0.1f;
@@ -57,7 +57,7 @@ namespace SentienceLab.MajorDomo
 
 		[ContextMenuItem("Load configuration from config file", "LoadConfiguration")]
 		[ContextMenuItem("Save configuration to config file", "SaveConfiguration")]
-		public Configuration configuration;
+		public Configuration configuration = new Configuration();
 
 
 		/// <summary>

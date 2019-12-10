@@ -22,7 +22,8 @@ namespace SentienceLab.MajorDomo
 		public const int VERSION_REVISION = 2;
 
 
-		public ClientManager ClientManager { get; private set; }
+		public ClientManager ClientManager { get; private set; } 
+		
 		public EntityManager EntityManager { get; private set; }
 
 
@@ -50,16 +51,19 @@ namespace SentienceLab.MajorDomo
 
 		public MajorDomoClient()
 		{
-			m_startTime = DateTime.Now;
-
-			// Necessary to force .NET implementation of network functions
-			// Client will most likely hang without this line!!!!!
-			AsyncIO.ForceDotNet.Force();
-
-			m_client = null;
+			if (m_localClientCount == 0)
+			{
+				// Necessary to force .NET implementation of network functions
+				// Client will most likely hang without this line!!!!!
+				AsyncIO.ForceDotNet.Force();
+			}
 
 			ClientManager = new ClientManager();
 			EntityManager = new EntityManager();
+
+			m_startTime = DateTime.Now;
+
+			m_client = null;
 
 			m_bufOut = new FlatBuffers.FlatBufferBuilder(1024);
 			m_msgOut = new NetMQ.Msg();
@@ -76,6 +80,21 @@ namespace SentienceLab.MajorDomo
 			m_updatedEntities = new List<EntityData>();
 
 			m_lastUpdateSent = DateTime.Now;
+
+			m_localClientCount++;
+		}
+
+
+		~MajorDomoClient()
+		{
+			if (m_localClientCount > 0)
+			{
+				m_localClientCount--;
+			}
+			else
+			{
+				NetMQ.NetMQConfig.Cleanup(false);
+			}
 		}
 
 
@@ -206,7 +225,14 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public uint ClientUID { get { return m_client.ClientUID; } private set { } }
+		public uint ClientUID 
+		{ 
+			get 
+			{ 
+				return m_client != null ? m_client.ClientUID : ClientData.UID_UNASSIGNED; 
+			}
+			private set { } 
+		}
 
 
 		public bool RetrieveClientList()
@@ -711,14 +737,10 @@ namespace SentienceLab.MajorDomo
 					Debug.Log("Disconnected from MajorDomo server");
 				}
 
-				ClientData client = m_client; // save for event call
-
-				EntityManager.Reset();
-				ClientManager.Reset();
-				m_client = null; // that's it
-
 				// fake the event of this client disconnecting
-				OnClientUnregistered?.Invoke(client);
+				OnClientUnregistered?.Invoke(m_client);
+
+				m_client = null; // that's it
 			}
 			Cleanup();
 		}
@@ -749,8 +771,6 @@ namespace SentienceLab.MajorDomo
 				m_clientRequestSocket.Dispose();
 				m_clientRequestSocket = null;
 			}
-
-			NetMQ.NetMQConfig.Cleanup(false);
 		}
 
 
@@ -1097,6 +1117,7 @@ namespace SentienceLab.MajorDomo
 			}
 		}
 
+		private static int m_localClientCount = 0;
 
 		private readonly DateTime   m_startTime;
 		private          ClientData m_client;

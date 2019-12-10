@@ -27,6 +27,8 @@ namespace SentienceLab
 
 		public void LoadConfiguration()
 		{
+			if (ConfigFileName.Length == 0) return;
+
 			try
 			{
 				string configFilePath = Path.Combine(Application.dataPath, "../");
@@ -51,6 +53,8 @@ namespace SentienceLab
 
 		public void SaveConfiguration()
 		{
+			if (ConfigFileName.Length == 0) return;
+			
 			try
 			{
 				string configFilePath = ConstructPath();
