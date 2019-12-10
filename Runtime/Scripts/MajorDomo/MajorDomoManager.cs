@@ -505,6 +505,9 @@ namespace SentienceLab.MajorDomo
 			m_runThread = false;
 			m_workerThread?.Join();
 			m_workerThread = null;
+			m_client = null;
+
+			MajorDomoClient.Terminate();
 		}
 
 
@@ -607,7 +610,5 @@ namespace SentienceLab.MajorDomo
 		protected List<Broadcast>  m_broadcasts;
 		protected List<Broadcast>  m_processingBroadcasts;
 		protected List<bool>       m_serverShutdown;
-
-		static private Rect m_rectConnectBtnPos = new Rect(10, 10, 100, 30);
 	}
 }
