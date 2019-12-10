@@ -11,8 +11,15 @@ using global::FlatBuffers;
 public enum EProtocolVersion : sbyte
 {
   MAJOR = 0,
-  REVISION = 1,
+  REVISION = 2,
   MINOR = 5,
+};
+
+/// Server information
+[System.FlagsAttribute]
+public enum ServerProperties : ushort
+{
+  RemoteControlAllowed = 1,
 };
 
 /// Types of entity values
@@ -37,8 +44,14 @@ public enum EntityValueType : sbyte
 [System.FlagsAttribute]
 public enum EntityProperties : ushort
 {
-  Persistent = 1,
-  SharedControl = 2,
+  SharedControl = 1,
+  Persistent = 2,
+};
+
+public enum URemoteControlCommand : byte
+{
+  NONE = 0,
+  RemoteControlCommand_StopServer = 1,
 };
 
 /// Union for gathering all types of client requests
@@ -54,6 +67,7 @@ public enum UClientRequest : byte
   ClReq_RequestEntityControl = 7,
   ClReq_ReleaseEntityControl = 8,
   ClReq_ClientBroadcast = 9,
+  ClReq_RemoteControlCommand = 10,
 };
 
 /// Union for gathering all types of server replies to the client requests
@@ -69,7 +83,8 @@ public enum UServerReply : byte
   SvRep_RequestEntityControl = 7,
   SvRep_ReleaseEntityControl = 8,
   SvRep_ClientBroadcast = 9,
-  SvRep_Error = 10,
+  SvRep_RemoteControlCommand = 10,
+  SvRep_Error = 11,
 };
 
 /// Union for all types of server events
@@ -451,10 +466,12 @@ public struct SvRep_ClientConnect : IFlatbufferObject
   public bool MutateServerUpdatePort(ushort serverUpdatePort) { int o = __p.__offset(14); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, serverUpdatePort); return true; } else { return false; } }
   public ushort HeartbeatInterval { get { int o = __p.__offset(16); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
   public bool MutateHeartbeatInterval(ushort heartbeatInterval) { int o = __p.__offset(16); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, heartbeatInterval); return true; } else { return false; } }
-  public uint ClientUID { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
-  public bool MutateClientUID(uint clientUID) { int o = __p.__offset(18); if (o != 0) { __p.bb.PutUint(o + __p.bb_pos, clientUID); return true; } else { return false; } }
+  public AUT_WH.MajorDomoProtocol.ServerProperties ServerProperties { get { int o = __p.__offset(18); return o != 0 ? (AUT_WH.MajorDomoProtocol.ServerProperties)__p.bb.GetUshort(o + __p.bb_pos) : 0; } }
+  public bool MutateServerProperties(AUT_WH.MajorDomoProtocol.ServerProperties serverProperties) { int o = __p.__offset(18); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, (ushort)serverProperties); return true; } else { return false; } }
+  public uint ClientUID { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public bool MutateClientUID(uint clientUID) { int o = __p.__offset(20); if (o != 0) { __p.bb.PutUint(o + __p.bb_pos, clientUID); return true; } else { return false; } }
 
-  public static void StartSvRep_ClientConnect(FlatBufferBuilder builder) { builder.StartTable(8); }
+  public static void StartSvRep_ClientConnect(FlatBufferBuilder builder) { builder.StartTable(9); }
   public static void AddServerName(FlatBufferBuilder builder, StringOffset serverNameOffset) { builder.AddOffset(0, serverNameOffset.Value, 0); }
   public static void AddServerVersion(FlatBufferBuilder builder, Offset<AUT_WH.MajorDomoProtocol.Version> serverVersionOffset) { builder.AddStruct(1, serverVersionOffset.Value, 0); }
   public static void AddServerProtocol(FlatBufferBuilder builder, Offset<AUT_WH.MajorDomoProtocol.Version> serverProtocolOffset) { builder.AddStruct(2, serverProtocolOffset.Value, 0); }
@@ -462,7 +479,8 @@ public struct SvRep_ClientConnect : IFlatbufferObject
   public static void AddClientUpdatePort(FlatBufferBuilder builder, ushort clientUpdatePort) { builder.AddUshort(4, clientUpdatePort, 0); }
   public static void AddServerUpdatePort(FlatBufferBuilder builder, ushort serverUpdatePort) { builder.AddUshort(5, serverUpdatePort, 0); }
   public static void AddHeartbeatInterval(FlatBufferBuilder builder, ushort heartbeatInterval) { builder.AddUshort(6, heartbeatInterval, 0); }
-  public static void AddClientUID(FlatBufferBuilder builder, uint clientUID) { builder.AddUint(7, clientUID, 0); }
+  public static void AddServerProperties(FlatBufferBuilder builder, AUT_WH.MajorDomoProtocol.ServerProperties serverProperties) { builder.AddUshort(7, (ushort)serverProperties, 0); }
+  public static void AddClientUID(FlatBufferBuilder builder, uint clientUID) { builder.AddUint(8, clientUID, 0); }
   public static Offset<AUT_WH.MajorDomoProtocol.SvRep_ClientConnect> EndSvRep_ClientConnect(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     builder.Required(o, 4);  // serverName
@@ -1052,6 +1070,95 @@ public struct SvRep_ClientBroadcast : IFlatbufferObject
   public static Offset<AUT_WH.MajorDomoProtocol.SvRep_ClientBroadcast> EndSvRep_ClientBroadcast(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     return new Offset<AUT_WH.MajorDomoProtocol.SvRep_ClientBroadcast>(o);
+  }
+};
+
+public struct RemoteControlCommand_StopServer : IFlatbufferObject
+{
+  private Table __p;
+  public ByteBuffer ByteBuffer { get { return __p.bb; } }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_11_1(); }
+  public static RemoteControlCommand_StopServer GetRootAsRemoteControlCommand_StopServer(ByteBuffer _bb) { return GetRootAsRemoteControlCommand_StopServer(_bb, new RemoteControlCommand_StopServer()); }
+  public static RemoteControlCommand_StopServer GetRootAsRemoteControlCommand_StopServer(ByteBuffer _bb, RemoteControlCommand_StopServer obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
+  public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
+  public RemoteControlCommand_StopServer __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+
+  public bool RestartServer { get { int o = __p.__offset(4); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool MutateRestartServer(bool restartServer) { int o = __p.__offset(4); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)(restartServer ? 1 : 0)); return true; } else { return false; } }
+  public bool PurgePersistent { get { int o = __p.__offset(6); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool MutatePurgePersistent(bool purgePersistent) { int o = __p.__offset(6); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)(purgePersistent ? 1 : 0)); return true; } else { return false; } }
+
+  public static Offset<AUT_WH.MajorDomoProtocol.RemoteControlCommand_StopServer> CreateRemoteControlCommand_StopServer(FlatBufferBuilder builder,
+      bool restartServer = false,
+      bool purgePersistent = false) {
+    builder.StartTable(2);
+    RemoteControlCommand_StopServer.AddPurgePersistent(builder, purgePersistent);
+    RemoteControlCommand_StopServer.AddRestartServer(builder, restartServer);
+    return RemoteControlCommand_StopServer.EndRemoteControlCommand_StopServer(builder);
+  }
+
+  public static void StartRemoteControlCommand_StopServer(FlatBufferBuilder builder) { builder.StartTable(2); }
+  public static void AddRestartServer(FlatBufferBuilder builder, bool restartServer) { builder.AddBool(0, restartServer, false); }
+  public static void AddPurgePersistent(FlatBufferBuilder builder, bool purgePersistent) { builder.AddBool(1, purgePersistent, false); }
+  public static Offset<AUT_WH.MajorDomoProtocol.RemoteControlCommand_StopServer> EndRemoteControlCommand_StopServer(FlatBufferBuilder builder) {
+    int o = builder.EndTable();
+    return new Offset<AUT_WH.MajorDomoProtocol.RemoteControlCommand_StopServer>(o);
+  }
+};
+
+/// Client sending a remote control command
+public struct ClReq_RemoteControlCommand : IFlatbufferObject
+{
+  private Table __p;
+  public ByteBuffer ByteBuffer { get { return __p.bb; } }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_11_1(); }
+  public static ClReq_RemoteControlCommand GetRootAsClReq_RemoteControlCommand(ByteBuffer _bb) { return GetRootAsClReq_RemoteControlCommand(_bb, new ClReq_RemoteControlCommand()); }
+  public static ClReq_RemoteControlCommand GetRootAsClReq_RemoteControlCommand(ByteBuffer _bb, ClReq_RemoteControlCommand obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
+  public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
+  public ClReq_RemoteControlCommand __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+
+  public uint ClientUID { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public bool MutateClientUID(uint clientUID) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutUint(o + __p.bb_pos, clientUID); return true; } else { return false; } }
+  public AUT_WH.MajorDomoProtocol.URemoteControlCommand CommandType { get { int o = __p.__offset(6); return o != 0 ? (AUT_WH.MajorDomoProtocol.URemoteControlCommand)__p.bb.Get(o + __p.bb_pos) : AUT_WH.MajorDomoProtocol.URemoteControlCommand.NONE; } }
+  public TTable? Command<TTable>() where TTable : struct, IFlatbufferObject { int o = __p.__offset(8); return o != 0 ? (TTable?)__p.__union<TTable>(o + __p.bb_pos) : null; }
+
+  public static Offset<AUT_WH.MajorDomoProtocol.ClReq_RemoteControlCommand> CreateClReq_RemoteControlCommand(FlatBufferBuilder builder,
+      uint clientUID = 0,
+      AUT_WH.MajorDomoProtocol.URemoteControlCommand command_type = AUT_WH.MajorDomoProtocol.URemoteControlCommand.NONE,
+      int commandOffset = 0) {
+    builder.StartTable(3);
+    ClReq_RemoteControlCommand.AddCommand(builder, commandOffset);
+    ClReq_RemoteControlCommand.AddClientUID(builder, clientUID);
+    ClReq_RemoteControlCommand.AddCommandType(builder, command_type);
+    return ClReq_RemoteControlCommand.EndClReq_RemoteControlCommand(builder);
+  }
+
+  public static void StartClReq_RemoteControlCommand(FlatBufferBuilder builder) { builder.StartTable(3); }
+  public static void AddClientUID(FlatBufferBuilder builder, uint clientUID) { builder.AddUint(0, clientUID, 0); }
+  public static void AddCommandType(FlatBufferBuilder builder, AUT_WH.MajorDomoProtocol.URemoteControlCommand commandType) { builder.AddByte(1, (byte)commandType, 0); }
+  public static void AddCommand(FlatBufferBuilder builder, int commandOffset) { builder.AddOffset(2, commandOffset, 0); }
+  public static Offset<AUT_WH.MajorDomoProtocol.ClReq_RemoteControlCommand> EndClReq_RemoteControlCommand(FlatBufferBuilder builder) {
+    int o = builder.EndTable();
+    return new Offset<AUT_WH.MajorDomoProtocol.ClReq_RemoteControlCommand>(o);
+  }
+};
+
+/// Server responding to a client remote control request
+public struct SvRep_RemoteControlCommand : IFlatbufferObject
+{
+  private Table __p;
+  public ByteBuffer ByteBuffer { get { return __p.bb; } }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_11_1(); }
+  public static SvRep_RemoteControlCommand GetRootAsSvRep_RemoteControlCommand(ByteBuffer _bb) { return GetRootAsSvRep_RemoteControlCommand(_bb, new SvRep_RemoteControlCommand()); }
+  public static SvRep_RemoteControlCommand GetRootAsSvRep_RemoteControlCommand(ByteBuffer _bb, SvRep_RemoteControlCommand obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
+  public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
+  public SvRep_RemoteControlCommand __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+
+
+  public static void StartSvRep_RemoteControlCommand(FlatBufferBuilder builder) { builder.StartTable(0); }
+  public static Offset<AUT_WH.MajorDomoProtocol.SvRep_RemoteControlCommand> EndSvRep_RemoteControlCommand(FlatBufferBuilder builder) {
+    int o = builder.EndTable();
+    return new Offset<AUT_WH.MajorDomoProtocol.SvRep_RemoteControlCommand>(o);
   }
 };
 

@@ -19,7 +19,7 @@ namespace SentienceLab.MajorDomo
 		// Client Version number
 		public const int VERSION_MAJOR    = 0;
 		public const int VERSION_MINOR    = 5;
-		public const int VERSION_REVISION = 1;
+		public const int VERSION_REVISION = 2;
 
 
 		public ClientManager ClientManager { get; private set; }
@@ -79,7 +79,7 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public bool Connect(string _applicationName, string _serverAddress, ushort _serverPort, float _timeout, bool _retrieveLists = true)
+		public bool Connect(string _applicationName, string _serverAddress, ushort _serverPort, float _timeout)
 		{
 			bool success = false;
 
@@ -166,17 +166,16 @@ namespace SentienceLab.MajorDomo
 
 						// get interval for sending heartbeat signal
 						m_heartbeatInterval = ack.HeartbeatInterval / 1000.0f;
+						// get server properties
+						m_serverAllowsRemoteControl =
+							(ack.ServerProperties & AUT_WH.MajorDomoProtocol.ServerProperties.RemoteControlAllowed) > 0;
 
-						m_entityListRetrieved = false;
-						
 						success = true;
 
-						if (_retrieveLists)
-						{
-							RetrieveClientList();
-							RetrieveEntityList();
-						}
-
+						m_entityListRetrieved = false;
+						RetrieveClientList();
+						RetrieveEntityList();
+						
 						OnClientRegistered?.Invoke(m_client);
 					}
 					else if (m_serverReply.RepType == AUT_WH.MajorDomoProtocol.UServerReply.SvRep_Error)
@@ -607,6 +606,34 @@ namespace SentienceLab.MajorDomo
 			var broadcast = AUT_WH.MajorDomoProtocol.ClReq_ClientBroadcast.CreateClReq_ClientBroadcast(m_bufOut, m_client.ClientUID, _identifier, data);
 			// send and receive
 			if (!ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_ClientBroadcast, broadcast.Value))
+			{
+				Debug.LogWarning("Could not send broadcast");
+			}
+		}
+
+
+		public bool CanRemoteControlServer()
+		{
+			return IsConnected() && m_serverAllowsRemoteControl;
+		}
+
+
+		void ServerControl_stopServer(bool _restart, bool _purgePersistentEntities)
+		{
+			if (!CanRemoteControlServer()) return;
+
+			string strAction = _restart ? "restart server" : "stop server";
+			Debug.Log("Sending remote control request: " + strAction);
+			// build request
+			m_bufOut.Clear();
+			var commandStop = AUT_WH.MajorDomoProtocol.RemoteControlCommand_StopServer.CreateRemoteControlCommand_StopServer(m_bufOut,
+				_restart, _purgePersistentEntities);
+			var command = AUT_WH.MajorDomoProtocol.ClReq_RemoteControlCommand.CreateClReq_RemoteControlCommand(m_bufOut,
+				m_client.ClientUID,
+				AUT_WH.MajorDomoProtocol.URemoteControlCommand.RemoteControlCommand_StopServer,
+				commandStop.Value);
+			// send and receive
+			if (!ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_RemoteControlCommand, command.Value))
 			{
 				Debug.LogWarning("Could not send broadcast");
 			}
@@ -1082,6 +1109,8 @@ namespace SentienceLab.MajorDomo
 		private float    m_timeoutInterval;
 		private float    m_heartbeatInterval;
 		private DateTime m_lastUpdateSent;
+
+		private bool     m_serverAllowsRemoteControl;
 
 		private FlatBuffers.FlatBufferBuilder  m_bufOut;
 		private NetMQ.Msg                      m_msgOut;
