@@ -379,7 +379,17 @@ namespace SentienceLab.MajorDomo
 				string dbgFail = "";
 				List<EntityData> publishedEntities = new List<EntityData>();
 				var repEntityList = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_PublishEntities>().Value;
-				for (int idx = 0; idx < repEntityList.EntityUIDsLength; idx++)
+
+				int repListLen = repEntityList.EntityUIDsLength;
+				if (repListLen > _entities.Count)
+				{
+					// something went horribly wrong
+					Debug.LogWarning("Response entity list is larger - truncating");
+					// damage control
+					repListLen = _entities.Count;
+				}
+
+				for (int idx = 0; idx < repListLen; idx++)
 				{
 					uint entityUID = repEntityList.EntityUIDs(idx);
 					EntityData entity = _entities[idx];
@@ -390,7 +400,7 @@ namespace SentienceLab.MajorDomo
 						publishedEntities.Add(entity);
 						dbgOK += "- " + entity.ToString(true, true) + "\n";
 					}
-					else
+					else 
 					{
 						dbgFail += "- " + entity.ToString(true, true) + "\n";
 					}
