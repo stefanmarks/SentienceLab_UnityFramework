@@ -104,7 +104,7 @@ namespace SentienceLab.MajorDomo
 		{
 			if (m_NetMQ_Initialised)
 			{
-				NetMQ.NetMQConfig.Cleanup(true);
+				NetMQ.NetMQConfig.Cleanup(false);
 				m_NetMQ_Initialised = false;
 			}
 		}
