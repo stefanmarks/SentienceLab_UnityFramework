@@ -206,7 +206,9 @@ namespace SentienceLab.MajorDomo
 						success = true;
 
 						m_entityListRetrieved = false;
+						ClientManager.Reset();
 						RetrieveClientList();
+						EntityManager.Reset();
 						RetrieveEntityList();
 						
 						OnClientRegistered?.Invoke(m_client);
@@ -227,6 +229,11 @@ namespace SentienceLab.MajorDomo
 						address);
 					Cleanup();
 				}
+			}
+			else
+			{
+				Debug.LogWarning("Already connected to a server");
+				success = true;
 			}
 
 			return success;
@@ -267,16 +274,15 @@ namespace SentienceLab.MajorDomo
 						List<ClientData> retrievedClients = new List<ClientData>();
 
 						var repClientList = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_GetClientList>().Value;
-						String output = "Queried " + repClientList.ClientsLength + " clients:\n";
 						for (int i = 0; i < repClientList.ClientsLength; i++)
 						{
 							var clientInfo = repClientList.Clients(i).Value;
-							output += "- " + (i + 1) + ": '" + clientInfo.Name + "', UID " + clientInfo.Uid + "\n";
 							ClientData client = new ClientData(clientInfo);
 							ClientManager.AddClient(client);
 							retrievedClients.Add(client);
 						}
-						Debug.Log(output);
+						Debug.Log("Queried " + retrievedClients.Count + " clients:\n" 
+							+ ClientManager.ClientListAsString(retrievedClients));
 
 						success = true;
 
@@ -311,17 +317,17 @@ namespace SentienceLab.MajorDomo
 						List<EntityData> retrievedEntites = new List<EntityData>();
 
 						var repEntityList = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_GetEntityList>().Value;
-						String output = "Queried " + repEntityList.EntitiesLength + " entities:\n";
 						for (int i = 0; i < repEntityList.EntitiesLength; i++)
 						{
 							var entityInformation = repEntityList.Entities(i).Value;
 							EntityData entity = new EntityData(entityInformation);
-							output += "- " + (i + 1) + ": " + entity.ToString(true, true) + "\n";
 							entity = EntityManager.AddEntity(entity);
 							retrievedEntites.Add(entity);
 						}
 
-						Debug.Log(output);
+						Debug.Log("Queried " + retrievedEntites.Count+ " entities:\n" 
+							+ EntityManager.EntityListAsString(retrievedEntites));
+
 						m_entityListRetrieved = true;
 
 						success = true;
@@ -377,9 +383,8 @@ namespace SentienceLab.MajorDomo
 			// send and receive
 			if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_PublishEntities, requestPublishEntities.Value))
 			{
-				string dbgOK = "";
-				string dbgFail = "";
 				List<EntityData> publishedEntities = new List<EntityData>();
+				List<EntityData> failedEntities    = new List<EntityData>();
 				var repEntityList = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_PublishEntities>().Value;
 
 				int repListLen = repEntityList.EntityUIDsLength;
@@ -400,16 +405,23 @@ namespace SentienceLab.MajorDomo
 						entity.SetEntityUID(entityUID);
 						entity = EntityManager.AddEntity(entity);
 						publishedEntities.Add(entity);
-						dbgOK += "- " + entity.ToString(true, true) + "\n";
 					}
 					else 
 					{
-						dbgFail += "- " + entity.ToString(true, true) + "\n";
+						failedEntities.Add(entity);
 					}
 				}
 
-				if (dbgOK.Length > 0) Debug.Log("Published entities:\n" + dbgOK);
-				if (dbgFail.Length > 0) Debug.LogWarning("Entities that could not be published:\n" + dbgFail);
+				if (publishedEntities.Count > 0)
+				{
+					Debug.Log("Published entities:\n"
+						+ EntityManager.EntityListAsString(publishedEntities));
+				}
+				if (failedEntities.Count > 0)
+				{
+					Debug.LogWarning("Entities that could not be published:\n"
+						+ EntityManager.EntityListAsString(failedEntities));
+				}
 
 				// call event handlers
 				if (publishedEntities.Count > 0)
@@ -449,10 +461,9 @@ namespace SentienceLab.MajorDomo
 			// send and receive
 			if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_RevokeEntities, requestRevokeEntities.Value))
 			{
-				string dbgOK = "";
-				string dbgFail = "";
 				// remove revoked entities from manager
 				List<EntityData> revokedEntities = new List<EntityData>();
+				List<EntityData> failedEntities  = new List<EntityData>();
 				var repEntityList = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_RevokeEntities>().Value;
 				for (int idx = 0; idx < repEntityList.EntityUIDsLength; idx++)
 				{
@@ -488,18 +499,20 @@ namespace SentienceLab.MajorDomo
 						entity.SetRevoked();
 						entitiesToRevoke.Remove(entity); //remove from list for later
 						revokedEntities.Add(entity);
-						dbgOK += "- " + entity.ToString(true, true) + "\n";
 					}
 				}
 
 				// which entities were not revoked? (left in the list)
-				foreach (var entity in entitiesToRevoke)
+				if (revokedEntities.Count > 0)
 				{
-					dbgFail += "- " + entity.ToString(true, true) + "\n";
+					Debug.Log("Revoked entities:\n" 
+						+ EntityManager.EntityListAsString(revokedEntities));
 				}
-
-				if (dbgOK.Length > 0) Debug.Log("Revoked entities:\n" + dbgOK);
-				if (dbgFail.Length > 0) Debug.LogWarning("Entities that could not be revoked:\n" + dbgFail);
+				if (entitiesToRevoke.Count > 0)
+				{
+					Debug.LogWarning("Entities that could not be revoked:\n"
+						+ EntityManager.EntityListAsString(entitiesToRevoke));
+				}
 
 				// call event handlers
 				if (revokedEntities.Count > 0)
@@ -548,7 +561,6 @@ namespace SentienceLab.MajorDomo
 			// send and receive
 			if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_RequestEntityControl, requestControlEntities.Value))
 			{
-				string dbgOK = "";
 				// reassigning client UID for controlled entities
 				List<EntityData> controlledEntities = new List<EntityData>();
 				var repEntityList = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_RequestEntityControl>().Value;
@@ -561,19 +573,21 @@ namespace SentienceLab.MajorDomo
 						if (EntityManager.ChangeEntityControl(entity, m_client.ClientUID))
 						{
 							controlledEntities.Add(entity);
-							dbgOK += "- " + entity.ToString(true, true) + "\n";
 						}
 						_entities.Remove(entity);
 					}
 				}
-				if (dbgOK.Length > 0) Debug.Log("Controlled entities:\n" + dbgOK);
 
-				string dbgFail = "";
-				for (int idx = 0; idx < _entities.Count; idx++)
+				if (controlledEntities.Count > 0)
 				{
-					dbgFail += "- " + _entities[idx].ToString(true, true) + "\n";
+					Debug.Log("Controlled entities:\n" 
+						+ EntityManager.EntityListAsString(controlledEntities));
 				}
-				if (dbgFail.Length > 0) Debug.LogWarning("Entities that could not be controlled:\n" + dbgFail);
+				if (_entities.Count > 0)
+				{
+					Debug.LogWarning("Entities that could not be controlled:\n" 
+						+ EntityManager.EntityListAsString(_entities));
+				}
 
 				// call event handlers
 				if (controlledEntities.Count > 0)
@@ -600,7 +614,6 @@ namespace SentienceLab.MajorDomo
 			// send and receive
 			if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_ReleaseEntityControl, releaseControlEntities.Value))
 			{
-				string dbgOK = "";
 				// reassigning client UID for released entities
 				List<EntityData> releasedEntities = new List<EntityData>();
 				var repEntityList = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_ReleaseEntityControl>().Value;
@@ -613,19 +626,21 @@ namespace SentienceLab.MajorDomo
 						if (EntityManager.ChangeEntityControl(entity, ClientData.UID_SERVER))
 						{
 							releasedEntities.Add(entity);
-							dbgOK += "- " + entity.ToString(true, true) + "\n";
 						}
 						_entities.Remove(entity);
 					}
 				}
-				if (dbgOK.Length > 0) Debug.Log("Released entities:\n" + dbgOK);
 
-				string dbgFail = "";
-				for (int idx = 0; idx < _entities.Count; idx++)
+				if (releasedEntities.Count > 0)
 				{
-					dbgFail += "- " + _entities[idx].ToString(true, true) + "\n";
+					Debug.Log("Released entities:\n"
+						+ EntityManager.EntityListAsString(releasedEntities));
 				}
-				if (dbgFail.Length > 0) Debug.LogWarning("Entities that could not be released:\n" + dbgFail);
+				if (_entities.Count > 0)
+				{
+					Debug.LogWarning("Entities that could not be released:\n"
+						+ EntityManager.EntityListAsString(_entities));
+				}
 
 				// call event handlers
 				if (releasedEntities.Count > 0)
@@ -690,53 +705,68 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public void Process()
+		/// <summary>
+		/// Processes sending/handling of events and updates.
+		/// </summary>
+		/// <returns>/c true if at least one protocol packet was handled</returns>
+		public bool Process()
 		{
-			ProcessServerEvents();
-			ProcessClientUpdates();
-			ProcessServerUpdates();
+			bool didProcess = false;
+			didProcess |= ProcessServerEvents();
+			didProcess |= ProcessClientUpdates();
+			didProcess |= ProcessServerUpdates();
+			return didProcess;
 		}
 
 
-		public void ProcessServerEvents()
+		public bool ProcessServerEvents()
 		{
-			if (!IsConnected()) return;
-			if (m_serverEventSocket != null)
+			bool didProcess = false;
+
+			if ((m_serverEventSocket != null) && IsConnected())
 			{
 				// process as long as there are events (max 5 to avoid deadlock)
 				int maxEventsToProcess = 5;
 				while (maxEventsToProcess > 0 &&  m_serverEventSocket.Poll(TimeSpan.Zero))
 				{
 					maxEventsToProcess--;
+					didProcess = true;
 				}
 			}
+			return didProcess;
 		}
 
 
-		public void ProcessClientUpdates()
+		public bool ProcessClientUpdates()
 		{
-			if (!IsConnected()) return;
+			bool didProcess = false;
+			
 			// are there entities that have been modified
-			if (m_clientUpdateSocket != null)
+			if ((m_clientUpdateSocket != null) && IsConnected())
 			{
-				ProcessModifiedEntities();
+				didProcess = ProcessModifiedEntities();
 			}
+
+			return didProcess;
 		}
 
 
-		public void ProcessServerUpdates()
+		public bool ProcessServerUpdates()
 		{
-			if (!IsConnected()) return;
+			bool didProcess = false;
+			
 			// process as long as there are updates
-			if (m_serverUpdateSocket != null)
+			if ((m_serverUpdateSocket != null) && IsConnected())
 			{
 				// process as long as there are events (max 5 to avoid deadlock)
 				int maxUpdatesToProcess = 5;
 				while (maxUpdatesToProcess > 0 && m_serverUpdateSocket.Poll(TimeSpan.Zero))
 				{
 					maxUpdatesToProcess--;
+					didProcess = true;
 				}
 			}
+			return didProcess;
 		}
 
 
@@ -1060,7 +1090,7 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		private void ProcessModifiedEntities()
+		private bool ProcessModifiedEntities()
 		{
 			// find client entities 
 			List<EntityData> modifiedEntities = EntityManager.GetModifiedEntities();
@@ -1069,7 +1099,7 @@ namespace SentienceLab.MajorDomo
 			bool sendHeartbeat = (DateTime.Now - m_lastUpdateSent).TotalSeconds > m_heartbeatInterval;
 
 			// is there anything to send at all?
-			if (!sendHeartbeat && modifiedEntities.Count == 0) return;
+			if (!sendHeartbeat && modifiedEntities.Count == 0) return false;
 
 			// prepare update packet
 			m_bufUpdate.Clear();
@@ -1099,6 +1129,7 @@ namespace SentienceLab.MajorDomo
 			}
 
 			EntityManager.ResetModifiedEntities();
+			return true;
 		}
 
 

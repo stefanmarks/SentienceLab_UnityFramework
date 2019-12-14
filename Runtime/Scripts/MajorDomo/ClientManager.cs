@@ -72,6 +72,20 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		public static string ClientListAsString(IReadOnlyList<ClientData> _list)
+		{
+			string output = "";
+			int idx = 1;
+			foreach (var e in _list)
+			{
+				if (idx > 1) output += '\n';
+				output += idx + ":\t" + e.ToString();
+				idx++;
+			}
+			return output;
+		}
+
+
 		private SortedList<uint, ClientData> clientUidMap;
 	}
 }

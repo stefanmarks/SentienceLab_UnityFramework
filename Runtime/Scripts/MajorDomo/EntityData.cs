@@ -472,6 +472,8 @@ namespace SentienceLab.MajorDomo
 			if (_persistent)
 			{
 				m_properties |= (ushort)AUT_WH.MajorDomoProtocol.EntityProperties.Persistent;
+				// persistent entities must als be shared
+				m_properties |= (ushort)AUT_WH.MajorDomoProtocol.EntityProperties.SharedControl;
 			}
 			else
 			{
@@ -495,6 +497,8 @@ namespace SentienceLab.MajorDomo
 			else
 			{
 				m_properties &= (ushort)(~AUT_WH.MajorDomoProtocol.EntityProperties.SharedControl);
+				// not shared als means not possible to make persistent
+				m_properties &= (ushort)(~AUT_WH.MajorDomoProtocol.EntityProperties.Persistent);
 			}
 		}
 

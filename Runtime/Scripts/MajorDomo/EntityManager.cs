@@ -15,7 +15,6 @@ namespace SentienceLab.MajorDomo
 		public EntityManager()
 		{
 			m_entityUidMap     = new SortedList<uint, EntityData>();
-			m_clientUID        = ClientData.UID_UNASSIGNED;
 			m_clientEntityList = new List<EntityData>();
 			m_modifiedEntities = new List<EntityData>();
 			Reset();
@@ -31,12 +30,10 @@ namespace SentienceLab.MajorDomo
 
 		public void Reset()
 		{
-			while (m_entityUidMap.Count > 0)
-			{
-				EntityData entity = m_entityUidMap.Values[0];
-				RemoveEntity(entity);
-				entity.SetRevoked();
-			}
+			m_clientUID = ClientData.UID_UNASSIGNED;
+			m_entityUidMap.Clear();
+			m_clientEntityList.Clear();
+			m_modifiedEntities.Clear();
 			m_rebuildClientEntityList = true;
 		}
 
@@ -105,6 +102,12 @@ namespace SentienceLab.MajorDomo
 				Debug.LogWarning("Trying to update invalid server entity with UID = " + _update.EntityUID);
 			}
 			return entity;
+		}
+
+
+		public IReadOnlyList<EntityData> GetEntities()
+		{
+			return	new List<EntityData>(m_entityUidMap.Values).AsReadOnly();
 		}
 
 
@@ -189,6 +192,20 @@ namespace SentienceLab.MajorDomo
 			bool controlChanged = _entity.ChangeClientUID(_clientUID);
 			if (controlChanged) m_rebuildClientEntityList = true;
 			return controlChanged;
+		}
+
+
+		public static string EntityListAsString(IReadOnlyList<EntityData> _list)
+		{
+			string output = "";
+			int idx = 1;
+			foreach(var e in _list)
+			{
+				if (idx > 1) output += '\n';
+				output += idx + ":\t" + e.ToString(true, true);
+				idx++;
+			}
+			return output;
 		}
 
 
