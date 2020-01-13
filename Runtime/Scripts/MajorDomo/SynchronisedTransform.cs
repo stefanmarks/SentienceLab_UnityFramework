@@ -79,6 +79,7 @@ namespace SentienceLab.MajorDomo
 		private bool DoRot()
 		{
 			return
+				TransformComponents == ETransformComponents.Rotation ||
 				TransformComponents == ETransformComponents.TranslationRotation ||
 				TransformComponents == ETransformComponents.TranslationRotationScale;
 		}
