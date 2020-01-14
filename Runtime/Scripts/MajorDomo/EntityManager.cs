@@ -5,6 +5,7 @@
 #endregion Copyright Information
 
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 namespace SentienceLab.MajorDomo
@@ -66,20 +67,20 @@ namespace SentienceLab.MajorDomo
 
 		public EntityData AddEntity(EntityData _entity)
 		{
-			EntityData registeredEntity = null;
-		
-			if (m_entityUidMap.TryGetValue(_entity.EntityUID, out registeredEntity))
+			if (m_entityUidMap.TryGetValue(_entity.EntityUID, out EntityData registeredEntity))
 			{
 				if (!_entity.Equals(registeredEntity))
 				{
-					Debug.LogWarning("Entity mismatch " + _entity.ToString(false, false) + " <-> " + registeredEntity.ToString(false, false));
+					Debug.LogWarningFormat("Entity mismatch {0} <-> {1}",
+						_entity.ToString(false, false),
+						registeredEntity.ToString(false, false));
 				}
 			}
 			else
 			{
 				registeredEntity = _entity;
 				m_entityUidMap[_entity.EntityUID] = _entity;
-				Debug.Log("Added entity " + _entity.ToString(true, true));
+				Debug.LogFormat("Added entity {0}", _entity.ToString(true, true));
 				m_rebuildClientEntityList = true;
 			}
 			return registeredEntity;
@@ -88,8 +89,7 @@ namespace SentienceLab.MajorDomo
 
 		public EntityData UpdateEntity(AUT_WH.MajorDomoProtocol.EntityUpdate _update)
 		{
-			EntityData entity = null;
-			if (m_entityUidMap.TryGetValue(_update.EntityUID, out entity))
+			if (m_entityUidMap.TryGetValue(_update.EntityUID, out EntityData entity))
 			{
 				// do not update own clients' entities
 				if (entity.ClientUID != m_clientUID)
@@ -99,7 +99,9 @@ namespace SentienceLab.MajorDomo
 			}
 			else
 			{
-				Debug.LogWarning("Trying to update invalid server entity with UID = " + _update.EntityUID);
+				Debug.LogWarningFormat(
+					"Trying to update invalid server entity with UID={0}",
+					_update.EntityUID);
 			}
 			return entity;
 		}
@@ -113,8 +115,7 @@ namespace SentienceLab.MajorDomo
 
 		public EntityData FindEntity(uint _uid)
 		{
-			EntityData entity = null;
-			m_entityUidMap.TryGetValue(_uid, out entity);
+			m_entityUidMap.TryGetValue(_uid, out EntityData entity);
 			return entity;
 		}
 
@@ -124,7 +125,7 @@ namespace SentienceLab.MajorDomo
 			EntityData entity = null;
 			foreach (EntityData e in m_entityUidMap.Values)
 			{
-				if (e.Name == _name)
+				if (e.Name.Equals(_name))
 				{
 					entity = e;
 					break;
@@ -177,12 +178,14 @@ namespace SentienceLab.MajorDomo
 		{
 			if (m_entityUidMap.Remove(_entity.EntityUID))
 			{
-				Debug.Log("Removed entity " + _entity.ToString(true, false));
+				Debug.LogFormat("Removed entity {0}", _entity.ToString(true, false));
 				m_clientEntityList.Remove(_entity); // remove from this list as well (if existing)
 			}
 			else
 			{
-				Debug.LogWarning("Trying to remove unknown entity with UID=" + _entity.EntityUID);
+				Debug.LogWarningFormat(
+					"Trying to remove unknown entity with UID={0}",
+					_entity.EntityUID);
 			}
 		}
 
@@ -197,15 +200,15 @@ namespace SentienceLab.MajorDomo
 
 		public static string EntityListAsString(IReadOnlyList<EntityData> _list)
 		{
-			string output = "";
+			m_sOutput.Clear();
 			int idx = 1;
 			foreach(var e in _list)
 			{
-				if (idx > 1) output += '\n';
-				output += idx + ":\t" + e.ToString(true, true);
+				if (idx > 1) m_sOutput.Append('\n');
+				m_sOutput.Append(idx).Append(":\t").Append(e.ToString(true, true));
 				idx++;
 			}
-			return output;
+			return m_sOutput.ToString();
 		}
 
 
@@ -214,5 +217,7 @@ namespace SentienceLab.MajorDomo
 		private readonly List<EntityData>    m_clientEntityList;
 		private bool                         m_rebuildClientEntityList;
 		private readonly List<EntityData>    m_modifiedEntities;
+
+		private readonly static StringBuilder m_sOutput = new StringBuilder();
 	}
 }

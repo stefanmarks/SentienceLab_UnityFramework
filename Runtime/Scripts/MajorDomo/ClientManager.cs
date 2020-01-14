@@ -5,6 +5,7 @@
 #endregion Copyright Information
 
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 namespace SentienceLab.MajorDomo
@@ -19,15 +20,15 @@ namespace SentienceLab.MajorDomo
 
 		public void Reset()
 		{
-			clientUidMap = new SortedList<uint, ClientData>();
+			m_clientUidMap = new SortedList<uint, ClientData>();
 		}
 
 
 		public void AddClient(ClientData client)
 		{
-			if (!clientUidMap.ContainsKey(client.ClientUID))
+			if (!m_clientUidMap.ContainsKey(client.ClientUID))
 			{
-				clientUidMap[client.ClientUID] = client;
+				m_clientUidMap[client.ClientUID] = client;
 			}
 			else
 			{
@@ -39,7 +40,7 @@ namespace SentienceLab.MajorDomo
 		public ClientData GetClientByUID(uint _uid)
 		{
 			ClientData client = null;
-			clientUidMap.TryGetValue(_uid, out client);
+			m_clientUidMap.TryGetValue(_uid, out client);
 			return client;
 		}
 
@@ -47,7 +48,7 @@ namespace SentienceLab.MajorDomo
 		public ClientData GetClientByName(string name)
 		{
 			ClientData entity = null;
-			foreach (ClientData e in clientUidMap.Values)
+			foreach (ClientData e in m_clientUidMap.Values)
 			{
 				if ( e.Name == name)
 				{
@@ -61,9 +62,9 @@ namespace SentienceLab.MajorDomo
 
 		public void RemoveClient(ClientData client)
 		{
-			if (clientUidMap.ContainsKey(client.ClientUID))
+			if (m_clientUidMap.ContainsKey(client.ClientUID))
 			{
-				clientUidMap.Remove(client.ClientUID);
+				m_clientUidMap.Remove(client.ClientUID);
 			}
 			else
 			{
@@ -74,18 +75,20 @@ namespace SentienceLab.MajorDomo
 
 		public static string ClientListAsString(IReadOnlyList<ClientData> _list)
 		{
-			string output = "";
+			m_sOutput.Clear();
 			int idx = 1;
 			foreach (var e in _list)
 			{
-				if (idx > 1) output += '\n';
-				output += idx + ":\t" + e.ToString();
+				if (idx > 1) m_sOutput.Append('\n');
+				m_sOutput.Append(idx).Append(":\t").Append(e.ToString());
 				idx++;
 			}
-			return output;
+			return m_sOutput.ToString();
 		}
 
 
-		private SortedList<uint, ClientData> clientUidMap;
+		private SortedList<uint, ClientData> m_clientUidMap;
+
+		private readonly static StringBuilder m_sOutput = new StringBuilder();
 	}
 }
