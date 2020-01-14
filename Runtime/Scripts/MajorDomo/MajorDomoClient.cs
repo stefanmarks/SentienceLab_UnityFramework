@@ -185,8 +185,7 @@ namespace SentienceLab.MajorDomo
 						Debug.LogFormat("Server event socket: {0}", serverEventSocket);
 						m_serverEventSocket = new NetMQ.Sockets.SubscriberSocket(serverEventSocket);
 						m_serverEventSocket.SubscribeToAnyTopic();
-						m_serverEventSocket.ReceiveReady += ServerEvent_ReceiveReady;
-					
+						
 						// Client updates
 						string clientUpdateSocket = "tcp://" + _serverAddress + ":" + ack.ClientUpdatePort;
 						Debug.LogFormat("Client update socket: {0}", clientUpdateSocket);
@@ -197,8 +196,7 @@ namespace SentienceLab.MajorDomo
 						Debug.LogFormat("Server update socket: {0}", serverUpdateSocket);
 						m_serverUpdateSocket = new NetMQ.Sockets.SubscriberSocket(serverUpdateSocket);
 						m_serverUpdateSocket.SubscribeToAnyTopic();
-						m_serverUpdateSocket.ReceiveReady += ServerUpdate_ReceiveReady;
-
+						
 						// get interval for sending heartbeat signal
 						m_heartbeatInterval = ack.HeartbeatInterval / 1000.0f;
 						// get server properties
@@ -214,7 +212,12 @@ namespace SentienceLab.MajorDomo
 						EntityManager.Reset();
 						EntityManager.SetClientUID(ack.ClientUID);
 						RetrieveEntityList();
-						
+
+						// now that we have the lists, we can also start receiving events
+						// (not beforehand, otherwise event data might mix with query data)
+						m_serverEventSocket.ReceiveReady  += ServerEvent_ReceiveReady;
+						m_serverUpdateSocket.ReceiveReady += ServerUpdate_ReceiveReady;
+
 						OnClientRegistered?.Invoke(m_client);
 					}
 					else if (m_serverReply.RepType == AUT_WH.MajorDomoProtocol.UServerReply.SvRep_Error)
@@ -379,11 +382,11 @@ namespace SentienceLab.MajorDomo
 			var listInfos = new List<FlatBuffers.Offset<AUT_WH.MajorDomoProtocol.EntityInformation>>();
 			foreach (var entity in _entities)
 			{
-				entity.SetClientUID(m_client.ClientUID);
+				entity.SetClientUID(this.ClientUID);
 				listInfos.Add(entity.WriteEntityInformation(m_bufReq));
 			}
 			var entityInfos = AUT_WH.MajorDomoProtocol.ClReq_PublishEntities.CreateEntitiesVector(m_bufReq, listInfos.ToArray());
-			var requestPublishEntities = AUT_WH.MajorDomoProtocol.ClReq_PublishEntities.CreateClReq_PublishEntities(m_bufReq, m_client.ClientUID, entityInfos);
+			var requestPublishEntities = AUT_WH.MajorDomoProtocol.ClReq_PublishEntities.CreateClReq_PublishEntities(m_bufReq, this.ClientUID, entityInfos);
 			// send and receive
 			if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_PublishEntities, requestPublishEntities.Value))
 			{
@@ -459,7 +462,7 @@ namespace SentienceLab.MajorDomo
 				m_bufReq.AddUint(entity.EntityUID);
 			}
 			var entityUIDs = m_bufReq.EndVector();
-			var requestRevokeEntities = AUT_WH.MajorDomoProtocol.ClReq_RevokeEntities.CreateClReq_RevokeEntities(m_bufReq, m_client.ClientUID, entityUIDs);
+			var requestRevokeEntities = AUT_WH.MajorDomoProtocol.ClReq_RevokeEntities.CreateClReq_RevokeEntities(m_bufReq, this.ClientUID, entityUIDs);
 			// send and receive
 			if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_RevokeEntities, requestRevokeEntities.Value))
 			{
@@ -557,7 +560,7 @@ namespace SentienceLab.MajorDomo
 				m_bufReq.AddUint(entity.EntityUID);
 			}
 			var entityUIDs = m_bufReq.EndVector();
-			var requestControlEntities = AUT_WH.MajorDomoProtocol.ClReq_RequestEntityControl.CreateClReq_RequestEntityControl(m_bufReq, m_client.ClientUID, entityUIDs);
+			var requestControlEntities = AUT_WH.MajorDomoProtocol.ClReq_RequestEntityControl.CreateClReq_RequestEntityControl(m_bufReq, this.ClientUID, entityUIDs);
 			// send and receive
 			if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_RequestEntityControl, requestControlEntities.Value))
 			{
@@ -570,7 +573,7 @@ namespace SentienceLab.MajorDomo
 					if (entityUID > 0)
 					{
 						EntityData entity = EntityManager.FindEntity(entityUID);
-						if (EntityManager.ChangeEntityControl(entity, m_client.ClientUID))
+						if (EntityManager.ChangeEntityControl(entity, this.ClientUID))
 						{
 							controlledEntities.Add(entity);
 						}
@@ -610,7 +613,7 @@ namespace SentienceLab.MajorDomo
 				m_bufReq.AddUint(entity.EntityUID);
 			}
 			var entityUIDs = m_bufReq.EndVector();
-			var releaseControlEntities = AUT_WH.MajorDomoProtocol.ClReq_ReleaseEntityControl.CreateClReq_ReleaseEntityControl(m_bufReq, m_client.ClientUID, entityUIDs);
+			var releaseControlEntities = AUT_WH.MajorDomoProtocol.ClReq_ReleaseEntityControl.CreateClReq_ReleaseEntityControl(m_bufReq, this.ClientUID, entityUIDs);
 			// send and receive
 			if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_ReleaseEntityControl, releaseControlEntities.Value))
 			{
@@ -668,7 +671,7 @@ namespace SentienceLab.MajorDomo
 				m_bufReq.AddByte(_data[idx]);
 			}
 			var data = m_bufReq.EndVector();
-			var broadcast = AUT_WH.MajorDomoProtocol.ClReq_ClientBroadcast.CreateClReq_ClientBroadcast(m_bufReq, m_client.ClientUID, _identifier, data);
+			var broadcast = AUT_WH.MajorDomoProtocol.ClReq_ClientBroadcast.CreateClReq_ClientBroadcast(m_bufReq, this.ClientUID, _identifier, data);
 			// send and receive
 			if (!ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_ClientBroadcast, broadcast.Value))
 			{
@@ -694,7 +697,7 @@ namespace SentienceLab.MajorDomo
 			var commandStop = AUT_WH.MajorDomoProtocol.RemoteControlCommand_StopServer.CreateRemoteControlCommand_StopServer(m_bufReq,
 				_restart, _purgePersistentEntities);
 			var command = AUT_WH.MajorDomoProtocol.ClReq_RemoteControlCommand.CreateClReq_RemoteControlCommand(m_bufReq,
-				m_client.ClientUID,
+				this.ClientUID,
 				AUT_WH.MajorDomoProtocol.URemoteControlCommand.RemoteControlCommand_StopServer,
 				commandStop.Value);
 			// send and receive
@@ -783,7 +786,7 @@ namespace SentienceLab.MajorDomo
 
 				// build request
 				m_bufReq.Clear();
-				var requestClientDisconnect = AUT_WH.MajorDomoProtocol.ClReq_ClientDisconnect.CreateClReq_ClientDisconnect(m_bufReq, m_client.ClientUID);
+				var requestClientDisconnect = AUT_WH.MajorDomoProtocol.ClReq_ClientDisconnect.CreateClReq_ClientDisconnect(m_bufReq, this.ClientUID);
 				// send and receive
 				if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_ClientDisconnect, requestClientDisconnect.Value) && 
 					m_serverReply.RepType == AUT_WH.MajorDomoProtocol.UServerReply.SvRep_ClientDisconnect)
@@ -956,11 +959,11 @@ namespace SentienceLab.MajorDomo
 		private void ServerEvent_ClientConnected(AUT_WH.MajorDomoProtocol.ServerEvent_ClientConnected _event)
 		{
 			if (!_event.Client.HasValue) return;
-
+			
 			var clientInformation = _event.Client.Value;
 			ClientData client = new ClientData(clientInformation);
 			// don't react to this client being announced
-			if (client.ClientUID != m_client.ClientUID)
+			if (client.ClientUID != this.ClientUID)
 			{
 				Debug.LogFormat(
 					"Server event: client {0} connected",
@@ -993,7 +996,7 @@ namespace SentienceLab.MajorDomo
 			{
 				var entityInformation = _event.Entities(idx).Value;
 				EntityData entity = new EntityData(entityInformation);
-				if (entity.ClientUID != m_client.ClientUID)
+				if (entity.ClientUID != this.ClientUID)
 				{
 					entity = EntityManager.AddEntity(entity);
 					publishedEntities.Add(entity);
@@ -1065,7 +1068,7 @@ namespace SentienceLab.MajorDomo
 			var clientUID = _event.ClientUID;
 			ClientData client = ClientManager.GetClientByUID(clientUID);
 			// is client valid and not myself?
-			if ((client != null) && (client.ClientUID != m_client.ClientUID))
+			if ((client != null) && (client.ClientUID != this.ClientUID))
 			{
 				Debug.LogFormat(
 					"Server event: broadcast from client {0}",
@@ -1114,7 +1117,7 @@ namespace SentienceLab.MajorDomo
 			var entityInfos = AUT_WH.MajorDomoProtocol.EntityUpdates.CreateUpdatesVector(m_bufUpdate, listUpdates.ToArray());
 			ulong timestamp = GetTimestamp();
 
-			var entityUpdates = AUT_WH.MajorDomoProtocol.EntityUpdates.CreateEntityUpdates(m_bufUpdate, timestamp, m_client.ClientUID, entityInfos);
+			var entityUpdates = AUT_WH.MajorDomoProtocol.EntityUpdates.CreateEntityUpdates(m_bufUpdate, timestamp, this.ClientUID, entityInfos);
 			m_bufUpdate.Finish(entityUpdates.Value);
 		
 			// send update packet
@@ -1145,7 +1148,7 @@ namespace SentienceLab.MajorDomo
 				if (!IsConnected()) return; // in case this packet comes too late
 
 				// only apply updates from other clients
-				if (m_entityUpdates.ClientUID != m_client.ClientUID)
+				if (m_entityUpdates.ClientUID != this.ClientUID)
 				{
 					// read all updates first, then call handlers
 					m_updatedEntities.Clear();
