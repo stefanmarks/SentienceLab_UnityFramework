@@ -145,21 +145,25 @@ namespace SentienceLab.MajorDomo
 
 			if (m_valPosition != null)
 			{
-				TargetTransform.position = ReferenceTransform != null ?
-					ReferenceTransform.TransformPoint(m_valPosition.Value) :
-					m_valPosition.Value;
+				Vector3 pos = m_valPosition.Value;
+				if (ReferenceTransform != null) { pos = ReferenceTransform.TransformPoint(pos); }
+				TargetTransform.position = pos;
 			}
 
 			if (m_valRotation != null)
 			{
-				TargetTransform.rotation = ReferenceTransform != null ?
-					ReferenceTransform.rotation * m_valRotation.Value :
-					m_valRotation.Value;
+				Quaternion rot = m_valRotation.Value;
+				if (ReferenceTransform != null) { rot = ReferenceTransform.rotation * rot; }
+				TargetTransform.rotation = rot;
 			}
 
 			if (m_valScale != null)
 			{
-				TargetTransform.localScale = m_valScale.Value;
+				Vector3 scl = m_valScale.Value;
+				// TODO: Consider global scale?
+				// Since there is no absolute "global" scale, let's just use localScale for now
+				// if (ReferenceTransform != null) { ReferenceTransform.lossyScale.Scale(scl); }
+				TargetTransform.localScale = scl;
 			}
 		}
 
@@ -168,11 +172,15 @@ namespace SentienceLab.MajorDomo
 		{
 			if (!m_modified)
 			{
-				if (DoTrans() && ((m_oldPosition - this.transform.position).magnitude > MovementThreshold) )
+				if (DoTrans())
 				{
-					m_modified = true;
-					m_oldPosition = this.transform.position;
+					if ((m_oldPosition - this.transform.position).magnitude > MovementThreshold)
+					{
+						m_modified = true;
+						m_oldPosition = this.transform.position;
+					}
 				}
+
 				if (DoRot())
 				{
 					float angle = Quaternion.Angle(this.transform.rotation, m_oldRotation);
@@ -180,6 +188,15 @@ namespace SentienceLab.MajorDomo
 					{
 						m_modified = true;
 						m_oldRotation = this.transform.rotation;
+					}
+				}
+
+				if (DoScale())
+				{
+					if ((m_oldScale - this.transform.localScale).sqrMagnitude > 0)
+					{
+						m_modified = true;
+						m_oldScale = this.transform.localScale;
 					}
 				}
 			}
@@ -196,24 +213,24 @@ namespace SentienceLab.MajorDomo
 
 			if (m_valPosition != null)
 			{
-				m_valPosition.Modify(
-					ReferenceTransform != null ?
-						ReferenceTransform.InverseTransformPoint(TargetTransform.position) :
-						TargetTransform.position
-				);
+				Vector3 pos = TargetTransform.position;
+				if (ReferenceTransform != null) pos = ReferenceTransform.InverseTransformPoint(pos);
+				m_valPosition.Modify(pos);
 			}
 
 			if (m_valRotation != null)
 			{
-				m_valRotation.Modify(ReferenceTransform != null ?
-					Quaternion.Inverse(ReferenceTransform.rotation) * TargetTransform.rotation :
-					TargetTransform.rotation
-				);
+				Quaternion rot = TargetTransform.rotation;
+				if (ReferenceTransform != null) { rot = Quaternion.Inverse(ReferenceTransform.rotation) * rot; }
+				m_valRotation.Modify(rot);
 			}
 
 			if (m_valScale != null)
 			{
-				m_valScale.Modify(TargetTransform.localScale);
+				// TODO: Consider global scale?
+				Vector3 scl = TargetTransform.localScale;
+				// if (ReferenceTransform != null) { ...??? }
+				m_valScale.Modify(scl);
 			}
 		}
 
@@ -243,6 +260,7 @@ namespace SentienceLab.MajorDomo
 
 		private Vector3    m_oldPosition;
 		private Quaternion m_oldRotation;
+		private Vector3    m_oldScale;
 		private bool       m_modified;
 	}
 }
