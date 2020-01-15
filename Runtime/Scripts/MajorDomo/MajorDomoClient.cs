@@ -123,8 +123,8 @@ namespace SentienceLab.MajorDomo
 			{
 				string address = "tcp://" + _serverAddress + ":" + _serverPort;
 				Debug.LogFormat(
-					"Trying to connect to MajorDomo server at '{0}'...", 
-					address);
+					"'{0}' trying to connect to MajorDomo server at '{1}'...", 
+					_applicationName, address);
 				try
 				{
 					m_clientRequestSocket = new NetMQ.Sockets.RequestSocket();
@@ -135,13 +135,15 @@ namespace SentienceLab.MajorDomo
 				catch (Exception e)
 				{
 					Debug.LogWarningFormat(
-						"Could not connect to MajorDomo server at '{0}': {1}",
-						address, e.Message);
+						"'{0}' could not connect to MajorDomo server at '{1}': {2}",
+						_applicationName, address, e.Message);
 					Cleanup();
 					return false;
 				}
 
-				Debug.Log("Sending connection request...");
+				Debug.LogFormat(
+					"'{0}' sending connection request...",
+					_applicationName);
 
 				// build request
 				m_bufReq.Clear();
@@ -165,15 +167,13 @@ namespace SentienceLab.MajorDomo
 					if (m_serverReply.RepType == AUT_WH.MajorDomoProtocol.UServerReply.SvRep_ClientConnect)
 					{
 						var ack = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_ClientConnect>().Value;
-						Debug.Log("Connected to MajorDomo server '" + ack.ServerName + "'" +
-							" v" + ack.ServerVersion.Value.NumMajor +
-							"." + ack.ServerVersion.Value.NumMinor +
-							"." + ack.ServerVersion.Value.NumRevision +
-							" (protocol v" + ack.ServerProtocol.Value.NumMajor +
-							"." + ack.ServerProtocol.Value.NumMinor +
-							"." + ack.ServerProtocol.Value.NumRevision +
-							", server time " + m_serverReply.Timestamp +
-							") with Client UID " + ack.ClientUID);
+						Debug.LogFormat(
+							"'{0}' connected to MajorDomo server '{1}' v{2}.{3}.{4} (protocol v{5}.{6}.{7}, server time {8}) with Client UID {9}",
+							_applicationName, ack.ServerName,
+							ack.ServerVersion.Value.NumMajor, ack.ServerVersion.Value.NumMinor, ack.ServerVersion.Value.NumRevision,
+							ack.ServerProtocol.Value.NumMajor, ack.ServerProtocol.Value.NumMinor, ack.ServerProtocol.Value.NumRevision,
+							m_serverReply.Timestamp,
+							ack.ClientUID);
 
 						m_client = new ClientData(_applicationName, ack.ClientUID);
 						
@@ -210,7 +210,7 @@ namespace SentienceLab.MajorDomo
 						RetrieveClientList();
 						
 						EntityManager.Reset();
-						EntityManager.SetClientUID(ack.ClientUID);
+						EntityManager.SetClientUID(this.ClientUID);
 						RetrieveEntityList();
 
 						// now that we have the lists, we can also start receiving events
