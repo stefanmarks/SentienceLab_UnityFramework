@@ -30,17 +30,17 @@ namespace SentienceLab.MajorDomo
 
 		[Header("Transform")]
 
+		[Tooltip("Transform that this object's transform is aimed at\n(None: No transformation is synchronised)")]
+		public Transform TargetTransform = null;
+
 		[Tooltip("Which components of this game object's transform are to be synchronised")]
 		public ETransformComponents TransformComponents = ETransformComponents.TranslationRotation;
 
 		[Tooltip("What to do when the synchronisation is lost")]
 		public ESyncLostBehaviour SyncLostBehaviour = ESyncLostBehaviour.Disable;
 
-		[Tooltip("Transform that this object's transform is based on (empty=World)")]
+		[Tooltip("Transform that this object's transform is based on\n(None: World coordinate system)")]
 		public Transform ReferenceTransform = null;
-
-		[Tooltip("Transform that this object's transform is aimed at (empty=this Game Object)")]
-		public Transform TargetTransform = null;
 
 		[Tooltip("How much translation can happen before synchronisation is requested")]
 		public float MovementThreshold = 0.001f;
@@ -51,7 +51,7 @@ namespace SentienceLab.MajorDomo
 
 		[Header("Parameters")]
 
-		[Tooltip("Base node of the parameter tree (default: this node)")]
+		[Tooltip("Base node of the parameter tree\n(None: No parameters are synchronised)")]
 		public GameObject ParameterBaseNode = null;
 
 
@@ -79,8 +79,7 @@ namespace SentienceLab.MajorDomo
 			TranslationRotationScale,
 			TranslationRotation,
 			Translation,
-			Rotation,
-			None
+			Rotation
 		}
 
 		/// <summary>
@@ -146,8 +145,10 @@ namespace SentienceLab.MajorDomo
 		{
 			if (m_initialised) return;
 
-			Initialise();
-			m_initialised = true;
+			m_entity = null;
+			m_proxies = new List<ParameterProxy>();
+			m_controlChangeCooldown = 0;
+			m_oldControlledByClient = IsControlledByClient;
 
 			// empty name > use game object name
 			if (EntityName.Trim().Length == 0)
@@ -156,10 +157,6 @@ namespace SentienceLab.MajorDomo
 			}
 			// replace template string
 			EntityName = EntityName.Replace("{GAMEOBJECT}", this.gameObject.name);
-
-			m_entity = null;
-			m_controlChangeCooldown = 0;
-			m_oldControlledByClient = IsControlledByClient;
 
 			MajorDomoManager.Instance.OnClientUnregistered   += delegate (ClientData _c) { CheckEntity(); };
 			MajorDomoManager.Instance.OnEntitiesPublished    += delegate (List<EntityData> _l) { CheckEntity(); };
@@ -170,6 +167,8 @@ namespace SentienceLab.MajorDomo
 			{
 				if (CanDisableGameObject()) gameObject.SetActive(false);
 			}
+
+			m_initialised = true;
 		}
 
 
@@ -342,57 +341,51 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		protected void Initialise()
-		{
-			m_proxies = new List<ParameterProxy>();
-
-			if (TargetTransform == null)
-			{
-				TargetTransform = this.transform;
-			}
-
-			if (ParameterBaseNode == null)
-			{
-				ParameterBaseNode = this.gameObject;
-			}
-		}
-
-
 		private bool DoTrans()
 		{
 			return
-				TransformComponents == ETransformComponents.Translation ||
-				TransformComponents == ETransformComponents.TranslationRotation ||
-				TransformComponents == ETransformComponents.TranslationRotationScale;
+				(TargetTransform != null) &&
+				( (TransformComponents == ETransformComponents.Translation) ||
+				  (TransformComponents == ETransformComponents.TranslationRotation) ||
+				  (TransformComponents == ETransformComponents.TranslationRotationScale)
+				);
 		}
 
 
 		private bool DoRot()
 		{
 			return
-				TransformComponents == ETransformComponents.Rotation ||
-				TransformComponents == ETransformComponents.TranslationRotation ||
-				TransformComponents == ETransformComponents.TranslationRotationScale;
+				(TargetTransform != null) &&
+				( (TransformComponents == ETransformComponents.Rotation) ||
+				  (TransformComponents == ETransformComponents.TranslationRotation) ||
+				  (TransformComponents == ETransformComponents.TranslationRotationScale)
+				);
 		}
 
 
 		private bool DoScale()
 		{
 			return
-				TransformComponents == ETransformComponents.TranslationRotationScale;
+				(TargetTransform != null) &&
+				(TransformComponents == ETransformComponents.TranslationRotationScale);
 		}
 
 
 		protected bool CanDisableGameObject()
 		{
-			return (TransformComponents != ETransformComponents.None) &&
-			       (SyncLostBehaviour == ESyncLostBehaviour.Disable);
+			return
+				(TargetTransform != null) &&
+				(SyncLostBehaviour == ESyncLostBehaviour.Disable);
 		}
 
 
-		private ParameterBase[] FindParameters()
+		private List<ParameterBase> FindParameters()
 		{
-			ParameterBase[] parameters = ParameterBaseNode.GetComponentsInChildren<ParameterBase>();
+			List<ParameterBase> parameters = new List<ParameterBase>();
+			if (ParameterBaseNode != null)
+			{
+				ParameterBaseNode.GetComponentsInChildren<ParameterBase>(parameters);
+			}
 			return parameters;
 		}
 
@@ -422,7 +415,7 @@ namespace SentienceLab.MajorDomo
 			}
 
 			// parameter variables
-			ParameterBase[] parameters = FindParameters();
+			List<ParameterBase> parameters = FindParameters();
 			foreach (ParameterBase param in parameters)
 			{
 				ParameterProxy proxy = CreateParameterProxy(param, _entity);
@@ -456,7 +449,7 @@ namespace SentienceLab.MajorDomo
 			m_valScale    = DoScale() ? m_entity.GetValue_Vector3D(EntityValue.SCALE) : null;
 
 			// parameter variables
-			ParameterBase[] parameters = FindParameters();
+			List<ParameterBase> parameters = FindParameters();
 			foreach (ParameterBase param in parameters)
 			{
 				ParameterProxy proxy = CreateParameterProxy(param, m_entity);
@@ -516,37 +509,46 @@ namespace SentienceLab.MajorDomo
 
 		protected void SynchroniseFromEntity()
 		{
-			// Synchronise transform
-			if (m_valEnabled != null && CanDisableGameObject())
+			if (TargetTransform != null)
 			{
-				TargetTransform.gameObject.SetActive(m_valEnabled.Value);
-			}
-			else
-			{
-				TargetTransform.gameObject.SetActive(true);
-			}
+				// Synchronise transform
+				if (m_valEnabled != null && CanDisableGameObject())
+				{
+					TargetTransform.gameObject.SetActive(m_valEnabled.Value);
+				}
+				else
+				{
+					TargetTransform.gameObject.SetActive(true);
+				}
 
-			if (m_valPosition != null)
-			{
-				Vector3 pos = m_valPosition.Value;
-				if (ReferenceTransform != null) { pos = ReferenceTransform.TransformPoint(pos); }
-				TargetTransform.position = pos;
-			}
+				if (m_valPosition != null)
+				{
+					Vector3 pos = m_valPosition.Value;
+					if (ReferenceTransform != null)
+					{
+						pos = ReferenceTransform.TransformPoint(pos);
+					}
+					TargetTransform.position = pos;
+				}
 
-			if (m_valRotation != null)
-			{
-				Quaternion rot = m_valRotation.Value;
-				if (ReferenceTransform != null) { rot = ReferenceTransform.rotation * rot; }
-				TargetTransform.rotation = rot;
-			}
+				if (m_valRotation != null)
+				{
+					Quaternion rot = m_valRotation.Value;
+					if (ReferenceTransform != null)
+					{
+						rot = ReferenceTransform.rotation * rot;
+					}
+					TargetTransform.rotation = rot;
+				}
 
-			if (m_valScale != null)
-			{
-				Vector3 scl = m_valScale.Value;
-				// TODO: Consider global scale?
-				// Since there is no absolute "global" scale, let's just use localScale for now
-				// if (ReferenceTransform != null) { ReferenceTransform.lossyScale.Scale(scl); }
-				TargetTransform.localScale = scl;
+				if (m_valScale != null)
+				{
+					Vector3 scl = m_valScale.Value;
+					// TODO: Consider global scale?
+					// Since there is no absolute "global" scale, let's just use localScale for now
+					// if (ReferenceTransform != null) { ReferenceTransform.lossyScale.Scale(scl); }
+					TargetTransform.localScale = scl;
+				}
 			}
 
 			// Synchronise parameters
@@ -608,32 +610,41 @@ namespace SentienceLab.MajorDomo
 
 		protected void SynchroniseToEntity()
 		{
-			// Synchronise transform
-			if (m_valEnabled != null)
+			if (TargetTransform != null)
 			{
-				m_valEnabled.Modify(TargetTransform.gameObject.activeSelf);
-			}
+				// Synchronise transform
+				if (m_valEnabled != null)
+				{
+					m_valEnabled.Modify(TargetTransform.gameObject.activeSelf);
+				}
 
-			if (m_valPosition != null)
-			{
-				Vector3 pos = TargetTransform.position;
-				if (ReferenceTransform != null) pos = ReferenceTransform.InverseTransformPoint(pos);
-				m_valPosition.Modify(pos);
-			}
+				if (m_valPosition != null)
+				{
+					Vector3 pos = TargetTransform.position;
+					if (ReferenceTransform != null)
+					{
+						pos = ReferenceTransform.InverseTransformPoint(pos);
+					}
+					m_valPosition.Modify(pos);
+				}
 
-			if (m_valRotation != null)
-			{
-				Quaternion rot = TargetTransform.rotation;
-				if (ReferenceTransform != null) { rot = Quaternion.Inverse(ReferenceTransform.rotation) * rot; }
-				m_valRotation.Modify(rot);
-			}
+				if (m_valRotation != null)
+				{
+					Quaternion rot = TargetTransform.rotation;
+					if (ReferenceTransform != null) 
+					{ 
+						rot = Quaternion.Inverse(ReferenceTransform.rotation) * rot; 
+					}
+					m_valRotation.Modify(rot);
+				}
 
-			if (m_valScale != null)
-			{
-				// TODO: Consider global scale?
-				Vector3 scl = TargetTransform.localScale;
-				// if (ReferenceTransform != null) { ...??? }
-				m_valScale.Modify(scl);
+				if (m_valScale != null)
+				{
+					// TODO: Consider global scale?
+					Vector3 scl = TargetTransform.localScale;
+					// if (ReferenceTransform != null) { ...??? }
+					m_valScale.Modify(scl);
+				}
 			}
 
 			// Synchronise parameters
