@@ -21,14 +21,7 @@ namespace FlatBuffers
     /// </summary>
     public struct Struct
     {
-        public int bb_pos { get; private set; }
-        public ByteBuffer bb { get; private set; }
-
-        // Re-init the internal state with an external buffer {@code ByteBuffer} and an offset within.
-        public Struct(int _i, ByteBuffer _bb)
-        {
-            bb = _bb;
-            bb_pos = _i;
-        }
+        public int bb_pos;
+        public ByteBuffer bb;
     }
 }

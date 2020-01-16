@@ -18,6 +18,48 @@ namespace SentienceLab.MajorDomo
 				 "The string \"{GAMEOBJECT}\" will be automatically replaced by the game object's name.")]
 		public string EntityName = "{GAMEOBJECT}";
 
+		[Tooltip("Synchronisation mode for the entity.\n" 
+			+ "Client: object is controlled by the client.\n" 
+			+ "Server: object is controlled by the server/another client\n"
+			+ "Shared: object control can be shared among clients")]
+		public ESynchronisationMode SynchronisationMode = ESynchronisationMode.Client;
+
+		[Tooltip("Entity stays on the server when the client disconnects")]
+		public bool Persistent = false;
+
+
+		[Header("Transform")]
+
+		[Tooltip("Which components of this game object's transform are to be synchronised")]
+		public ETransformComponents TransformComponents = ETransformComponents.TranslationRotation;
+
+		[Tooltip("What to do when the synchronisation is lost")]
+		public ESyncLostBehaviour SyncLostBehaviour = ESyncLostBehaviour.Disable;
+
+		[Tooltip("Transform that this object's transform is based on (empty=World)")]
+		public Transform ReferenceTransform = null;
+
+		[Tooltip("Transform that this object's transform is aimed at (empty=this Game Object)")]
+		public Transform TargetTransform = null;
+
+		[Tooltip("How much translation can happen before synchronisation is requested")]
+		public float MovementThreshold = 0.001f;
+
+		[Tooltip("How much rotation (degrees) can happen before synchronisation is requested")]
+		public float RotationThreshold = 0.1f;
+
+
+		[Header("Parameters")]
+
+		[Tooltip("Base node of the parameter tree (default: this node)")]
+		public GameObject ParameterBaseNode = null;
+
+
+		// number of frames to wait after another client has taken over control before trying to take control back
+		const int CONTROL_COOLDOWN_COUNT = 10;
+
+
+
 		/// <summary>
 		/// Mode of synchronisation. Which part of the connection is the "master" and in control.
 		/// </summary>
@@ -26,27 +68,8 @@ namespace SentienceLab.MajorDomo
 		{
 			Client,
 			Server,
-			ClientAndServer
+			Shared
 		}
-
-		[Tooltip("Mode for the entity.\nClient: object is controlled by the client.\nServer: objects is controlled by the server/another client")]
-		public ESynchronisationMode SynchronisationMode = ESynchronisationMode.Client;
-
-		[Tooltip("Entity control can be shared with other clients")]
-		public bool SharedControl = false;
-
-		[Tooltip("Entity stays on the server when the client disconnects")]
-		public bool Persistent = false;
-
-
-		[Header("Transform")]
-
-		[Tooltip("Transform that this object's transform is based on (empty=World)")]
-		public Transform ReferenceTransform = null;
-
-		[Tooltip("Transform that this object's transform is aimed at (empty=this Game Object)")]
-		public Transform TargetTransform = null;
-
 
 		/// <summary>
 		/// What components of this game object's transform are synchronised.
@@ -75,27 +98,6 @@ namespace SentienceLab.MajorDomo
 			/// </summary>
 			Disable
 		};
-
-		[Tooltip("Which components of this game object's transform are to be synchronised")]
-		public ETransformComponents TransformComponents = ETransformComponents.TranslationRotation;
-
-		[Tooltip("What to do when the synchronisation is lost")]
-		public ESyncLostBehaviour SyncLostBehaviour = ESyncLostBehaviour.Disable;
-
-		[Tooltip("How much translation can happen before synchronisation is requested")]
-		public float MovementThreshold = 0.001f;
-
-		[Tooltip("How much rotation (degrees) can happen before synchronisation is requested")]
-		public float RotationThreshold = 0.1f;
-
-		[Header("Parameters")]
-
-		[Tooltip("Base node of the parameter tree (default: this node)")]
-		public GameObject ParameterBaseNode = null;
-
-
-		// number of frames to wait after another client has taken over control before trying to take control back
-		const int CONTROL_COOLDOWN_COUNT = 10;
 
 
 		public bool IsControlledByClient
@@ -176,7 +178,7 @@ namespace SentienceLab.MajorDomo
 			if ((m_entity == null) || (m_entity.State != EntityData.EntityState.Registered)) return;
 
 			if ((SynchronisationMode == ESynchronisationMode.Client) ||
-				(SynchronisationMode == ESynchronisationMode.ClientAndServer))
+				(SynchronisationMode == ESynchronisationMode.Shared))
 			{
 				// client control
 				if (IsModified() && IsControlledByClient)
@@ -187,7 +189,7 @@ namespace SentienceLab.MajorDomo
 			}
 
 			if ((SynchronisationMode == ESynchronisationMode.Server) ||
-				(SynchronisationMode == ESynchronisationMode.ClientAndServer))
+				(SynchronisationMode == ESynchronisationMode.Shared))
 			{
 				if (IsControlledByServer && m_entity.IsUpdated())
 				{
@@ -196,7 +198,7 @@ namespace SentienceLab.MajorDomo
 					// every entity update resets the control change timeout
 					m_controlChangeCooldown = CONTROL_COOLDOWN_COUNT;
 				}
-				else if (SynchronisationMode == ESynchronisationMode.ClientAndServer)
+				else if (SynchronisationMode == ESynchronisationMode.Shared)
 				{
 					if (IsModified() && (m_controlChangeCooldown == 0))
 					{
@@ -229,8 +231,8 @@ namespace SentienceLab.MajorDomo
 			if (m_entity == null) return;
 
 			// make sure last state is synchronised
-			if ((SynchronisationMode == ESynchronisationMode.Client) ||
-				((SynchronisationMode == ESynchronisationMode.ClientAndServer) && IsControlledByClient))
+			if (  (SynchronisationMode == ESynchronisationMode.Client) ||
+			    ( (SynchronisationMode == ESynchronisationMode.Shared) && IsControlledByClient) )
 			{
 				SynchroniseToEntity();
 				ResetModified();
@@ -243,14 +245,14 @@ namespace SentienceLab.MajorDomo
 			if (m_entity == null) return;
 
 			// make sure current state is synchronised
-			if ((SynchronisationMode == ESynchronisationMode.Client) ||
-				((SynchronisationMode == ESynchronisationMode.ClientAndServer) && IsControlledByClient))
+			if (  (SynchronisationMode == ESynchronisationMode.Client) ||
+				( (SynchronisationMode == ESynchronisationMode.Shared) && IsControlledByClient))
 			{
 				SynchroniseToEntity();
 				ResetModified();
 			}
-			else if ((SynchronisationMode == ESynchronisationMode.Server) ||
-					((SynchronisationMode == ESynchronisationMode.ClientAndServer) && IsControlledByServer))
+			else if (  (SynchronisationMode == ESynchronisationMode.Server) ||
+					 ( (SynchronisationMode == ESynchronisationMode.Shared) && IsControlledByServer))
 			{
 				SynchroniseFromEntity();
 				m_entity.ResetUpdated();
@@ -270,18 +272,16 @@ namespace SentienceLab.MajorDomo
 					FindVariables();
 					// adjust flags from entity
 					Persistent = m_entity.IsPersistent();
-					SharedControl = m_entity.AllowsSharedControl();
 
 					// client+server and NOT shared doesn't work 
-					if (SynchronisationMode == ESynchronisationMode.ClientAndServer && !SharedControl)
+					if (SynchronisationMode == ESynchronisationMode.Shared && !m_entity.AllowsSharedControl())
 					{
 						Debug.LogWarningFormat("'{0}' mode on non-shared entity '{1}' not possible. Switching to '{2}' only.",
-							ESynchronisationMode.ClientAndServer, m_entity.ToString(true, true), ESynchronisationMode.Server);
+							SynchronisationMode, m_entity.ToString(true, true), ESynchronisationMode.Server);
 						SynchronisationMode = ESynchronisationMode.Server;
 					}
 
-					if ((SynchronisationMode == ESynchronisationMode.Server) ||
-						(SynchronisationMode == ESynchronisationMode.ClientAndServer) || Persistent)
+					if ((SynchronisationMode != ESynchronisationMode.Client) || Persistent)
 					{
 						// server authority or persistent > update immediately
 						SynchroniseFromEntity();
@@ -297,8 +297,7 @@ namespace SentienceLab.MajorDomo
 					// entity not found. let's create and publish it
 					// either when in client mode, or when in shared+server mode
 					if (MajorDomoManager.Instance.IsConnected() &&
-						((SynchronisationMode == ESynchronisationMode.Client) ||
-						  ((SynchronisationMode == ESynchronisationMode.ClientAndServer) && SharedControl)))
+					    (SynchronisationMode != ESynchronisationMode.Server) )
 					{
 						// Create and publish entity and then wait for the callback when server has acknowledged
 						// then find the actual variables in the acknowledged entity version
@@ -307,7 +306,7 @@ namespace SentienceLab.MajorDomo
 						{
 							CreateVariables(entity);
 
-							entity.AllowSharedControl(SharedControl);
+							entity.AllowSharedControl(SynchronisationMode == ESynchronisationMode.Shared);
 							entity.SetPersistent(Persistent);
 
 							MajorDomoManager.Instance.PublishEntity(entity);

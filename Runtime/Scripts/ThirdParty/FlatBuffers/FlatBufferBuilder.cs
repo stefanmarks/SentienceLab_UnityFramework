@@ -16,7 +16,6 @@
 
 
 using System;
-using System.Collections.Generic;
 using System.Text;
 
 /// @file
@@ -47,9 +46,6 @@ namespace FlatBuffers
         private int _numVtables = 0;
         // For the current vector being built.
         private int _vectorNumElems = 0;
-
-        // For CreateSharedString
-        private Dictionary<string, StringOffset> _sharedStringMap = null;
 
         /// <summary>
         /// Create a FlatBufferBuilder with a given initial size.
@@ -195,7 +191,7 @@ namespace FlatBuffers
         }
 
         /// <summary>
-        /// Puts an array of type T into this builder at the
+        /// Puts an array of type T into this builder at the 
         /// current offset
         /// </summary>
         /// <typeparam name="T">The type of the input data </typeparam>
@@ -208,7 +204,7 @@ namespace FlatBuffers
 
 #if ENABLE_SPAN_T
         /// <summary>
-        /// Puts a span of type T into this builder at the
+        /// Puts a span of type T into this builder at the 
         /// current offset
         /// </summary>
         /// <typeparam name="T">The type of the input data </typeparam>
@@ -411,7 +407,7 @@ namespace FlatBuffers
                     "FlatBuffers: object serialization must not be nested.");
         }
 
-        public void StartTable(int numfields)
+        public void StartObject(int numfields)
         {
             if (numfields < 0)
                 throw new ArgumentOutOfRangeException("Flatbuffers: invalid numfields");
@@ -540,9 +536,9 @@ namespace FlatBuffers
         /// </summary>
         /// <param name="o">The index into the vtable</param>
         /// <param name="x">The value to put into the buffer. If the value is equal to the default
-        /// the value will be skipped.</param>
+        /// and <see cref="ForceDefaults"/> is false, the value will be skipped.</param>
         /// <param name="d">The default value to compare the value against</param>
-        public void AddOffset(int o, int x, int d) { if (x != d) { AddOffset(x); Slot(o); } }
+        public void AddOffset(int o, int x, int d) { if (ForceDefaults || x != d) { AddOffset(x); Slot(o); } }
         /// @endcond
 
         /// <summary>
@@ -583,32 +579,6 @@ namespace FlatBuffers
         }
 #endif
 
-        /// <summary>
-        /// Store a string in the buffer, which can contain any binary data.
-        /// If a string with this exact contents has already been serialized before,
-        /// instead simply returns the offset of the existing string.
-        /// </summary>
-        /// <param name="s">The string to encode.</param>
-        /// <returns>
-        /// The offset in the buffer where the encoded string starts.
-        /// </returns>
-        public StringOffset CreateSharedString(string s)
-        {
-            if (_sharedStringMap == null)
-            {
-                _sharedStringMap = new Dictionary<string, StringOffset>();
-            }
-
-            if (_sharedStringMap.ContainsKey(s))
-            {
-                return _sharedStringMap[s];
-            }
-
-            var stringOffset = CreateString(s);
-            _sharedStringMap.Add(s, stringOffset);
-            return stringOffset;
-        }
-
         /// @cond FLATBUFFERS_INTERNAL
         // Structs are stored inline, so nothing additional is being added.
         // `d` is always 0.
@@ -621,11 +591,11 @@ namespace FlatBuffers
             }
         }
 
-        public int EndTable()
+        public int EndObject()
         {
             if (_vtableSize < 0)
                 throw new InvalidOperationException(
-                  "Flatbuffers: calling EndTable without a StartTable");
+                  "Flatbuffers: calling endObject without a startObject");
 
             AddInt((int)0);
             var vtableloc = Offset;
