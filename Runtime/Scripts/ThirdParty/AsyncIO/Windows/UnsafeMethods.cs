@@ -68,6 +68,8 @@ namespace AsyncIO.Windows
         }
     }
 
+#pragma warning disable 649
+
     struct OverlappedEntry
     {
         public IntPtr CompletionKey;
@@ -75,6 +77,8 @@ namespace AsyncIO.Windows
         public IntPtr Internal;
         public int BytesTransferred;
     }
+
+#pragma warning restore 649
 
     internal static class UnsafeMethods
     {

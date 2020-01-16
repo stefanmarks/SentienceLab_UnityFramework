@@ -1,4 +1,4 @@
-/*
+    /*
     Copyright (c) 2009-2011 250bpm s.r.o.
     Copyright (c) 2007-2009 iMatix Corporation
     Copyright (c) 2007-2015 Other contributors as noted in the AUTHORS file
@@ -235,7 +235,7 @@ namespace NetMQ.Core.Transports.Tcp
 
                 try {
                     m_s.NoDelay = true;
-                } catch (ArgumentException ex) {
+                } catch (ArgumentException) {
                     // OSX sometime fail while the socket is still connecting
                 }
 
