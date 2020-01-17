@@ -9,6 +9,7 @@ using System.Collections.Generic;
 
 namespace SentienceLab.MajorDomo
 {
+	[System.Obsolete("Use SynchronisedGameObject instead")]
 	public abstract class SynchronisedEntityBase : MonoBehaviour, MajorDomoManager.IAutoRegister
 	{
 		[Tooltip("Name of the entity to register with the server.\n" +
@@ -76,6 +77,8 @@ namespace SentienceLab.MajorDomo
 			{
 				RegisterWithMajorDomoManager(); // just to be sure
 			}
+
+			Debug.LogWarning("This component is obsolete. Replace by SynchronisedGameObject");
 		}
 
 

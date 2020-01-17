@@ -1,12 +1,14 @@
 {
   "name": "nz.ac.aut.sentiencelab",
   "displayName": "Sentience Lab Unity Framework",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "unity": "2019.2",
-  "description": "A framework for multiuser VR development",
+  "description": "A framework for multiuser XR development",
   "keywords": [
     "vr",
-    "xr"
+    "xr",
+	"multiuser",
+	"network"
   ],
   "dependencies": {
     "com.unity.inputsystem": "1.0.0-preview.3"
