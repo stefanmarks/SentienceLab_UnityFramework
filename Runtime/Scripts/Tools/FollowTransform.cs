@@ -34,7 +34,8 @@ public class FollowTransform : MonoBehaviour
 
 	private void CopyTransform()
 	{
-		this.transform.position = sourceTransform.position;
-		this.transform.rotation = sourceTransform.rotation;
+		this.transform.localPosition = sourceTransform.localPosition;
+		this.transform.localRotation = sourceTransform.localRotation;
+		this.transform.localScale    = sourceTransform.localScale;
 	}
 }
