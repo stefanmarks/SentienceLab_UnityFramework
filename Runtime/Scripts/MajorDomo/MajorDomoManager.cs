@@ -177,7 +177,7 @@ namespace SentienceLab.MajorDomo
 			if (configuration.AutoConnectDelay > 0) StartCoroutine(AutoConnectAsync());
 
 			// auto-register objects that use MajorDomo
-			IAutoRegister[] autoRegisterObjects = Resources.FindObjectsOfTypeAll<SynchronisedEntityBase>();
+			IAutoRegister[] autoRegisterObjects = Resources.FindObjectsOfTypeAll<SynchronisedGameObject>();
 			foreach (var obj in autoRegisterObjects)
 			{
 				obj.RegisterWithMajorDomoManager();
