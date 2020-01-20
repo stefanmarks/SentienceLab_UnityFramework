@@ -18,9 +18,6 @@ namespace SentienceLab.Physics
 		[Tooltip("Grab PID controller")]
 		public PID_Controller3D PID;
 
-		[Tooltip("Tag of elements that can be grabbed")]
-		public string CanGrabTag = "grab";
-
 		[Tooltip("Default rigidbody that can be grabbed without having a collider (e.g., the only main object in the scene)")]
 		public InteractiveRigidbody DefaultRigidBody = null;
 
@@ -41,7 +38,7 @@ namespace SentienceLab.Physics
 		{
 			if (m_handlerActive.IsActivated())
 			{
-				m_activeBody = m_candidate;
+				m_activeBody = m_candidate != null ? m_candidate : DefaultRigidBody;
 				if (m_activeBody != null)
 				{
 					m_activeBody?.InvokeGrabStart(this.gameObject);
@@ -80,7 +77,7 @@ namespace SentienceLab.Physics
 		public void OnTriggerExit(Collider other)
 		{
 			m_candidate?.InvokeHoverEnd(this.gameObject);
-			m_candidate = DefaultRigidBody;
+			m_candidate = null;
 		}
 
 
