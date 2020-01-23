@@ -22,7 +22,10 @@ namespace SentienceLab
 
 		[Tooltip("PID derivative control value")]
 		public float D = 0f;
-		
+
+		[Tooltip("Maximum output signal from the controller")]
+		public float MaxOutput = float.PositiveInfinity;
+
 		[Tooltip("Maximum error sum allowed")]
 		public float MaxErrorSum = float.PositiveInfinity;
 
@@ -54,6 +57,9 @@ namespace SentienceLab
 
 				// keep track of error for next timestep
 				m_errorOld = error;
+
+				// clamp to maximum output
+				m_out = Mathf.Clamp(m_out, -MaxOutput, MaxOutput);
 			}
 
 			return m_out;
@@ -76,6 +82,9 @@ namespace SentienceLab
 
 		[Tooltip("PID derivative control value")]
 		public float D = 0f;
+
+		[Tooltip("Maximum output signal from the controller")]
+		public float MaxOutput = float.PositiveInfinity;
 
 		[Tooltip("Maximum error sum allowed")]
 		public float MaxErrorSum = float.PositiveInfinity;
@@ -108,6 +117,10 @@ namespace SentienceLab
 
 				// keep track of error for next timestep
 				m_errorOld = error;
+
+				// clamp to maximum output
+				m_out = Vector3.ClampMagnitude(m_out, MaxOutput);
+
 			}
 
 			return m_out;
