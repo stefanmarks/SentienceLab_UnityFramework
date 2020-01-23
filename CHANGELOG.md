@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [1.3.0] - 2020-01-23
+
+### Changed
+
+- MajorDomo protocol update to v0.5.4 + Flatbuffer/NetMQ updates
+- Replaced SynchronisedTransform/Parameters by SynchronisedGameObject
+- Adding MaxOutput to PID controller
+- Various bugfixes
+
+
 ## [1.2.0] - 2019-11-25
 
 ### Changed
