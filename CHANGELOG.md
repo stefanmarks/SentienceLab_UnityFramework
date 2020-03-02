@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- MajorDomo protocol update to v0.5.4 + Flatbuffer/NetMQ updates
+- MajorDomo protocol update to v0.5.3 + Flatbuffer/NetMQ updates
 - Replaced SynchronisedTransform/Parameters by SynchronisedGameObject
 - Adding MaxOutput to PID controller
 - Various bugfixes
