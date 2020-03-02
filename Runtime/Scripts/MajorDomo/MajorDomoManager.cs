@@ -136,7 +136,7 @@ namespace SentienceLab.MajorDomo
 			return m_state == ManagerState.Connected;
 		}
 
-		public uint ClientUID { get { return m_client.ClientUID; } private set { } }
+		public uint ClientUID { get { return (m_client != null) ? m_client.ClientUID : ClientData.UID_UNASSIGNED; } private set { } }
 
 		public void Awake()
 		{
