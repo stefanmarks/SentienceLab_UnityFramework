@@ -9,6 +9,7 @@ using SentienceLab.Input;
 namespace SentienceLab.Data
 {
 	[AddComponentMenu("Parameter/Controller/Input/Discrete")]
+	[System.Obsolete("Please consider using the new InputSystem and its parameter controllers")]
 
 	public class ParameterController_Input_Discrete : MonoBehaviour
 	{

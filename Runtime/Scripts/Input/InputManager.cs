@@ -25,6 +25,7 @@ namespace SentienceLab.Input
 
 	[DisallowMultipleComponent]
 	[AddComponentMenu("Input/Input Manager")]
+	[System.Obsolete("Please consider using the new InputSystem")]
 
 	public class InputManager : MonoBehaviour
 	{

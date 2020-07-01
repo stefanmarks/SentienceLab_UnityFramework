@@ -9,6 +9,8 @@ using UnityEngine;
 
 namespace SentienceLab.Input
 {
+	[System.Obsolete("Please consider using the new InputSystem")]
+
 	/// <summary>
 	/// Class for managing inputs via a variety of sources, e.g., keypress, mouse click, etc.
 	/// </summary>
