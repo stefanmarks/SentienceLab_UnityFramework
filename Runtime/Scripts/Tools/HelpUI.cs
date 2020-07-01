@@ -3,9 +3,9 @@
 // (C) Sentience Lab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
-using SentienceLab.Input;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Class for managing a help UI that fades in when the specific object 
@@ -23,8 +23,8 @@ public class HelpUI : MonoBehaviour
 	[Tooltip("Tag of colliders that trigger the UI")]
 	public string triggerTag     = "help";
 
-	[Tooltip("List of inputs that hide the UI when activated")]
-	public string[] hideInputNames = { "trigger" };
+	[Tooltip("List of input actions that hide the UI when performed")]
+	public List<InputActionReference> hideInputActions;
 
 
 	void Start()
@@ -33,21 +33,15 @@ public class HelpUI : MonoBehaviour
 		canvas.enabled = true;
 		time = deactivateTime;
 		isWithinTrigger = false;
-
-		hideActions = new List<InputHandler>();
-		foreach (string action in hideInputNames)
-		{
-			hideActions.Add(InputHandler.Find(action));
-		}
 	}
 
 
 	void Update()
 	{
 		// fade out UI when specific actions are active
-		foreach (InputHandler handler in hideActions)
+		foreach (var action in hideInputActions)
 		{
-			if (handler.IsActive())
+			if (action.action.ReadValue<bool>())
 			{
 				isWithinTrigger = false;
 				time = float.Epsilon;
@@ -94,8 +88,7 @@ public class HelpUI : MonoBehaviour
 	}
 
 
-	private Canvas             canvas;
-	private bool               isWithinTrigger;
-	private float              time;
-	private List<InputHandler> hideActions;
+	private Canvas   canvas;
+	private bool     isWithinTrigger;
+	private float    time;
 }
