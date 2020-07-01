@@ -3,8 +3,10 @@
 // (C) Sentience Lab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
-using SentienceLab.Input;
+using System;
 using UnityEngine;
+using UnityEngine.Assertions;
+using UnityEngine.InputSystem;
 
 namespace SentienceLab
 {
@@ -18,12 +20,12 @@ namespace SentienceLab
 
 	public class TeleportController : MonoBehaviour
 	{
-		public string    actionName   = "teleport";
-		public string    groundTag    = "floor";
-		public Transform cameraNode   = null;
-		public Transform targetMarker = null;
+		public InputActionReference TeleportAction;
+		public string               groundTag      = "floor";
+		public Transform            cameraNode     = null;
+		public Transform            targetMarker   = null;
 
-		public ActivationType activationType = ActivationType.OnTrigger;
+		public ActivationType       activationType = ActivationType.OnTrigger;
 
 
 		public enum ActivationType
@@ -36,9 +38,10 @@ namespace SentienceLab
 
 		void Start()
 		{
-			ray             = GetComponentInChildren<PointerRay>();
-			transportAction = InputHandler.Find(actionName);
-
+			TeleportAction.action.performed += OnTeleportStart;
+			TeleportAction.action.canceled  += OnTeleportStop;
+			
+			ray = GetComponentInChildren<PointerRay>();
 			if (ray == null)
 			{
 				// activate and release doesn't make much sense without the ray
@@ -50,7 +53,32 @@ namespace SentienceLab
 				rayAlwaysActive = ray.rayEnabled;
 			}
 
+			doAim      = false;
+			doTeleport = false;
 			teleporter = GameObject.FindObjectOfType<Teleporter>();
+		}
+
+
+		private void OnTeleportStart(InputAction.CallbackContext obj)
+		{
+			if (activationType == ActivationType.OnTrigger)
+			{
+				doAim      = true;
+				doTeleport = true;
+			}
+			else
+			{
+				doAim = true;
+			}
+		}
+
+		private void OnTeleportStop(InputAction.CallbackContext obj)
+		{
+			if (activationType == ActivationType.ActivateAndRelease)
+			{
+				doAim      = false;
+				doTeleport = true;
+			}
 		}
 
 
@@ -58,25 +86,7 @@ namespace SentienceLab
 		{
 			if ((teleporter == null) || !teleporter.IsReady()) return;
 
-			bool doTransport = false;
-			bool doAim       = false;
-
-			if (activationType == ActivationType.OnTrigger)
-			{
-				doAim       = true;
-				doTransport = transportAction.IsActivated();
-			}
-			else
-			{
-				doAim = transportAction.IsActive();
-
-				ray.rayEnabled = (doAim || rayAlwaysActive);
-
-				if (transportAction.IsDeactivated())
-				{
-					doTransport = true;
-				}
-			}
+			ray.rayEnabled = (doAim || rayAlwaysActive);
 
 			RaycastHit hit;
 			if (ray != null)
@@ -92,12 +102,16 @@ namespace SentienceLab
 
 			if ((hit.distance > 0) && (hit.transform != null) && hit.transform.gameObject.tag.Equals(groundTag))
 			{
-				if (doTransport && (teleporter != null))
+				if (doTeleport)
 				{
-					// here we go: hide marker...
-					targetMarker.gameObject.SetActive(false);
-					// ...and activate teleport
-					teleporter.Activate(cameraNode.transform.position, hit.point);
+					if (teleporter != null)
+					{
+						// here we go: hide marker...
+						targetMarker.gameObject.SetActive(false);
+						// ...and activate teleport
+						teleporter.Activate(cameraNode.transform.position, hit.point);
+					}
+					doTeleport = false;
 				}
 				else
 				{
@@ -120,9 +134,9 @@ namespace SentienceLab
 		}
 
 
-		private PointerRay   ray;
-		private bool         rayAlwaysActive;
-		private InputHandler transportAction;
-		private Teleporter   teleporter;
+		private PointerRay  ray;
+		private bool        rayAlwaysActive;
+		private bool        doAim, doTeleport;
+		private Teleporter  teleporter;
 	}
 }
