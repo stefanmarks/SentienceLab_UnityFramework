@@ -4,7 +4,7 @@
 #endregion Copyright Information
 
 using UnityEngine;
-using SentienceLab.Input;
+using UnityEngine.InputSystem;
 
 namespace SentienceLab.Physics
 {
@@ -12,8 +12,8 @@ namespace SentienceLab.Physics
 	[RequireComponent(typeof(Collider))]
 	public class PhysicsGrab : MonoBehaviour
 	{
-		[Tooltip("Name of the input that starts the grab action")]
-		public string InputName;
+		[Tooltip("Input action for grabbing")]
+		public InputActionReference GrabAction;
 
 		[Tooltip("Grab PID controller")]
 		public PID_Controller3D PID;
@@ -24,30 +24,37 @@ namespace SentienceLab.Physics
 
 		public void Start()
 		{
-			m_handlerActive = InputHandler.Find(InputName);
-			if (m_handlerActive == null)
+			if (GrabAction != null)
 			{
-				Debug.LogWarning("Could not find input handler for '" + InputName + "'");
+				GrabAction.action.performed += OnGrabStart;
+				GrabAction.action.canceled  += OnGrabEnd;
+				GrabAction.action.Enable();
+			}
+			else
+			{
+				Debug.LogWarning("No action defined for grab");
 				this.enabled = false;
 			}
 			m_candidate = DefaultRigidBody;
 		}
 
 
-		public void Update()
+		private void OnGrabStart(InputAction.CallbackContext obj)
 		{
-			if (m_handlerActive.IsActivated())
+			m_activeBody = m_candidate != null ? m_candidate : DefaultRigidBody;
+			if (m_activeBody != null)
 			{
-				m_activeBody = m_candidate != null ? m_candidate : DefaultRigidBody;
-				if (m_activeBody != null)
-				{
-					m_activeBody?.InvokeGrabStart(this.gameObject);
-					m_localGrabPoint = m_activeBody.transform.InverseTransformPoint(this.transform.position);
-				}
+				m_activeBody.InvokeGrabStart(this.gameObject);
+				m_localGrabPoint = m_activeBody.transform.InverseTransformPoint(this.transform.position);
 			}
-			else if (m_handlerActive.IsDeactivated())
+		}
+
+
+		private void OnGrabEnd(InputAction.CallbackContext obj)
+		{
+			if (m_activeBody != null)
 			{
-				m_activeBody?.InvokeGrabEnd(this.gameObject);
+				m_activeBody.InvokeGrabEnd(this.gameObject);
 				m_activeBody = null;
 			}
 		}
@@ -55,7 +62,7 @@ namespace SentienceLab.Physics
 
 		public void FixedUpdate()
 		{
-			if (m_handlerActive.IsActive() && (m_activeBody != null))
+			if (m_activeBody != null)
 			{
 				// set new target position
 				PID.Setpoint = transform.position;
@@ -93,7 +100,6 @@ namespace SentienceLab.Physics
 		}
 
 
-		private InputHandler         m_handlerActive;
 		private Vector3              m_localGrabPoint;
 		private InteractiveRigidbody m_candidate, m_activeBody;
 	}
