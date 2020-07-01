@@ -10,6 +10,8 @@ using UnityEngine.XR;
 
 namespace SentienceLab.MoCap
 {
+	[System.Obsolete("Please consider using the Unity XR System")]
+
 	/// <summary>
 	/// Class for a MoCap client that uses Unity's XR classes.
 	/// </summary>
@@ -51,6 +53,7 @@ namespace SentienceLab.MoCap
 		private Actor CreateActor(XRNodeState state)
 		{
 			// some names are a bit too complex
+			
 			String name = InputTracking.GetNodeName(state.uniqueID);
 			name = name.Replace("Windows Mixed Reality", "WMR");
 			name = name.Replace(" ", "").Replace("-", "");

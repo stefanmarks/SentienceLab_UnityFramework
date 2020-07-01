@@ -3,6 +3,7 @@
 // (C) Sentience Lab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
 
@@ -85,8 +86,18 @@ namespace SentienceLab
 			if (!Application.isPlaying)
 				return;
 
-			if (XRDevice.isPresent)
-				return;
+			bool isXR_SystemLoaded = false;
+			var xrDisplaySubsystems = new List<XRDisplaySubsystem>();
+			SubsystemManager.GetInstances(xrDisplaySubsystems);
+			foreach (var xrDisplay in xrDisplaySubsystems)
+			{
+				Debug.Log(xrDisplay.SubsystemDescriptor.id);
+				if (xrDisplay.running)
+				{
+					isXR_SystemLoaded = true;
+				}
+			}
+			if (isXR_SystemLoaded) return;
 
 			//foreach ( string s in VRSettings.supportedDevices )
 			//{
