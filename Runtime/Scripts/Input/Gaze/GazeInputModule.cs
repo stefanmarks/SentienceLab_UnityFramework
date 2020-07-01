@@ -21,8 +21,10 @@
 //   THE SOFTWARE.
 
 using SentienceLab.Input;
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.XR;
 
 /// This script provides an implemention of Unity's `BaseInputModule` class, so
@@ -43,7 +45,7 @@ using UnityEngine.XR;
 /// GazeInputModule emits the following events: _Enter_, _Exit_, _Down_, _Up_, _Click_, _Select_,
 /// _Deselect_, and _UpdateSelected_.  Scroll, move, and submit/cancel events are not emitted.
 
-[AddComponentMenu("Input/Gaze/GazeInputModule")]
+[AddComponentMenu("Input/Gaze/Gaze Input Module")]
 
 public class GazeInputModule : BaseInputModule
 {
@@ -57,7 +59,7 @@ public class GazeInputModule : BaseInputModule
 	public float defaultFuseTime = 0;
 
 	[Tooltip("Action for triggering the object gazed at")]
-	public string triggerActionName = "trigger";
+	public InputActionReference TriggerAction;
 
 	/// Time in seconds between the pointer down and up events sent by a trigger.
 	/// Allows time for the UI elements to make their state transitions.
@@ -96,11 +98,17 @@ public class GazeInputModule : BaseInputModule
 					(XRSettings.eyeTextureWidth  > 0 ? XRSettings.eyeTextureWidth  : Screen.width ) / 2,
 					(XRSettings.eyeTextureHeight > 0 ? XRSettings.eyeTextureHeight : Screen.height) / 2
 				);
+
+			if (TriggerAction != null)
+			{
+				TriggerAction.action.performed -= OnTriggerPressed;
+				TriggerAction.action.canceled  -= OnTriggerReleased;
+				TriggerAction.action.Enable();
+			}
 		}
 
 		eventCamera = null;
-		triggerAction = null;
-
+		
 		return activeState;
 	}
 
@@ -115,7 +123,30 @@ public class GazeInputModule : BaseInputModule
 			HandlePointerExitAndEnter(pointerData, null);
 			pointerData = null;
 		}
+		if (TriggerAction != null)
+		{
+			TriggerAction.action.performed -= OnTriggerPressed;
+			TriggerAction.action.canceled  -= OnTriggerReleased;
+		}
 		eventSystem.SetSelectedGameObject(null, GetBaseEventData());
+	}
+
+
+	private void OnTriggerPressed(InputAction.CallbackContext obj)
+	{
+		if (triggerState == TriggerState.Inactive)
+		{
+			triggerState = TriggerState.Activated;
+		}
+	}
+
+
+	private void OnTriggerReleased(InputAction.CallbackContext obj)
+	{
+		if (triggerState == TriggerState.Active || triggerState == TriggerState.Activated)
+		{
+			triggerState = TriggerState.Deactivated;
+		}
 	}
 
 
@@ -127,11 +158,6 @@ public class GazeInputModule : BaseInputModule
 
 	public override void Process()
 	{
-		if (triggerAction == null)
-		{
-			triggerAction = InputHandler.Find(triggerActionName);
-		}
-
 		// Save the previous Game Object
 		GameObject gazeObjectPrevious = GetCurrentGameObject();
 
@@ -140,7 +166,7 @@ public class GazeInputModule : BaseInputModule
 		UpdateReticle(gazeObjectPrevious);
 
 		// Handle input
-		if (!triggerAction.IsActivated() && triggerAction.IsActive())
+		if (triggerState == TriggerState.Active)
 		{
 			HandleDrag();
 		}
@@ -149,17 +175,21 @@ public class GazeInputModule : BaseInputModule
 			// Delay new events until clickTime has passed.
 		}
 		else if (!pointerData.eligibleForClick &&
-		          (triggerAction.IsActivated() || (fuseState == FuseState.Trigger)) )
+		          ((triggerState == TriggerState.Activated) || (fuseState == FuseState.Trigger)) )
 		{
 			// New trigger action.
 			HandleTrigger();
 			fuseState = FuseState.Triggered;
 		}
-		else if (!triggerAction.IsActive())
+		else if (triggerState == TriggerState.Inactive)
 		{
 			// Check if there is a pending click to handle.
 			HandlePendingClick();
 		}
+
+		// transition trigger state from "just happened" to state
+		if (triggerState == TriggerState.Activated)   { triggerState = TriggerState.Active;   }
+		if (triggerState == TriggerState.Deactivated) { triggerState = TriggerState.Inactive; }
 	}
 
 
@@ -186,8 +216,7 @@ public class GazeInputModule : BaseInputModule
 			RaycastResult r = m_RaycastResultCache[idx];
 
 			// what are the limits of the gaze pointer
-			float min, max;
-			gazePointer.GetDistanceLimits(out min, out max);
+			gazePointer.GetDistanceLimits(out float min, out float max);
 
 			// consider gaze behaviour modifiers
 			GazeBehaviourModifier gbm = (r.gameObject != null) ? r.gameObject.GetComponent<GazeBehaviourModifier>() : null;
@@ -442,11 +471,15 @@ public class GazeInputModule : BaseInputModule
 		Idle, Arming, Trigger, Triggered
 	}
 
+	private enum TriggerState
+	{
+		Inactive, Activated, Active, Deactivated
+	}
 
-	private InputHandler     triggerAction;
 	private PointerEventData pointerData;
 	private Vector2          lastHeadPose, pointerPos;
 	private float            gazeStartTime, fuseTime;
 	private FuseState        fuseState;
+	private TriggerState     triggerState;
 	private Camera           eventCamera;
 }
