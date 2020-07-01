@@ -34,9 +34,6 @@ namespace SentienceLab
 		[Tooltip("Object to render at the point where the ray meets another game object (optional)")]
 		public Transform activeEndPoint = null;
 
-		[Tooltip("(Optional) Action to activate the ray")]
-		public string activationAction = "";
-
 		[Tooltip("(Optional) Parameter that activates the ray")]
 		public Parameter_Boolean activationParameter = null;
 
@@ -62,12 +59,6 @@ namespace SentienceLab
 			line.useWorldSpace = true;
 			overrideTarget = false;
 			activeTarget = null;
-
-			if (activationAction.Trim().Length > 0)
-			{
-				handlerActivate = InputHandler.Find(activationAction);
-				rayEnabled = false;
-			}
 		}
 
 
@@ -76,10 +67,6 @@ namespace SentienceLab
 			// assume nothing is hit at first
 			rayTarget.distance = 0;
 
-			if (handlerActivate != null)
-			{
-				rayEnabled = handlerActivate.IsActive();
-			}
 			if (activationParameter != null)
 			{
 				rayEnabled = activationParameter.Value;
@@ -97,7 +84,6 @@ namespace SentienceLab
 
 			if (rayEnabled)
 			{
-				bool hit = false;
 				// construct ray
 				Vector3 forward = (rayDirection == null) ? Vector3.forward : rayDirection.Value;
 				forward = transform.TransformDirection(forward); // relative forward to "world forward"
@@ -106,6 +92,7 @@ namespace SentienceLab
 				line.SetPosition(0, ray.origin);
 				Debug.DrawLine(ray.origin, end, Color.red);
 
+				bool hit;
 				if (!overrideTarget)
 				{
 					// do raycast
@@ -248,7 +235,6 @@ namespace SentienceLab
 		private RaycastHit        rayTarget;
 		private bool              overrideTarget;
 		private Vector3           overridePoint;
-		private InputHandler      handlerActivate;
 		private IPointerRayTarget activeTarget;
 	}
 }
