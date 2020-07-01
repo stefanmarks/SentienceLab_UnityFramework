@@ -14,7 +14,7 @@ using UnityEngine.SceneManagement;
 namespace SentienceLab.MajorDomo
 {
 	[DisallowMultipleComponent]
-	[AddComponentMenu("MajorDomo/Manager")]
+	[AddComponentMenu("MajorDomo/MajorDomo Manager")]
 	public class MajorDomoManager : MonoBehaviour
 	{
 		[Tooltip("Name of the client to register with the server.\n" +
