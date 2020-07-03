@@ -6,6 +6,7 @@
 using SentienceLab.MoCap;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.XR;
 
 namespace SentienceLab
@@ -62,24 +63,26 @@ namespace SentienceLab
 			{
 				configuration = Configuration.MoCapRoom;
 			}
-			else if ( XRDevice.isPresent )
+			else 
 			{
-				string model = XRDevice.model.ToLower();
-				if (model.Contains("oculus"))
+				var devices = InputSystem.devices;
+				foreach (var d in devices)
 				{
-					configuration = Configuration.OculusRift;
-				}
-				else if (model.Contains("vive"))
-				{
-					configuration = Configuration.HTC_Vive;
-				}
-				else if (model.Contains("windows"))
-				{
-					configuration = Configuration.WindowsMixedReality;
-				}
-				else
-				{
-					Debug.LogWarning("Unknown VR model '" + model + "' found.");
+					Debug.Log("Input Device: " + d.name);
+
+					string model = d.name.ToLower();
+					if (model.Contains("oculus"))
+					{
+						configuration = Configuration.OculusRift;
+					}
+					else if (model.Contains("vive"))
+					{
+						configuration = Configuration.HTC_Vive;
+					}
+					else if (model.Contains("windows"))
+					{
+						configuration = Configuration.WindowsMixedReality;
+					}
 				}
 			}
 
