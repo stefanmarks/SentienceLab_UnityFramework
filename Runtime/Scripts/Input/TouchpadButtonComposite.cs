@@ -49,8 +49,6 @@ public class TouchpadButtonComposite : InputBindingComposite<bool>
         float angle = Mathf.Atan2(touchpadPartValue.y, touchpadPartValue.x) * Mathf.Rad2Deg;
         float mag   = touchpadPartValue.magnitude;
 
-        Debug.Log(angle + "/" + mag);
-
         if (buttonPartValue && (mag > deadZone))
 		{
             //            +90
