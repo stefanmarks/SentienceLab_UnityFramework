@@ -66,6 +66,8 @@ namespace SentienceLab.Data
 					this.enabled = false;
 				}
 			}
+
+			m_toggled = false;
 		}
 
 
@@ -73,7 +75,7 @@ namespace SentienceLab.Data
 		{
 			switch (Mode)
 			{
-				case eMode.Toggle:             m_boolean.SetBooleanValue(!m_boolean.GetBooleanValue()); break;
+				case eMode.Toggle:             if (!m_toggled) { m_boolean.SetBooleanValue(!m_boolean.GetBooleanValue()); m_toggled = true; }  break;
 				case eMode.Momentary:          m_boolean.SetBooleanValue(true); break;
 				case eMode.Momentary_Inverted: m_boolean.SetBooleanValue(false); break;
 			}
@@ -84,7 +86,7 @@ namespace SentienceLab.Data
 		{
 			switch (Mode)
 			{
-				case eMode.Toggle:             break;
+				case eMode.Toggle:             m_toggled = false; break;
 				case eMode.Momentary:          m_boolean.SetBooleanValue(false); break;
 				case eMode.Momentary_Inverted: m_boolean.SetBooleanValue(true); break;
 			}
@@ -96,11 +98,12 @@ namespace SentienceLab.Data
 			if (Action != null)
 			{
 				Action.action.performed -= OnActionPerformed;
-				Action.action.canceled -= OnActionCanceled;
+				Action.action.canceled  -= OnActionCanceled;
 			}
 		}
 
 
 		private IParameterAsBoolean m_boolean;
+		private bool                m_toggled;
 	}
 }
