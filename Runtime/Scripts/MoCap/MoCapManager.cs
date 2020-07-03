@@ -46,9 +46,6 @@ namespace SentienceLab.MoCap
 		[ContextMenuItem("Save configuration to config file", "SaveConfiguration")]
 		public Configuration configuration;
 
-		[Tooltip("Action name for pausing/running the client")]
-		public string pauseAction = "pause";
-
 
 		private readonly byte[] clientAppVersion = new byte[] { 1, 4, 4, 0 };
 
@@ -71,9 +68,6 @@ namespace SentienceLab.MoCap
 				// there can be only one instance
 				GameObject.Destroy(this);
 			}
-
-			pauseHandler = InputHandler.Find(pauseAction);
-			pauseClient  = false;
 
 			lastUpdateFrame    = -1;
 			lastPreRenderFrame = -1;
@@ -125,12 +119,6 @@ namespace SentienceLab.MoCap
 			{
 				UpdateScene();
 				lastUpdateFrame = Time.frameCount;
-			}
-
-			if ((pauseHandler != null) && pauseHandler.IsActivated())
-			{
-				pauseClient = !pauseClient;
-				OnApplicationPause(pauseClient);
 			}
 		}
 
@@ -353,20 +341,6 @@ namespace SentienceLab.MoCap
 						}
 					}
 
-					// no client yet > try OpenVR
-					if (((client == null) || !client.IsConnected()) && UnityEngine.XR.XRDevice.isPresent)
-					{
-						client = new OpenVR_Client();
-						client.Connect(null);
-						
-						// did OpenVR work? If not, try he more generic Unity XR client
-						if (!client.IsConnected())
-						{
-							client = new UnityXR_Client();
-							client.Connect(null);
-						}
-					}
-
 					if ((client != null) && client.IsConnected())
 					{
 						Debug.Log("MoCap client connected to " + client.GetDataSourceName() + ".\n" +
@@ -539,9 +513,7 @@ namespace SentienceLab.MoCap
 		private static Mutex        clientMutex   = new Mutex();
 
 		private long lastUpdateFrame, lastPreRenderFrame;
-
-		private InputHandler pauseHandler;
-		private bool         pauseClient; 
+		private bool pauseClient; 
 	}
 
 }
