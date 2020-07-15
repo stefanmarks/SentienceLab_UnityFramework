@@ -136,7 +136,7 @@ namespace SentienceLab.MajorDomo
 			}
 			else
 			{
-				RegisterWithMajorDomoManager(); // just to be sure
+				RegisterWithMajorDomoManager();
 			}
 		}
 
@@ -155,8 +155,7 @@ namespace SentienceLab.MajorDomo
 			{
 				EntityName = gameObject.name;
 			}
-			// replace template string
-			EntityName = EntityName.Replace("{GAMEOBJECT}", this.gameObject.name);
+			CheckEntityNameReplacements();
 
 			MajorDomoManager.Instance.OnClientUnregistered   += delegate (ClientData _c) { CheckEntity(); };
 			MajorDomoManager.Instance.OnEntitiesPublished    += delegate (List<EntityData> _l) { CheckEntity(); };
@@ -264,6 +263,7 @@ namespace SentienceLab.MajorDomo
 			if (m_entity == null)
 			{
 				// entity not found/created yet. Let's search first
+				CheckEntityNameReplacements();
 				m_entity = MajorDomoManager.Instance.FindEntity(EntityName);
 				if (m_entity != null)
 				{
@@ -300,6 +300,7 @@ namespace SentienceLab.MajorDomo
 					{
 						// Create and publish entity and then wait for the callback when server has acknowledged
 						// then find the actual variables in the acknowledged entity version
+						CheckEntityNameReplacements();
 						EntityData entity = MajorDomoManager.Instance.CreateClientEntity(EntityName);
 						if (entity != null)
 						{
@@ -338,6 +339,13 @@ namespace SentienceLab.MajorDomo
 				m_oldControlledByClient = IsControlledByClient;
 				m_controlChangeCooldown = m_oldControlledByClient ? 0 : CONTROL_COOLDOWN_COUNT;
 			}
+		}
+
+
+		private void CheckEntityNameReplacements()
+		{
+			// replace template string
+			EntityName = EntityName.Replace("{GAMEOBJECT}", this.gameObject.name);
 		}
 
 
