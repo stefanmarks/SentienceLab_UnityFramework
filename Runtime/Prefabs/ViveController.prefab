@@ -555,8 +555,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4000013662465882}
-  - component: {fileID: 114000011056450068}
   - component: {fileID: 120000011820340380}
+  - component: {fileID: 8868652371079873084}
+  - component: {fileID: 114000011056450068}
   m_Layer: 0
   m_Name: PointerRay
   m_TagString: Untagged
@@ -579,25 +580,6 @@ Transform:
   m_Father: {fileID: 4000010814629914}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &114000011056450068
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000012404638840}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 949087bc370be80498db2994bae8dcb1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rayEnabled: 1
-  rayRange: 10
-  tagList: []
-  checkInsideColliders: []
-  activeEndPoint: {fileID: 4000010133246036}
-  activationParameter: {fileID: 0}
-  rayDirection: {fileID: 0}
 --- !u!120 &120000011820340380
 LineRenderer:
   m_ObjectHideFlags: 0
@@ -704,6 +686,38 @@ LineRenderer:
     generateLightingData: 0
   m_UseWorldSpace: 0
   m_Loop: 0
+--- !u!114 &8868652371079873084
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000012404638840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b10f23c720d827478cb8b7394c157ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Name: pointerRayEnabled
+  m_value: 1
+--- !u!114 &114000011056450068
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000012404638840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 949087bc370be80498db2994bae8dcb1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  activationParameter: {fileID: 8868652371079873084}
+  rayRange: 10
+  tagList: []
+  checkInsideColliders: []
+  activeEndPoint: {fileID: 4000010133246036}
+  rayDirection: {fileID: 0}
 --- !u!1 &1000012455909572
 GameObject:
   m_ObjectHideFlags: 0
@@ -713,7 +727,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4000014210302574}
-  - component: {fileID: 114000010460551164}
   - component: {fileID: 5134502415533563164}
   m_Layer: 0
   m_Name: ViveController
@@ -739,25 +752,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &114000010460551164
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1000012455909572}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1fca049a810613046bed332554226fc0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  actorName: ViveController.*1
-  boneName: 
-  trackingUsage: 0
-  trackingLostBehaviour: 1
-  updateType: 0
-  PositionOffset: {x: 0, y: 0, z: 0}
-  RotationOffset: {x: 0, y: 0, z: 0}
 --- !u!114 &5134502415533563164
 MonoBehaviour:
   m_ObjectHideFlags: 0

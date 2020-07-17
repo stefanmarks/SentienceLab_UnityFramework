@@ -41,21 +41,22 @@ namespace SentienceLab
 			TeleportAction.action.performed += OnTeleportStart;
 			TeleportAction.action.canceled  += OnTeleportStop;
 			
-			ray = GetComponentInChildren<PointerRay>();
-			if (ray == null)
+			m_pointerRay = GetComponentInChildren<PointerRay>();
+			if (m_pointerRay == null)
 			{
 				// activate and release doesn't make much sense without the ray
 				activationType  = ActivationType.OnTrigger;
-				rayAlwaysActive = false;
+				m_rayAlwaysActive = false;
 			}
 			else
 			{
-				rayAlwaysActive = ray.rayEnabled;
+				m_rayAlwaysActive = (m_pointerRay.activationParameter != null) &&
+				                  (m_pointerRay.activationParameter.Value == true);
 			}
 
-			doAim      = false;
-			doTeleport = false;
-			teleporter = GameObject.FindObjectOfType<Teleporter>();
+			m_doAim      = false;
+			m_doTeleport = false;
+			m_teleporter = GameObject.FindObjectOfType<Teleporter>();
 		}
 
 
@@ -63,35 +64,36 @@ namespace SentienceLab
 		{
 			if (activationType == ActivationType.OnTrigger)
 			{
-				doAim      = true;
-				doTeleport = true;
+				m_doAim      = true;
+				m_doTeleport = true;
 			}
 			else
 			{
-				doAim = true;
+				m_doAim = true;
 			}
 		}
+
 
 		private void OnTeleportStop(InputAction.CallbackContext obj)
 		{
 			if (activationType == ActivationType.ActivateAndRelease)
 			{
-				doAim      = false;
-				doTeleport = true;
+				m_doAim      = false;
+				m_doTeleport = true;
 			}
 		}
 
 
 		void Update()
 		{
-			if ((teleporter == null) || !teleporter.IsReady()) return;
+			if ((m_teleporter == null) || !m_teleporter.IsReady()) return;
 
-			ray.rayEnabled = (doAim || rayAlwaysActive);
+			m_pointerRay.activationParameter.Value = (m_doAim || m_rayAlwaysActive);
 
 			RaycastHit hit;
-			if (ray != null)
+			if (m_pointerRay != null)
 			{
-				hit = ray.GetRayTarget();
+				hit = m_pointerRay.GetRayTarget();
 			}
 			else
 			{
@@ -100,22 +102,22 @@ namespace SentienceLab
 				UnityEngine.Physics.Raycast(tempRay, out hit);
 			}
 
-			if ((hit.distance > 0) && (hit.transform != null) && hit.transform.gameObject.tag.Equals(groundTag))
+			if ((hit.distance > 0) && (hit.transform != null) && hit.transform.gameObject.CompareTag(groundTag))
 			{
-				if (doTeleport)
+				if (m_doTeleport)
 				{
-					if (teleporter != null)
+					if (m_teleporter != null)
 					{
 						// here we go: hide marker...
 						targetMarker.gameObject.SetActive(false);
 						// ...and activate teleport
-						teleporter.Activate(cameraNode.transform.position, hit.point);
+						m_teleporter.Activate(cameraNode.transform.position, hit.point);
 					}
-					doTeleport = false;
+					m_doTeleport = false;
 				}
 				else
 				{
-					if ((targetMarker != null) && doAim)
+					if ((targetMarker != null) && m_doAim)
 					{
 						targetMarker.gameObject.SetActive(true);
 						float yaw = cameraNode.transform.rotation.eulerAngles.y;
@@ -134,9 +136,9 @@ namespace SentienceLab
 		}
 
 
-		private PointerRay  ray;
-		private bool        rayAlwaysActive;
-		private bool        doAim, doTeleport;
-		private Teleporter  teleporter;
+		private PointerRay  m_pointerRay;
+		private bool        m_rayAlwaysActive;
+		private bool        m_doAim, m_doTeleport;
+		private Teleporter  m_teleporter;
 	}
 }

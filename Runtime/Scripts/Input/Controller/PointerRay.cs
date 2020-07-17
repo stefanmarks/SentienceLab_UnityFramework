@@ -4,7 +4,6 @@
 #endregion Copyright Information
 
 using SentienceLab.Data;
-using SentienceLab.Input;
 using UnityEngine;
 
 namespace SentienceLab
@@ -16,11 +15,12 @@ namespace SentienceLab
 	///
 
 	[RequireComponent(typeof(LineRenderer))]
+	[RequireComponent(typeof(Parameter_Boolean))]
 
 	public class PointerRay : MonoBehaviour
 	{
-		[Tooltip("Enable or disable the ray")]
-		public bool rayEnabled = true;
+		[Tooltip("Parameter that activates the ray")]
+		public Parameter_Boolean activationParameter;
 
 		[Tooltip("Maximum range of the ray")]
 		public float rayRange = 100.0f;
@@ -33,9 +33,6 @@ namespace SentienceLab
 
 		[Tooltip("Object to render at the point where the ray meets another game object (optional)")]
 		public Transform activeEndPoint = null;
-
-		[Tooltip("(Optional) Parameter that activates the ray")]
-		public Parameter_Boolean activationParameter = null;
 
 		[Tooltip("(Optional) Parameter for relative ray direction")]
 		public Parameter_Vector3 rayDirection = null;
@@ -54,49 +51,54 @@ namespace SentienceLab
 
 		void Start()
 		{
-			line = GetComponent<LineRenderer>();
-			line.positionCount = 2;
-			line.useWorldSpace = true;
-			overrideTarget = false;
-			activeTarget = null;
+			if (activationParameter == null)
+			{
+				activationParameter = GetComponent<Parameter_Boolean>();
+			}
+			m_rayEnabled = false;
+			m_line = GetComponent<LineRenderer>();
+			m_line.positionCount = 2;
+			m_line.useWorldSpace = true;
+			m_overrideTarget = false;
+			m_activeTarget = null;
 		}
 
 
 		void LateUpdate()
 		{
 			// assume nothing is hit at first
-			rayTarget.distance = 0;
+			m_rayTarget.distance = 0;
 
 			if (activationParameter != null)
 			{
-				rayEnabled = activationParameter.Value;
+				m_rayEnabled = activationParameter.Value;
 			}
 
 			// change in enabled flag
-			if (line.enabled != rayEnabled)
+			if (m_line.enabled != m_rayEnabled)
 			{
-				line.enabled = rayEnabled;
-				if ((activeEndPoint != null) && !rayEnabled)
+				m_line.enabled = m_rayEnabled;
+				if ((activeEndPoint != null) && !m_rayEnabled)
 				{
 					activeEndPoint.gameObject.SetActive(false);
 				}
 			}
 
-			if (rayEnabled)
+			if (m_rayEnabled)
 			{
 				// construct ray
 				Vector3 forward = (rayDirection == null) ? Vector3.forward : rayDirection.Value;
 				forward = transform.TransformDirection(forward); // relative forward to "world forward"
 				Ray ray = new Ray(transform.position, forward);
 				Vector3 end = ray.origin + ray.direction * rayRange;
-				line.SetPosition(0, ray.origin);
+				m_line.SetPosition(0, ray.origin);
 				Debug.DrawLine(ray.origin, end, Color.red);
 
 				bool hit;
-				if (!overrideTarget)
+				if (!m_overrideTarget)
 				{
 					// do raycast
-					hit = UnityEngine.Physics.Raycast(ray, out rayTarget, rayRange);
+					hit = UnityEngine.Physics.Raycast(ray, out m_rayTarget, rayRange);
 
 					// test tags
 					if (hit && (tagList.Length > 0))
@@ -104,7 +106,7 @@ namespace SentienceLab
 						hit = false;
 						foreach (string tag in tagList)
 						{
-							if (rayTarget.transform.tag.CompareTo(tag) == 0)
+							if (m_rayTarget.transform.tag.CompareTo(tag) == 0)
 							{
 								hit = true;
 								break;
@@ -113,7 +115,7 @@ namespace SentienceLab
 						if (!hit)
 						{
 							// tag test negative > reset raycast structure
-							UnityEngine.Physics.Raycast(ray, out rayTarget, 0);
+							UnityEngine.Physics.Raycast(ray, out m_rayTarget, 0);
 						}
 					}
 
@@ -122,7 +124,7 @@ namespace SentienceLab
 					{
 						// checking inside collides: reverse ray
 						Ray reverse = new Ray(ray.origin + ray.direction * rayRange, -ray.direction);
-						float minDistance = hit ? rayTarget.distance : rayRange;
+						float minDistance = hit ? m_rayTarget.distance : rayRange;
 						foreach (Collider c in checkInsideColliders)
 						{
 							RaycastHit hitReverse;
@@ -130,7 +132,7 @@ namespace SentienceLab
 							{
 								if (rayRange - hitReverse.distance < minDistance)
 								{
-									rayTarget = hitReverse;
+									m_rayTarget = hitReverse;
 									minDistance = rayRange - hitReverse.distance;
 									hit = true;
 								}
@@ -140,25 +142,25 @@ namespace SentienceLab
 				}
 				else
 				{
-					UnityEngine.Physics.Raycast(ray, out rayTarget, 0); // reset structure
-					rayTarget.point = overridePoint;        // override point
+					UnityEngine.Physics.Raycast(ray, out m_rayTarget, 0); // reset structure
+					m_rayTarget.point = m_overridePoint;        // override point
 					hit = true;
 				}
 
 				if (hit)
 				{
 					// hit something > draw ray to there and render end point object
-					line.SetPosition(1, rayTarget.point);
+					m_line.SetPosition(1, m_rayTarget.point);
 					if (activeEndPoint != null)
 					{
-						activeEndPoint.position = rayTarget.point;
+						activeEndPoint.position = m_rayTarget.point;
 						activeEndPoint.gameObject.SetActive(true);
 					}
 				}
 				else
 				{
 					// hit nothing > draw ray to end and disable end point object
-					line.SetPosition(1, end);
+					m_line.SetPosition(1, end);
 					if (activeEndPoint != null)
 					{
 						activeEndPoint.gameObject.SetActive(false);
@@ -178,15 +180,15 @@ namespace SentienceLab
 		private void HandleEvents()
 		{
 			IPointerRayTarget currentTarget = null;
-			if (rayTarget.distance > 0 && (rayTarget.transform != null))
+			if (m_rayTarget.distance > 0 && (m_rayTarget.transform != null))
 			{
-				currentTarget = rayTarget.collider.gameObject.GetComponent<IPointerRayTarget>();
+				currentTarget = m_rayTarget.collider.gameObject.GetComponent<IPointerRayTarget>();
 			}
-			if (currentTarget != activeTarget)
+			if (currentTarget != m_activeTarget)
 			{
-				if (activeTarget != null) activeTarget.OnPointerExit(this);
-				activeTarget = currentTarget;
-				if (activeTarget != null) activeTarget.OnPointerEnter(this);
+				if (m_activeTarget != null) m_activeTarget.OnPointerExit(this);
+				m_activeTarget = currentTarget;
+				if (m_activeTarget != null) m_activeTarget.OnPointerEnter(this);
 			}
 		}
 
@@ -198,7 +200,7 @@ namespace SentienceLab
 		/// 
 		public RaycastHit GetRayTarget()
 		{
-			return rayTarget;
+			return m_rayTarget;
 		}
 
 
@@ -209,7 +211,7 @@ namespace SentienceLab
 		/// 
 		public bool IsEnabled()
 		{
-			return rayEnabled;
+			return m_rayEnabled;
 		}
 
 
@@ -221,20 +223,20 @@ namespace SentienceLab
 		{
 			if (pos.Equals(Vector3.zero))
 			{
-				overrideTarget = false;
+				m_overrideTarget = false;
 			}
 			else
 			{
-				overrideTarget = true;
-				overridePoint  = pos;
+				m_overrideTarget = true;
+				m_overridePoint  = pos;
 			}
 		}
 
-
-		private LineRenderer      line;
-		private RaycastHit        rayTarget;
-		private bool              overrideTarget;
-		private Vector3           overridePoint;
-		private IPointerRayTarget activeTarget;
+		private bool              m_rayEnabled;
+		private LineRenderer      m_line;
+		private RaycastHit        m_rayTarget;
+		private bool              m_overrideTarget;
+		private Vector3           m_overridePoint;
+		private IPointerRayTarget m_activeTarget;
 	}
 }

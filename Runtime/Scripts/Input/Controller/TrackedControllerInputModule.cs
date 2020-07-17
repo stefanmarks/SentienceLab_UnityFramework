@@ -260,7 +260,7 @@ namespace SentienceLab
 				// what object are we pointing at?
 				ctrl.currentPoint = ctrl.eventData.pointerCurrentRaycast.gameObject;
 				// is the pointer ray inactive?
-				if ((ctrl.ray != null) && !ctrl.ray.rayEnabled)
+				if ((ctrl.ray != null) && !ctrl.ray.IsEnabled())
 				{
 					// yes > no active object
 					ctrl.currentPoint = null;
