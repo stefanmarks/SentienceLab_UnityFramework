@@ -9,7 +9,7 @@ using UnityEngine.InputSystem;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Controller/Input System/Switch")]
+	[AddComponentMenu("Parameter/Controller/Input System/Switch Controller")]
 
 	public class ParameterController_InputSystem_Switch : MonoBehaviour
 	{
