@@ -68,7 +68,7 @@ namespace SentienceLab
 				var devices = InputSystem.devices;
 				foreach (var d in devices)
 				{
-					Debug.Log("Input Device: " + d.name);
+					// Debug.Log("Input Device: " + d.name);
 
 					string model = d.name.ToLower();
 					if (model.Contains("oculus"))
