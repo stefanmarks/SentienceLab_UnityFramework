@@ -60,15 +60,6 @@ namespace SentienceLab.MajorDomo
 		public Configuration configuration = new Configuration();
 
 
-		/// <summary>
-		/// Interface for objects that need to automatically register with the manager on startup
-		/// </summary>
-		public interface IAutoRegister
-		{
-			void RegisterWithMajorDomoManager();
-		}
-
-
 		// Singleton accessor
 		public static MajorDomoManager Instance
 		{
@@ -175,13 +166,6 @@ namespace SentienceLab.MajorDomo
 			ReplaceSpecialApplicationNameParts();
 
 			if (configuration.AutoConnectDelay > 0) StartCoroutine(AutoConnectAsync());
-
-			// auto-register objects that use MajorDomo
-			IAutoRegister[] autoRegisterObjects = Resources.FindObjectsOfTypeAll<SynchronisedGameObject>();
-			foreach (var obj in autoRegisterObjects)
-			{
-				obj.RegisterWithMajorDomoManager();
-			}
 		}
 
 
