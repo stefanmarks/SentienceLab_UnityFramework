@@ -9,7 +9,7 @@ using UnityEngine.InputSystem;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Controller/XR/Controller Twist")]
+	[AddComponentMenu("Parameter/Controller/XR/Twist Parameter Controller")]
 
 	public class ParameterController_XR_ControllerTwist : MonoBehaviour
 	{
