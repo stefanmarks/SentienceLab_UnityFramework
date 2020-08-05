@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Boolean")]
+	[AddComponentMenu("Parameter/Boolean Parameter")]
 	public class Parameter_Boolean : ParameterBase, IParameterAsBoolean
 	{
 		/// <summary>

@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/List")]
+	[AddComponentMenu("Parameter/List Parameter")]
 	public class Parameter_List : ParameterBase, IParameterModify
 	{
 		[Serializable]

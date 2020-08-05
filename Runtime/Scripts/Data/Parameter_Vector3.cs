@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Vector3")]
+	[AddComponentMenu("Parameter/Vector3 Parameter")]
 	public class Parameter_Vector3 : ParameterBase, IParameterModify
 	{
 		public delegate void LimitChanged(ParameterBase _value);

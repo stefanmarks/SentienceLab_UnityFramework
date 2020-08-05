@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Double")]
+	[AddComponentMenu("Parameter/Double Parameter")]
 	public class Parameter_Double : ParameterBase, IParameterModify, IParameterAsBoolean
 	{
 		public delegate void LimitChanged(ParameterBase _value);

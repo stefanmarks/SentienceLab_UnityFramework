@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/String")]
+	[AddComponentMenu("Parameter/String Parameter")]
 	public class Parameter_String : ParameterBase
 	{
 		[SerializeField]
