@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace SentienceLab.Data
 {
 	[RequireComponent(typeof(Button))]
-	[AddComponentMenu("Parameter/Controller/UI/Button")]
+	[AddComponentMenu("Parameter/Controller/UI/Button Parameter Controller")]
 
 	public class ParameterController_UI_Button : MonoBehaviour
 	{

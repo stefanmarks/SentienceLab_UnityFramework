@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace SentienceLab.Data
 {
 	[RequireComponent(typeof(Text))]
-	[AddComponentMenu("Parameter/Controller/UI/Text")]
+	[AddComponentMenu("Parameter/Controller/UI/Text Parameter Controller")]
 
 	public class ParameterController_UI_Text : MonoBehaviour
 	{
