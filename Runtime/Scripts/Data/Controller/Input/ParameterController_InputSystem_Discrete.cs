@@ -8,7 +8,7 @@ using UnityEngine.InputSystem;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Controller/Input System/Discrete Controller")]
+	[AddComponentMenu("Parameter/Controller/Input System/Discrete Parameter Controller")]
 
 	public class ParameterController_InputSystem_Discrete : MonoBehaviour
 	{

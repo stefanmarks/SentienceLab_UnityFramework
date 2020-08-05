@@ -9,7 +9,7 @@ using UnityEngine.InputSystem;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Controller/Input System/Continuous Controller")]
+	[AddComponentMenu("Parameter/Controller/Input System/Continuous Parameter Controller")]
 
 	public class ParameterController_InputSystem_Continuous : MonoBehaviour
 	{
