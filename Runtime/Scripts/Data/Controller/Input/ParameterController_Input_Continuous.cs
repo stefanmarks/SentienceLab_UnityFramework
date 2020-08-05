@@ -8,7 +8,7 @@ using SentienceLab.Input;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Controller/Input/Continuous")]
+	[AddComponentMenu("Parameter/Controller/Input/Continuous Parameter Controller")]
 
 	public class ParameterController_Input_Continuous : MonoBehaviour
 	{

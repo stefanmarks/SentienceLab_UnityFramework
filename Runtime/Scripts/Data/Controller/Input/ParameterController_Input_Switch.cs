@@ -8,7 +8,7 @@ using SentienceLab.Input;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Controller/Input/Switch")]
+	[AddComponentMenu("Parameter/Controller/Input/Switch Parameter Controller")]
 
 	public class ParameterController_Input_Switch : MonoBehaviour
 	{

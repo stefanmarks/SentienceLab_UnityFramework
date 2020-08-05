@@ -10,7 +10,7 @@ using UnityEngine.UI;
 namespace SentienceLab.Data
 {
 	[RequireComponent(typeof(Dropdown))]
-	[AddComponentMenu("Parameter/Controller/UI/Dropdown")]
+	[AddComponentMenu("Parameter/Controller/UI/Dropdown List Parameter Controller")]
 
 	public class ParameterController_UI_Dropdown : MonoBehaviour
 	{

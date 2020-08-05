@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace SentienceLab.Data
 {
 	[RequireComponent(typeof(Toggle))]
-	[AddComponentMenu("Parameter/Controller/UI/Toggle")]
+	[AddComponentMenu("Parameter/Controller/UI/Toggle Parameter Controller")]
 
 	public class ParameterController_UI_Toggle : MonoBehaviour
 	{

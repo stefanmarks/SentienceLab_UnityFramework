@@ -9,7 +9,7 @@ using UnityEngine;
 namespace SentienceLab.Data
 {
 	[AddComponentMenu("Parameter/Vector3")]
-	public class Parameter_Vector3 : ParameterBase
+	public class Parameter_Vector3 : ParameterBase, IParameterModify
 	{
 		public delegate void LimitChanged(ParameterBase _value);
 		public event LimitChanged OnLimitChanged;
@@ -144,6 +144,17 @@ namespace SentienceLab.Data
 			return _value;
 		}
 
+
+		public void ChangeValue(float _delta, int _idx = 0)
+		{
+			switch (_idx)
+			{
+				case 0: this.value.value.x += _delta; break;
+				case 1: this.value.value.y += _delta; break;
+				case 2: this.value.value.z += _delta; break;
+			}
+			Value = value.value; // observe limits and notify of change
+		}
 
 		/// <summary>
 		/// Creates a formatted string.
