@@ -10,8 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- MajorDomo protocol update to v0.5.2
+- MajorDomo protocol update to v0.5.3 + Flatbuffer/NetMQ updates
 - Backported bugfixes to MajorDomo codebase from 1.4
+- Adding MaxOutput parameter to PID controller
+- Various bugfixes
 - Changes to Physics framework (interactivity)
 - Introduced Synchronised Template Manager
 
