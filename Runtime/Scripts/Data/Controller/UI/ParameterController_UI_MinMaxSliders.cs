@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Controller/UI/MinMax Sliders")]
+	[AddComponentMenu("Parameter/Controller/UI/MinMax Sliders Parameter Controller")]
 
 	public class ParameterController_UI_MinMaxSliders : MonoBehaviour
 	{

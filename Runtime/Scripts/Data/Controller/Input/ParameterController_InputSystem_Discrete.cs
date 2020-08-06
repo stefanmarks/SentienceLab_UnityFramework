@@ -4,13 +4,13 @@
 #endregion Copyright Information
 
 using UnityEngine;
-using SentienceLab.Input;
+using UnityEngine.InputSystem;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Controller/Input/Discrete Parameter Controller")]
+	[AddComponentMenu("Parameter/Controller/Input System/Discrete Parameter Controller")]
 
-	public class ParameterController_Input_Discrete : MonoBehaviour
+	public class ParameterController_InputSystem_Discrete : MonoBehaviour
 	{
 		[Tooltip("The parameter to control with the input (default: the first component in this game object)")]
 		[TypeConstraint(typeof(IParameterModify))]
@@ -19,11 +19,11 @@ namespace SentienceLab.Data
 		[Tooltip("The index of the value to change (e.g., 0: min, 1: max. Default: 0)")]
 		public int ValueIndex = 0;
 
-		[Tooltip("Name of the input that increases this parameter")]
-		public string InputNameIncrease;
+		[Tooltip("Action that increases this parameter")]
+		public InputActionReference IncreaseAction;
 
-		[Tooltip("Name of the input that decreases this parameter")]
-		public string InputNameDecrease;
+		[Tooltip("Action that decreases this parameter")]
+		public InputActionReference DecreaseAction;
 
 		[Tooltip("Factor to change the parameter by per step")]
 		public int Multiplier = 1;
@@ -51,27 +51,37 @@ namespace SentienceLab.Data
 				this.enabled = false;
 			}
 
-			m_handlerInc = InputHandler.Find(InputNameIncrease);
-			m_handlerDec = InputHandler.Find(InputNameDecrease);
+			if (IncreaseAction != null)
+			{
+				IncreaseAction.action.performed += delegate { IncreaseValue(); };
+				IncreaseAction.action.Enable();
+			}
+			
+			if (DecreaseAction != null)
+			{
+				DecreaseAction.action.performed += delegate { DecreaseValue(); };
+				DecreaseAction.action.Enable();
+			}
 		}
 
 
-		public void Update()
+		public void IncreaseValue()
 		{
 			if (m_modify != null)
 			{
-				if ((m_handlerInc != null) && m_handlerInc.IsActivated())
-				{
-					m_modify.ChangeValue(Multiplier, ValueIndex);
-				}
-				if ((m_handlerDec != null) && m_handlerDec.IsActivated())
-				{
-					m_modify.ChangeValue(-Multiplier, ValueIndex);
-				}
+				m_modify.ChangeValue(Multiplier, ValueIndex);
+			}
+		}
+
+
+		public void DecreaseValue()
+		{
+			if (m_modify != null)
+			{
+				m_modify.ChangeValue(-Multiplier, ValueIndex);
 			}
 		}
 
 		private IParameterModify m_modify;
-		private InputHandler     m_handlerInc, m_handlerDec;
 	}
 }

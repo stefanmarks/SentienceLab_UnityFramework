@@ -14,7 +14,7 @@ using UnityEngine.SceneManagement;
 namespace SentienceLab.MajorDomo
 {
 	[DisallowMultipleComponent]
-	[AddComponentMenu("MajorDomo/Manager")]
+	[AddComponentMenu("MajorDomo/MajorDomo Manager")]
 	public class MajorDomoManager : MonoBehaviour
 	{
 		[Tooltip("Name of the client to register with the server.\n" +
@@ -58,15 +58,6 @@ namespace SentienceLab.MajorDomo
 		[ContextMenuItem("Load configuration from config file", "LoadConfiguration")]
 		[ContextMenuItem("Save configuration to config file", "SaveConfiguration")]
 		public Configuration configuration = new Configuration();
-
-
-		/// <summary>
-		/// Interface for objects that need to automatically register with the manager on startup
-		/// </summary>
-		public interface IAutoRegister
-		{
-			void RegisterWithMajorDomoManager();
-		}
 
 
 		// Singleton accessor
@@ -175,13 +166,6 @@ namespace SentienceLab.MajorDomo
 			ReplaceSpecialApplicationNameParts();
 
 			if (configuration.AutoConnectDelay > 0) StartCoroutine(AutoConnectAsync());
-
-			// auto-register objects that use MajorDomo
-			IAutoRegister[] autoRegisterObjects = Resources.FindObjectsOfTypeAll<SynchronisedGameObject>();
-			foreach (var obj in autoRegisterObjects)
-			{
-				obj.RegisterWithMajorDomoManager();
-			}
 		}
 
 

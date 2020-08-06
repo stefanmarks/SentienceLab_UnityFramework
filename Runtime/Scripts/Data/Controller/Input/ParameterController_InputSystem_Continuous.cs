@@ -4,13 +4,14 @@
 #endregion Copyright Information
 
 using UnityEngine;
-using SentienceLab.Input;
+using UnityEngine.InputSystem;
+
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Controller/Input/Continuous Parameter Controller")]
+	[AddComponentMenu("Parameter/Controller/Input System/Continuous Parameter Controller")]
 
-	public class ParameterController_Input_Continuous : MonoBehaviour
+	public class ParameterController_InputSystem_Continuous : MonoBehaviour
 	{
 		[Tooltip("The parameter to control with the input (default: the first component in this game object)")]
 		[TypeConstraint(typeof(IParameterModify))]
@@ -20,7 +21,7 @@ namespace SentienceLab.Data
 		public int ValueIndex = 0;
 
 		[Tooltip("Name of the input that controls this parameter")]
-		public string InputName;
+		public InputActionReference Action;
 
 		[Tooltip("Factor to change the parameter by per second")]
 		public float Multiplier = 1.0f;
@@ -28,15 +29,18 @@ namespace SentienceLab.Data
 
 		public void Start()
 		{
-			if (Parameter == null)
+			if(Parameter == null)
 			{
 				// parameter not defined > is it a component?
 				Parameter = GetComponent<ParameterBase>();
 			}
 			if (Parameter != null)
 			{
-				m_modify = (IParameterModify)Parameter;
-				if (m_modify == null)
+				if (Parameter is IParameterModify)
+				{
+					m_modify = (IParameterModify)Parameter;
+				}
+				else
 				{
 					Debug.LogWarning("Parameter can't be modified");
 					this.enabled = false;
@@ -48,22 +52,31 @@ namespace SentienceLab.Data
 				this.enabled = false;
 			}
 
-			m_handler = InputHandler.Find(InputName);
+			if (this.enabled)
+			{
+				if (Action != null)
+				{
+					Action.action.Enable();
+				}
+				else
+				{
+					Debug.LogWarningFormat("Action not defined for parameter '{0}'", Parameter.Name);
+					this.enabled = false;
+				}
+			}
 		}
 
 
 		public void Update()
 		{
-			if ((m_modify != null) && (m_handler != null))
+			if (m_modify != null)
 			{
-				if (m_handler.GetValue() != 0)
-				{
-					m_modify.ChangeValue(m_handler.GetValue() * Multiplier * Time.deltaTime, ValueIndex);
-				}
+				float value = Action.action.ReadValue<float>();
+				m_modify.ChangeValue(value * Multiplier * Time.deltaTime, ValueIndex);
 			}
 		}
 
-		private IParameterModify m_modify;
-		private InputHandler     m_handler;
+
+		protected IParameterModify m_modify;
 	}
 }

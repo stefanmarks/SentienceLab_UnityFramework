@@ -7,16 +7,19 @@
 using UnityEngine;
 using System.Collections.Generic;
 using SentienceLab.Data;
+using System.Collections;
 
 namespace SentienceLab.MajorDomo
 {
 	[AddComponentMenu("MajorDomo/Synchronised GameObject")]
-	public class SynchronisedGameObject : MonoBehaviour, MajorDomoManager.IAutoRegister
+	public class SynchronisedGameObject : MonoBehaviour
 	{
+		public static readonly string GAMEOBJECT_AUTO_NAME = "{GAMEOBJECT}";
+			
 		[Tooltip("Name of the entity to register with the server.\n" +
 				 "Leave empty to use this game object's name.\n" +
 				 "The string \"{GAMEOBJECT}\" will be automatically replaced by the game object's name.")]
-		public string EntityName = "{GAMEOBJECT}";
+		public string EntityName = GAMEOBJECT_AUTO_NAME;
 
 		[Tooltip("Synchronisation mode for the entity.\n" 
 			+ "Client: object is controlled by the client.\n" 
@@ -134,41 +137,49 @@ namespace SentienceLab.MajorDomo
 				this.enabled = false;
 				return;
 			}
-			else
-			{
-				RegisterWithMajorDomoManager(); // just to be sure
-			}
 		}
 
 
-		public void RegisterWithMajorDomoManager()
+		public void Start()
 		{
-			if (m_initialised) return;
+			StartCoroutine(RegisterWithMajorDomoManager());
+		}
 
-			m_entity = null;
-			m_proxies = new List<ParameterProxy>();
-			m_controlChangeCooldown = 0;
-			m_oldControlledByClient = IsControlledByClient;
 
-			// empty name > use game object name
-			if (EntityName.Trim().Length == 0)
+		protected IEnumerator RegisterWithMajorDomoManager()
+		{
+			if (!m_registered)
 			{
-				EntityName = gameObject.name;
+				m_registered = true; 
+
+				// wait one frame before registering
+				yield return null;
+
+				m_entity = null;
+				m_proxies = new List<ParameterProxy>();
+				m_controlChangeCooldown = 0;
+				m_oldControlledByClient = IsControlledByClient;
+
+				// empty name > use game object name
+				if (EntityName.Trim().Length == 0)
+				{
+					EntityName = gameObject.name;
+				}
+				CheckEntityNameReplacements();
+
+				//Debug.LogFormat("Registering entity '{0}' with MajorDomo client.", EntityName);
+
+				MajorDomoManager.Instance.OnClientUnregistered   += ClientEventCallback;
+				MajorDomoManager.Instance.OnEntitiesPublished    += EntityEventCallback;
+				MajorDomoManager.Instance.OnEntitiesRevoked      += EntityEventCallback;
+				MajorDomoManager.Instance.OnEntityControlChanged += EntityEventCallback;
+
+				if (SynchronisationMode == ESynchronisationMode.Server)
+				{
+					if (CanDisableGameObject()) gameObject.SetActive(false);
+				}
+				CheckEntity();
 			}
-			// replace template string
-			EntityName = EntityName.Replace("{GAMEOBJECT}", this.gameObject.name);
-
-			MajorDomoManager.Instance.OnClientUnregistered   += delegate (ClientData _c) { CheckEntity(); };
-			MajorDomoManager.Instance.OnEntitiesPublished    += delegate (List<EntityData> _l) { CheckEntity(); };
-			MajorDomoManager.Instance.OnEntitiesRevoked      += delegate (List<EntityData> _l) { CheckEntity(); };
-			MajorDomoManager.Instance.OnEntityControlChanged += delegate (List<EntityData> _l) { CheckEntity(); };
-
-			if (SynchronisationMode == ESynchronisationMode.Server)
-			{
-				if (CanDisableGameObject()) gameObject.SetActive(false);
-			}
-
-			m_initialised = true;
 		}
 
 
@@ -196,6 +207,12 @@ namespace SentienceLab.MajorDomo
 					m_entity.ResetUpdated();
 					// every entity update resets the control change timeout
 					m_controlChangeCooldown = CONTROL_COOLDOWN_COUNT;
+				}
+				else if (IsControlledByClient && m_entity.IsModified())
+				{
+					// special case if you are synchronising an entity that belongs to this client:
+					// since no updates are sent to the client itself, we have to "manually" sync based on the "modified" flag
+					SynchroniseFromEntity();
 				}
 				else if (SynchronisationMode == ESynchronisationMode.Shared)
 				{
@@ -225,20 +242,6 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public void OnDisable()
-		{
-			if (m_entity == null) return;
-
-			// make sure last state is synchronised
-			if (  (SynchronisationMode == ESynchronisationMode.Client) ||
-			    ( (SynchronisationMode == ESynchronisationMode.Shared) && IsControlledByClient) )
-			{
-				SynchroniseToEntity();
-				ResetModified();
-			}
-		}
-
-
 		public void OnEnable()
 		{
 			if (m_entity == null) return;
@@ -259,11 +262,61 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		public void OnDisable()
+		{
+			if (m_entity == null) return;
+
+			// make sure last state is synchronised
+			if ((SynchronisationMode == ESynchronisationMode.Client) ||
+				((SynchronisationMode == ESynchronisationMode.Shared) && IsControlledByClient))
+			{
+				SynchroniseToEntity();
+				ResetModified();
+			}
+		}
+
+
+		public void OnDestroy()
+		{
+			if (m_registered)
+			{
+				if (MajorDomoManager.Instance != null)
+				{
+					MajorDomoManager.Instance.OnClientUnregistered   -= ClientEventCallback;
+					MajorDomoManager.Instance.OnEntitiesPublished    -= EntityEventCallback;
+					MajorDomoManager.Instance.OnEntitiesRevoked      -= EntityEventCallback;
+					MajorDomoManager.Instance.OnEntityControlChanged -= EntityEventCallback;
+
+					if (m_entity != null)
+					{
+						MajorDomoManager.Instance.RevokeEntity(m_entity);
+					}
+				}
+
+				m_entity     = null;
+				m_registered = false;
+			}
+		}
+
+
+		protected void ClientEventCallback(ClientData _)
+		{
+			CheckEntity();
+		}
+
+
+		protected void EntityEventCallback(List<EntityData> _)
+		{
+			CheckEntity();
+		}
+
+
 		protected void CheckEntity()
 		{
 			if (m_entity == null)
 			{
 				// entity not found/created yet. Let's search first
+				CheckEntityNameReplacements();
 				m_entity = MajorDomoManager.Instance.FindEntity(EntityName);
 				if (m_entity != null)
 				{
@@ -300,6 +353,7 @@ namespace SentienceLab.MajorDomo
 					{
 						// Create and publish entity and then wait for the callback when server has acknowledged
 						// then find the actual variables in the acknowledged entity version
+						CheckEntityNameReplacements();
 						EntityData entity = MajorDomoManager.Instance.CreateClientEntity(EntityName);
 						if (entity != null)
 						{
@@ -338,6 +392,13 @@ namespace SentienceLab.MajorDomo
 				m_oldControlledByClient = IsControlledByClient;
 				m_controlChangeCooldown = m_oldControlledByClient ? 0 : CONTROL_COOLDOWN_COUNT;
 			}
+		}
+
+
+		private void CheckEntityNameReplacements()
+		{
+			// replace template string
+			EntityName = EntityName.Replace(GAMEOBJECT_AUTO_NAME, this.gameObject.name);
 		}
 
 
@@ -1045,7 +1106,7 @@ namespace SentienceLab.MajorDomo
 		}
 
 		
-		private bool m_initialised = false;
+		private bool m_registered = false;
 
 		private bool m_oldControlledByClient;
 		private int  m_controlChangeCooldown = 0;

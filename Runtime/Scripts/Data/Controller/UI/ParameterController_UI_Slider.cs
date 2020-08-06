@@ -9,7 +9,7 @@ using UnityEngine.UI;
 namespace SentienceLab.Data
 {
 	[RequireComponent(typeof(Slider))]
-	[AddComponentMenu("Parameter/Controller/UI/Slider")]
+	[AddComponentMenu("Parameter/Controller/UI/Slider Parameter Controller")]
 
 	public class ParameterController_UI_Slider : MonoBehaviour
 	{
