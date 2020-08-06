@@ -11,7 +11,7 @@
 	"network"
   ],
   "dependencies": {
-    "com.unity.inputsystem": "1.0.0-preview.4"
+    "com.unity.inputsystem": "1.0.0"
   },
   "type": "library"
 }

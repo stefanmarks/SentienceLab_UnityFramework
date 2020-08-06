@@ -6,26 +6,33 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [1.3] - 2020-01-23
+## [1.3] - 2020-08-07
 
 ### Added
 
 - Redirected Walking modifier
+- Green and red laser material
 
 ### Changed
 
-- MajorDomo protocol update to v0.5.3 + Flatbuffer/NetMQ updates
-- Replaced SynchronisedTransform/Parameters by SynchronisedGameObject
-- Adding MaxOutput to PID controller
-- Various bugfixes
+- Menu names for parameteres and controllers
+
+### Removed
+
+- Removed SynchronisedTransform/Parameters
+- Laser material
 
 
 ## [1.2] - 2019-11-25
 
 ### Changed
 
-- MajorDomo protocol update to v0.5.2
+- MajorDomo protocol update to v0.5.3 + Flatbuffer/NetMQ updates
+- Backported bugfixes to MajorDomo codebase from 1.4
+- Adding MaxOutput parameter to PID controller
+- Various bugfixes
 - Changes to Physics framework (interactivity)
+- Introduced Synchronised Template Manager
 
 
 ## [1.1] - 2019-08-13
@@ -48,4 +55,3 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 - Separated into separate package
-
