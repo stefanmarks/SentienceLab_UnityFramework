@@ -14,10 +14,12 @@ namespace SentienceLab.MajorDomo
 	[AddComponentMenu("MajorDomo/Synchronised GameObject")]
 	public class SynchronisedGameObject : MonoBehaviour
 	{
+		public static readonly string GAMEOBJECT_AUTO_NAME = "{GAMEOBJECT}";
+			
 		[Tooltip("Name of the entity to register with the server.\n" +
 				 "Leave empty to use this game object's name.\n" +
 				 "The string \"{GAMEOBJECT}\" will be automatically replaced by the game object's name.")]
-		public string EntityName = "{GAMEOBJECT}";
+		public string EntityName = GAMEOBJECT_AUTO_NAME;
 
 		[Tooltip("Synchronisation mode for the entity.\n" 
 			+ "Client: object is controlled by the client.\n" 
@@ -176,10 +178,7 @@ namespace SentienceLab.MajorDomo
 				{
 					if (CanDisableGameObject()) gameObject.SetActive(false);
 				}
-				else
-				{
-					CheckEntity();
-				}
+				CheckEntity();
 			}
 		}
 
@@ -208,6 +207,12 @@ namespace SentienceLab.MajorDomo
 					m_entity.ResetUpdated();
 					// every entity update resets the control change timeout
 					m_controlChangeCooldown = CONTROL_COOLDOWN_COUNT;
+				}
+				else if (IsControlledByClient && m_entity.IsModified())
+				{
+					// special case if you are synchronising an entity that belongs to this client:
+					// since no updates are sent to the client itself, we have to "manually" sync based on the "modified" flag
+					SynchroniseFromEntity();
 				}
 				else if (SynchronisationMode == ESynchronisationMode.Shared)
 				{
@@ -393,7 +398,7 @@ namespace SentienceLab.MajorDomo
 		private void CheckEntityNameReplacements()
 		{
 			// replace template string
-			EntityName = EntityName.Replace("{GAMEOBJECT}", this.gameObject.name);
+			EntityName = EntityName.Replace(GAMEOBJECT_AUTO_NAME, this.gameObject.name);
 		}
 
 
