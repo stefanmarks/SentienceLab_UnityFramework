@@ -75,11 +75,6 @@ namespace SentienceLab.MajorDomo
 							{
 								s.EntityName = _entity.Name;
 							}
-							// adapt reference transform if necessary
-							if ((s.TargetTransform != null) && (s.ReferenceTransform == null))
-							{
-								s.ReferenceTransform = this.transform;
-							}
 						}
 						m_spawnedTemplates[_entity.Name] = go;
 					}

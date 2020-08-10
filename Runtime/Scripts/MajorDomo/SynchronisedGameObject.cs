@@ -6,7 +6,6 @@
 
 using UnityEngine;
 using System.Collections.Generic;
-using SentienceLab.Data;
 using System.Collections;
 
 namespace SentienceLab.MajorDomo
@@ -15,7 +14,7 @@ namespace SentienceLab.MajorDomo
 	public class SynchronisedGameObject : MonoBehaviour
 	{
 		public static readonly string GAMEOBJECT_AUTO_NAME = "{GAMEOBJECT}";
-			
+
 		[Tooltip("Name of the entity to register with the server.\n" +
 				 "Leave empty to use this game object's name.\n" +
 				 "The string \"{GAMEOBJECT}\" will be automatically replaced by the game object's name.")]
@@ -30,6 +29,11 @@ namespace SentienceLab.MajorDomo
 		[Tooltip("Entity stays on the server when the client disconnects")]
 		public bool Persistent = false;
 
+		[Tooltip("If enabled, the 'active' flag is synchronised and loss off connection to the server can disable the object")]
+		public bool CanDisableGameObject = true;
+
+		[Tooltip("Explicit list of components to synchronise. If empty, use all existing components found in this game object.")]
+		public List<AbstractSynchronisedComponent> Components;
 
 		[Header("Transform")]
 
@@ -142,6 +146,13 @@ namespace SentienceLab.MajorDomo
 
 		public void Start()
 		{
+			// no submodules given explicitely, search for them
+			if (Components.Count == 0)
+			{
+				Components.AddRange(GetComponents<AbstractSynchronisedComponent>());
+			}
+
+			// start registering in next frame
 			StartCoroutine(RegisterWithMajorDomoManager());
 		}
 
@@ -156,7 +167,6 @@ namespace SentienceLab.MajorDomo
 				yield return null;
 
 				m_entity = null;
-				m_proxies = new List<ParameterProxy>();
 				m_controlChangeCooldown = 0;
 				m_oldControlledByClient = IsControlledByClient;
 
@@ -176,7 +186,7 @@ namespace SentienceLab.MajorDomo
 
 				if (SynchronisationMode == ESynchronisationMode.Server)
 				{
-					if (CanDisableGameObject()) gameObject.SetActive(false);
+					if (CanDisableGameObject) gameObject.SetActive(false);
 				}
 				CheckEntity();
 			}
@@ -321,7 +331,7 @@ namespace SentienceLab.MajorDomo
 				if (m_entity != null)
 				{
 					// found it > find the variables, too
-					FindVariables();
+					FindEntityVariables();
 					// adjust flags from entity
 					Persistent = m_entity.IsPersistent();
 
@@ -357,7 +367,7 @@ namespace SentienceLab.MajorDomo
 						EntityData entity = MajorDomoManager.Instance.CreateClientEntity(EntityName);
 						if (entity != null)
 						{
-							CreateVariables(entity);
+							CreateEntityVariables(entity);
 
 							entity.AllowSharedControl(SynchronisationMode == ESynchronisationMode.Shared);
 							entity.SetPersistent(Persistent);
@@ -376,11 +386,11 @@ namespace SentienceLab.MajorDomo
 				Debug.LogFormat("'{0}' lost synchronisation with entity '{1}'",
 					gameObject.name, m_entity.ToString(true, false));
 
-				DestroyVariables();
+				DestroyEntityVariables();
 
 				if (IsControlledByServer)
 				{
-					if (CanDisableGameObject()) gameObject.SetActive(false);
+					if (CanDisableGameObject) gameObject.SetActive(false);
 				}
 
 				m_entity = null;
@@ -402,327 +412,96 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		private bool DoTrans()
-		{
-			return
-				(TargetTransform != null) &&
-				( (TransformComponents == ETransformComponents.Translation) ||
-				  (TransformComponents == ETransformComponents.TranslationRotation) ||
-				  (TransformComponents == ETransformComponents.TranslationRotationScale)
-				);
-		}
 
-
-		private bool DoRot()
-		{
-			return
-				(TargetTransform != null) &&
-				( (TransformComponents == ETransformComponents.Rotation) ||
-				  (TransformComponents == ETransformComponents.TranslationRotation) ||
-				  (TransformComponents == ETransformComponents.TranslationRotationScale)
-				);
-		}
-
-
-		private bool DoScale()
-		{
-			return
-				(TargetTransform != null) &&
-				(TransformComponents == ETransformComponents.TranslationRotationScale);
-		}
-
-
-		protected bool CanDisableGameObject()
-		{
-			return
-				(TargetTransform != null) &&
-				(SyncLostBehaviour == ESyncLostBehaviour.Disable);
-		}
-
-
-		private List<ParameterBase> FindParameters()
-		{
-			List<ParameterBase> parameters = new List<ParameterBase>();
-			if (ParameterBaseNode != null)
-			{
-				ParameterBaseNode.GetComponentsInChildren<ParameterBase>(parameters);
-			}
-			return parameters;
-		}
-
-
-		protected void CreateVariables(EntityData _entity)
+		protected void CreateEntityVariables(EntityData _entity)
 		{
 			// transform variables
-			if (CanDisableGameObject())
+			if (CanDisableGameObject)
 			{
 				_entity.AddValue_Boolean(EntityValue.ENABLED, gameObject.activeSelf);
 			}
 
-			if (DoTrans())
+			foreach (var cmp in Components)
 			{
-				_entity.AddValue_Vector3D(EntityValue.POSITION, transform.localPosition);
-			}
-
-			if (DoRot())
-			{
-				_entity.AddValue_Quaternion(EntityValue.ROTATION, transform.localRotation);
-			}
-
-			if (DoScale() && GetComponent<Camera>() == null)
-			{
-				// no scale in cameras
-				_entity.AddValue_Vector3D(EntityValue.SCALE, transform.localScale);
-			}
-
-			// parameter variables
-			List<ParameterBase> parameters = FindParameters();
-			foreach (ParameterBase param in parameters)
-			{
-				ParameterProxy proxy = CreateParameterProxy(param, _entity);
-			
-				if (proxy != null)
-				{
-					if (proxy.IsValid())
-					{
-						m_proxies.Add(proxy);
-					}
-					else
-					{
-						Debug.LogWarningFormat("Could not create entity value '{0}' of type {1} in entity '{2}'",
-							param.Name, proxy.GetTypeName(), _entity.Name);
-					}
-				}
-				else
-				{
-					Debug.LogWarningFormat("Could not create proxy for type of parameter '{0}'", param.Name);
-				}
+				cmp.CreateEntityVariables(_entity);
 			}
 		}
 
 
-		protected void FindVariables()
+		protected void FindEntityVariables()
 		{
-			// transform variables
-			m_valEnabled  = CanDisableGameObject() ? m_entity.GetValue_Boolean(EntityValue.ENABLED) : null;
-			m_valPosition = DoTrans() ? m_entity.GetValue_Vector3D(EntityValue.POSITION) : null;
-			m_valRotation = DoRot() ? m_entity.GetValue_Quaternion(EntityValue.ROTATION) : null;
-			m_valScale    = DoScale() ? m_entity.GetValue_Vector3D(EntityValue.SCALE) : null;
+			m_valEnabled = CanDisableGameObject ? m_entity.GetValue_Boolean(EntityValue.ENABLED) : null;
 
-			// parameter variables
-			List<ParameterBase> parameters = FindParameters();
-			foreach (ParameterBase param in parameters)
+			foreach (var cmp in Components)
 			{
-				ParameterProxy proxy = CreateParameterProxy(param, m_entity);
-
-				if (proxy != null)
-				{
-					if (proxy.IsValid())
-					{
-						m_proxies.Add(proxy);
-					}
-					else
-					{
-						Debug.LogWarningFormat("Could not find entity value '{0}' of type {1} in entity '{2}'",
-							param.Name, proxy.GetTypeName(), m_entity.Name);
-					}
-				}
-				else
-				{
-					Debug.LogWarningFormat("Could not create proxy for type of parameter '{0}'", param.Name);
-				}
+				cmp.FindEntityVariables(m_entity);
 			}
 		}
 
 
-		private ParameterProxy CreateParameterProxy(ParameterBase param, EntityData _entity)
+
+
+		protected void DestroyEntityVariables()
 		{
-			ParameterProxy proxy = null;
+			m_valEnabled = null;
 
-			if      (param is Parameter_Boolean)     { proxy = new ParameterProxy_Boolean(    _entity, (Parameter_Boolean)     param); }
-			else if (param is Parameter_Integer)     { proxy = new ParameterProxy_Integer(    _entity, (Parameter_Integer)     param); }
-			else if (param is Parameter_Double)      { proxy = new ParameterProxy_Double(     _entity, (Parameter_Double)      param); }
-			else if (param is Parameter_DoubleRange) { proxy = new ParameterProxy_DoubleRange(_entity, (Parameter_DoubleRange) param); }
-			else if (param is Parameter_String)      { proxy = new ParameterProxy_String(     _entity, (Parameter_String)      param); }
-			else if (param is Parameter_List)        { proxy = new ParameterProxy_List(       _entity, (Parameter_List)        param); }
-			else if (param is Parameter_Vector3)     { proxy = new ParameterProxy_Vector3(    _entity, (Parameter_Vector3)     param); }
-
-			return proxy;
-		}
-
-
-		protected void DestroyVariables()
-		{
-			// transform variables
-			m_valEnabled  = null;
-			m_valPosition = null;
-			m_valRotation = null;
-			m_valScale    = null;
-
-			// parameter variables
-			foreach (var proxy in m_proxies)
+			foreach (var cmp in Components)
 			{
-				proxy.Destroy();
+				cmp.DestroyEntityVariables();
 			}
-			m_proxies.Clear();
 		}
 
 
 		protected void SynchroniseFromEntity()
 		{
-			if (TargetTransform != null)
+			// Synchronise enable flag
+			if (m_valEnabled != null && CanDisableGameObject)
 			{
-				// Synchronise transform
-				if (m_valEnabled != null && CanDisableGameObject())
-				{
-					TargetTransform.gameObject.SetActive(m_valEnabled.Value);
-				}
-				else
-				{
-					TargetTransform.gameObject.SetActive(true);
-				}
-
-				if (m_valPosition != null)
-				{
-					Vector3 pos = m_valPosition.Value;
-					if (ReferenceTransform != null)
-					{
-						pos = ReferenceTransform.TransformPoint(pos);
-					}
-					TargetTransform.position = pos;
-				}
-
-				if (m_valRotation != null)
-				{
-					Quaternion rot = m_valRotation.Value;
-					if (ReferenceTransform != null)
-					{
-						rot = ReferenceTransform.rotation * rot;
-					}
-					TargetTransform.rotation = rot;
-				}
-
-				if (m_valScale != null)
-				{
-					Vector3 scl = m_valScale.Value;
-					// TODO: Consider global scale?
-					// Since there is no absolute "global" scale, let's just use localScale for now
-					// if (ReferenceTransform != null) { ReferenceTransform.lossyScale.Scale(scl); }
-					TargetTransform.localScale = scl;
-				}
+				gameObject.SetActive(m_valEnabled.Value);
 			}
-
-			// Synchronise parameters
-			foreach (var proxy in m_proxies)
+			else
 			{
-				proxy.TransferValueFromEntityToParameter();
+				gameObject.SetActive(true);
+			}
+			// synchronise components
+			foreach (var cmp in Components)
+			{
+				cmp.SynchroniseFromEntity();
 			}
 		}
 
 
 		protected bool IsModified()
 		{
-			if (!m_modified)
+			foreach (var cmp in Components)
 			{
-				if (DoTrans())
-				{
-					if ((m_oldPosition - this.transform.position).magnitude > MovementThreshold)
-					{
-						m_modified = true;
-						m_oldPosition = this.transform.position;
-					}
-				}
-
-				if (DoRot())
-				{
-					float angle = Quaternion.Angle(this.transform.rotation, m_oldRotation);
-					if (angle > RotationThreshold)
-					{
-						m_modified = true;
-						m_oldRotation = this.transform.rotation;
-					}
-				}
-
-				if (DoScale())
-				{
-					if ((m_oldScale - this.transform.localScale).sqrMagnitude > 0)
-					{
-						m_modified = true;
-						m_oldScale = this.transform.localScale;
-					}
-				}
+				if (cmp.IsModified()) return true;
 			}
-
-			if (!m_modified)
-			{
-				foreach (var proxy in m_proxies)
-				{
-					if (proxy.IsModified())
-					{
-						m_modified = true;
-						break;
-					}
-				}
-			}
-
-			return m_modified;
+			return false;
 		}
 
 
 		protected void SynchroniseToEntity()
 		{
-			if (TargetTransform != null)
+			// Synchronise enable flag
+			if (m_valEnabled != null)
 			{
-				// Synchronise transform
-				if (m_valEnabled != null)
-				{
-					m_valEnabled.Modify(TargetTransform.gameObject.activeSelf);
-				}
-
-				if (m_valPosition != null)
-				{
-					Vector3 pos = TargetTransform.position;
-					if (ReferenceTransform != null)
-					{
-						pos = ReferenceTransform.InverseTransformPoint(pos);
-					}
-					m_valPosition.Modify(pos);
-				}
-
-				if (m_valRotation != null)
-				{
-					Quaternion rot = TargetTransform.rotation;
-					if (ReferenceTransform != null) 
-					{ 
-						rot = Quaternion.Inverse(ReferenceTransform.rotation) * rot; 
-					}
-					m_valRotation.Modify(rot);
-				}
-
-				if (m_valScale != null)
-				{
-					// TODO: Consider global scale?
-					Vector3 scl = TargetTransform.localScale;
-					// if (ReferenceTransform != null) { ...??? }
-					m_valScale.Modify(scl);
-				}
+				m_valEnabled.Modify(gameObject.activeSelf);
 			}
-
-			// Synchronise parameters
-			foreach (var proxy in m_proxies)
+			// Synchronise components
+			foreach (var cmp in Components)
 			{
-				proxy.TransferValueFromParameterToEntity();
+				cmp.SynchroniseToEntity();
 			}
 		}
 
 
 		protected void ResetModified()
 		{
-			foreach (var proxy in m_proxies)
+			foreach (var cmp in Components)
 			{
-				proxy.ResetModified();
+				cmp.ResetModified();
 			}
-			m_modified = false;
 		}
 
 
@@ -736,393 +515,12 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		private abstract class ParameterProxy
-		{
-			protected ParameterProxy(ParameterBase _parameter)
-			{
-				m_baseParameter = _parameter;
-				m_baseParameter.OnValueChanged += ParameterValueChanged;
-			}
-
-
-			public void Destroy()
-			{
-				m_baseParameter.OnValueChanged -= ParameterValueChanged;
-			}
-
-
-			private void ParameterValueChanged(ParameterBase _parameter)
-			{
-				m_modified = true;
-			}
-
-
-			public bool IsModified()
-			{
-				return m_modified;
-			}
-
-
-			public void ResetModified()
-			{
-				m_modified = false;
-			}
-
-			
-			public abstract void TransferValueFromParameterToEntity();
-			public abstract void TransferValueFromEntityToParameter();
-			public abstract bool IsValid();
-			public abstract string GetTypeName();
-
-
-			protected bool           m_modified;
-			protected ParameterBase  m_baseParameter;
-		}
-
-
-		private class ParameterProxy_Boolean : ParameterProxy
-		{
-			public ParameterProxy_Boolean(EntityData _entity, Parameter_Boolean _parameter) :
-				base(_parameter)
-			{
-				m_parameter = _parameter;
-				if (_entity.State == EntityData.EntityState.Registered)
-				{
-					m_entityValue = _entity.GetValue_Boolean(m_parameter.Name);
-				}
-				else
-				{
-					m_entityValue = _entity.AddValue_Boolean(m_parameter.Name, m_parameter.Value);
-				}
-			}
-
-
-			public override void TransferValueFromParameterToEntity()
-			{
-				m_entityValue.Modify(m_parameter.Value);
-			}
-
-
-			public override void TransferValueFromEntityToParameter()
-			{
-				m_parameter.Value = m_entityValue.Value;
-			}
-
-
-			public override bool IsValid()
-			{
-				return m_entityValue != null;
-			}
-
-
-			public override string GetTypeName()
-			{
-				return "boolean";
-			}
-
-
-			private readonly Parameter_Boolean   m_parameter;
-			private readonly EntityValue_Boolean m_entityValue;
-		}
-
-
-		private class ParameterProxy_Integer : ParameterProxy
-		{
-			public ParameterProxy_Integer(EntityData _entity, Parameter_Integer _parameter) :
-				base(_parameter)
-			{
-				m_parameter = _parameter;
-				if (_entity.State == EntityData.EntityState.Registered)
-				{
-					m_entityValue = _entity.GetValue_Int64(m_parameter.Name);
-				}
-				else
-				{
-					m_entityValue = _entity.AddValue_Int64(m_parameter.Name, m_parameter.Value);
-				}
-			}
-
-
-			public override void TransferValueFromParameterToEntity()
-			{
-				m_entityValue.Modify(m_parameter.Value);
-			}
-
-
-			public override void TransferValueFromEntityToParameter()
-			{
-				m_parameter.Value = m_entityValue.Value;
-			}
-
-
-			public override bool IsValid()
-			{
-				return m_entityValue != null;
-			}
-
-
-			public override string GetTypeName()
-			{
-				return "integer";
-			}
-
-
-			private readonly Parameter_Integer m_parameter;
-			private readonly EntityValue_Int64 m_entityValue;
-		}
-
-
-		private class ParameterProxy_Double : ParameterProxy
-		{
-			public ParameterProxy_Double(EntityData _entity, Parameter_Double _parameter) :
-				base(_parameter)
-			{
-				m_parameter = _parameter;
-				if (_entity.State == EntityData.EntityState.Registered)
-				{
-					m_entityValue = _entity.GetValue_Float64(m_parameter.Name);
-				}
-				else
-				{
-					m_entityValue = _entity.AddValue_Float64(m_parameter.Name, m_parameter.Value);
-				}
-			}
-
-
-			public override void TransferValueFromParameterToEntity()
-			{
-				m_entityValue.Modify(m_parameter.Value);
-			}
-
-
-			public override void TransferValueFromEntityToParameter()
-			{
-				m_parameter.Value = m_entityValue.Value;
-			}
-
-
-			public override bool IsValid()
-			{
-				return m_entityValue != null;
-			}
-
-
-			public override string GetTypeName()
-			{
-				return "double";
-			}
-
-
-			private readonly Parameter_Double m_parameter;
-			private readonly EntityValue_Float64 m_entityValue;
-		}
-
-
-		private class ParameterProxy_DoubleRange : ParameterProxy
-		{
-			public ParameterProxy_DoubleRange(EntityData _entity, Parameter_DoubleRange _parameter) :
-				base(_parameter)
-			{
-				m_parameter = _parameter;
-				if (_entity.State == EntityData.EntityState.Registered)
-				{
-					m_entityValueMin = _entity.GetValue_Float64(m_parameter.Name + "Min");
-					m_entityValueMax = _entity.GetValue_Float64(m_parameter.Name + "Max");
-				}
-				else
-				{
-					m_entityValueMin = _entity.AddValue_Float64(m_parameter.Name + "Min", m_parameter.ValueMin);
-					m_entityValueMax = _entity.AddValue_Float64(m_parameter.Name + "Max", m_parameter.ValueMax);
-				}
-			}
-
-
-			public override void TransferValueFromParameterToEntity()
-			{
-				m_entityValueMin.Modify(m_parameter.ValueMin);
-				m_entityValueMax.Modify(m_parameter.ValueMax);
-			}
-
-
-			public override void TransferValueFromEntityToParameter()
-			{
-				m_parameter.ValueMin = m_entityValueMin.Value;
-				m_parameter.ValueMax = m_entityValueMax.Value;
-			}
-
-
-			public override bool IsValid()
-			{
-				return (m_entityValueMin != null) && (m_entityValueMax != null);
-			}
-
-
-			public override string GetTypeName()
-			{
-				return "double range";
-			}
-
-
-			private readonly Parameter_DoubleRange m_parameter;
-			private readonly EntityValue_Float64   m_entityValueMin, m_entityValueMax;
-		}
-
-
-		private class ParameterProxy_String : ParameterProxy
-		{
-			public ParameterProxy_String(EntityData _entity, Parameter_String _parameter) :
-				base(_parameter)
-			{
-				m_parameter = _parameter;
-				if (_entity.State == EntityData.EntityState.Registered)
-				{
-					m_entityValue = _entity.GetValue_String(m_parameter.Name);
-				}
-				else
-				{
-					m_entityValue = _entity.AddValue_String(m_parameter.Name, m_parameter.Value);
-				}
-			}
-
-
-			public override void TransferValueFromParameterToEntity()
-			{
-				m_entityValue.Modify(m_parameter.Value);
-			}
-
-
-			public override void TransferValueFromEntityToParameter()
-			{
-				m_parameter.Value = m_entityValue.Value;
-			}
-
-
-			public override bool IsValid()
-			{
-				return (m_entityValue != null);
-			}
-
-
-			public override string GetTypeName()
-			{
-				return "string";
-			}
-
-
-			private readonly Parameter_String m_parameter;
-			private readonly EntityValue_String m_entityValue;
-		}
-
-
-		private class ParameterProxy_List : ParameterProxy
-		{
-			public ParameterProxy_List(EntityData _entity, Parameter_List _parameter) :
-				base(_parameter)
-			{
-				m_parameter = _parameter;
-				if (_entity.State == EntityData.EntityState.Registered)
-				{
-					m_entityValue = _entity.GetValue_Int32(m_parameter.Name);
-				}
-				else
-				{
-					m_entityValue = _entity.AddValue_Int32(m_parameter.Name, m_parameter.SelectedItemIndex);
-				}
-			}
-
-
-			public override void TransferValueFromParameterToEntity()
-			{
-				m_entityValue.Modify(m_parameter.SelectedItemIndex);
-			}
-
-
-			public override void TransferValueFromEntityToParameter()
-			{
-				m_parameter.SelectedItemIndex = m_entityValue.Value;
-			}
-
-
-			public override bool IsValid()
-			{
-				return m_entityValue != null;
-			}
-
-
-			public override string GetTypeName()
-			{
-				return "list";
-			}
-
-
-			private readonly Parameter_List    m_parameter;
-			private readonly EntityValue_Int32 m_entityValue;
-		}
-
-
-		private class ParameterProxy_Vector3 : ParameterProxy
-		{
-			public ParameterProxy_Vector3(EntityData _entity, Parameter_Vector3 _parameter) :
-				base(_parameter)
-			{
-				m_parameter = _parameter;
-				if (_entity.State == EntityData.EntityState.Registered)
-				{
-					m_entityValue = _entity.GetValue_Vector3D(m_parameter.Name);
-				}
-				else
-				{
-					m_entityValue = _entity.AddValue_Vector3D(m_parameter.Name, m_parameter.Value);
-				}
-			}
-
-
-			public override void TransferValueFromParameterToEntity()
-			{
-				m_entityValue.Modify(m_parameter.Value);
-			}
-
-
-			public override void TransferValueFromEntityToParameter()
-			{
-				m_parameter.Value = m_entityValue.Value;
-			}
-
-
-			public override bool IsValid()
-			{
-				return m_entityValue != null;
-			}
-
-
-			public override string GetTypeName()
-			{
-				return "vector3";
-			}
-
-
-			private readonly Parameter_Vector3    m_parameter;
-			private readonly EntityValue_Vector3D m_entityValue;
-		}
-
-		
 		private bool m_registered = false;
 
 		private bool m_oldControlledByClient;
 		private int  m_controlChangeCooldown = 0;
 
-		private EntityData m_entity;
-
-		private EntityValue_Boolean    m_valEnabled;
-		private EntityValue_Vector3D   m_valPosition;
-		private EntityValue_Quaternion m_valRotation;
-		private EntityValue_Vector3D   m_valScale;
-
-		private Vector3    m_oldPosition;
-		private Quaternion m_oldRotation;
-		private Vector3    m_oldScale;
-		private bool       m_modified;
-
-		private List<ParameterProxy> m_proxies;
+		private EntityData          m_entity;
+		private EntityValue_Boolean m_valEnabled;
 	}
 }
