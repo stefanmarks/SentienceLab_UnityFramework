@@ -26,7 +26,7 @@ namespace SentienceLab.MajorDomo
 		private List<ParameterBase> FindParameters()
 		{
 			List<ParameterBase> parameters = new List<ParameterBase>();
-			if (ParameterBaseNode != null)
+			if (ParameterBaseNode == null)
 			{
 				ParameterBaseNode = this.gameObject;
 			}

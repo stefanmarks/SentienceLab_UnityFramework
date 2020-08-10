@@ -146,12 +146,6 @@ namespace SentienceLab.MajorDomo
 
 		public void Start()
 		{
-			// no submodules given explicitely, search for them
-			if (Components.Count == 0)
-			{
-				Components.AddRange(GetComponents<AbstractSynchronisedComponent>());
-			}
-
 			// start registering in next frame
 			StartCoroutine(RegisterWithMajorDomoManager());
 		}
@@ -177,6 +171,16 @@ namespace SentienceLab.MajorDomo
 				}
 				CheckEntityNameReplacements();
 
+				// no submodules given explicitely, search for them
+				if (Components == null)
+				{
+					Components = new List<AbstractSynchronisedComponent>();
+				}
+				if (Components.Count == 0)
+				{
+					Components.AddRange(GetComponents<AbstractSynchronisedComponent>());
+				}
+
 				//Debug.LogFormat("Registering entity '{0}' with MajorDomo client.", EntityName);
 
 				MajorDomoManager.Instance.OnClientUnregistered   += ClientEventCallback;
@@ -188,6 +192,7 @@ namespace SentienceLab.MajorDomo
 				{
 					if (CanDisableGameObject) gameObject.SetActive(false);
 				}
+
 				CheckEntity();
 			}
 		}
