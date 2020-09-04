@@ -51,7 +51,7 @@ namespace SentienceLab.MoCap
 		private Actor CreateActor(XRNodeState state)
 		{
 			// some names are a bit too complex
-			String name = InputTracking.GetNodeName(state.uniqueID);
+			string name = InputTracking.GetNodeName(state.uniqueID);
 			name = name.Replace("Windows Mixed Reality", "WMR");
 			name = name.Replace(" ", "").Replace("-", "");
 
@@ -77,7 +77,7 @@ namespace SentienceLab.MoCap
 		}
 		
 		
-		public String GetDataSourceName()
+		public string GetDataSourceName()
 		{
 			return "UnityXR/" + XRDevice.model;
 		}

@@ -12,7 +12,7 @@ namespace SentienceLab.Data
 	public class Parameter_String : ParameterBase
 	{
 		[SerializeField]
-		private String value;
+		private string value;
 
 
 		public new void Start()
@@ -25,7 +25,7 @@ namespace SentienceLab.Data
 		/// The actual value.
 		/// </summary>
 		///
-		public String Value
+		public string Value
 		{
 			get { return value; }
 			set
@@ -68,6 +68,6 @@ namespace SentienceLab.Data
 		}
 
 
-		protected String m_oldValue;
+		protected string m_oldValue;
 	}
 }

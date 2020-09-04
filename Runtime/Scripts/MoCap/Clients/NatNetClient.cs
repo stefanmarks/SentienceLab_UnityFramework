@@ -203,7 +203,7 @@ namespace SentienceLab.MoCap
 		}
 
 
-		public String GetDataSourceName()
+		public string GetDataSourceName()
 		{
 			if ( !connected ) return "";
 			return serverInfo.serverName + " v" +
@@ -341,7 +341,7 @@ namespace SentienceLab.MoCap
 		}
 
 
-		private bool SendRequest(String command)
+		private bool SendRequest(string command)
 		{
 			bool success = false;
 
@@ -541,7 +541,7 @@ namespace SentienceLab.MoCap
 			bool includesBoneNames = // starting at v2.0
 					(serverInfo.versionNatNet[0] >= 2);
 
-			String skeletonName = packet.GetString(); // name
+			string skeletonName = packet.GetString(); // name
 			int    skeletonId   = packet.GetInt32();  // ID
 
 			// rigid body name should be equal to actor name: search
@@ -574,7 +574,7 @@ namespace SentienceLab.MoCap
 			actor.bones = new Bone[nBones];
 			for ( int boneIdx = 0 ; boneIdx < nBones ; boneIdx++ )
 			{
-				String name = "";
+				string name = "";
 				if (includesBoneNames)
 				{
 					name = packet.GetString(); // bone name 
@@ -602,7 +602,7 @@ namespace SentienceLab.MoCap
 		private void ParseForcePlate(NatNetPacket_In packet, List<Device> devices)
 		{
 			int    id     = packet.GetInt32();           // force plate ID
-			String name   = packet.GetString();          // force plate serial #
+			string name   = packet.GetString();          // force plate serial #
 			Device device = new Device(scene, name, id); // create device
 
 			// skip next 652 bytes 

@@ -24,7 +24,7 @@ namespace SentienceLab.Input
 		/// <param name="inputName">the input handler to search for</param>
 		/// <returns>the input handler</returns>
 		///
-		public static InputHandler Find(String inputName)
+		public static InputHandler Find(string inputName)
 		{
 			return InputManager.GetInputHandler(inputName);
 		}

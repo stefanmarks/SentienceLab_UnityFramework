@@ -44,7 +44,7 @@ namespace SentienceLab.MoCap
 		}
 		
 		
-		public String GetDataSourceName()
+		public string GetDataSourceName()
 		{
 			return "Dummy Data Source";
 		}
