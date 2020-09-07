@@ -16,10 +16,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 
 - Menu names for parameteres and controllers
+- Introduced a central SynchronisedGameObject, which uses SynchronisedTransform and SynchronisedParameters as "components"
 
 ### Removed
 
-- Removed SynchronisedTransform/Parameters
+- Removed SynchronisedTransform/Parameters as Game Objects (lots of duplicated code)
 - Laser material
 
 

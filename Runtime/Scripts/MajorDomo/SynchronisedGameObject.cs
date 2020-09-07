@@ -5,8 +5,9 @@
 #endregion Copyright Information
 
 using UnityEngine;
-using System.Collections.Generic;
+using UnityEngine.Serialization;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace SentienceLab.MajorDomo
 {
@@ -33,34 +34,8 @@ namespace SentienceLab.MajorDomo
 		public bool CanDisableGameObject = true;
 
 		[Tooltip("Explicit list of components to synchronise. If empty, use all existing components found in this game object.")]
-		public List<AbstractSynchronisedComponent> Components;
-
-		[Header("Transform")]
-
-		[Tooltip("Transform that this object's transform is aimed at\n(None: No transformation is synchronised)")]
-		public Transform TargetTransform = null;
-
-		[Tooltip("Which components of this game object's transform are to be synchronised")]
-		public ETransformComponents TransformComponents = ETransformComponents.TranslationRotation;
-
-		[Tooltip("What to do when the synchronisation is lost")]
-		public ESyncLostBehaviour SyncLostBehaviour = ESyncLostBehaviour.Disable;
-
-		[Tooltip("Transform that this object's transform is based on\n(None: World coordinate system)")]
-		public Transform ReferenceTransform = null;
-
-		[Tooltip("How much translation can happen before synchronisation is requested")]
-		public float MovementThreshold = 0.001f;
-
-		[Tooltip("How much rotation (degrees) can happen before synchronisation is requested")]
-		public float RotationThreshold = 0.1f;
-
-
-		[Header("Parameters")]
-
-		[Tooltip("Base node of the parameter tree\n(None: No parameters are synchronised)")]
-		public GameObject ParameterBaseNode = null;
-
+		[FormerlySerializedAs("Components")]
+		public List<AbstractSynchronisedComponent> SynchronisedComponents;
 
 		// number of frames to wait after another client has taken over control before trying to take control back
 		const int CONTROL_COOLDOWN_COUNT = 10;
@@ -172,13 +147,13 @@ namespace SentienceLab.MajorDomo
 				CheckEntityNameReplacements();
 
 				// no submodules given explicitely, search for them
-				if (Components == null)
+				if (SynchronisedComponents == null)
 				{
-					Components = new List<AbstractSynchronisedComponent>();
+					SynchronisedComponents = new List<AbstractSynchronisedComponent>();
 				}
-				if (Components.Count == 0)
+				if (SynchronisedComponents.Count == 0)
 				{
-					Components.AddRange(GetComponents<AbstractSynchronisedComponent>());
+					SynchronisedComponents.AddRange(GetComponents<AbstractSynchronisedComponent>());
 				}
 
 				//Debug.LogFormat("Registering entity '{0}' with MajorDomo client.", EntityName);
@@ -426,7 +401,7 @@ namespace SentienceLab.MajorDomo
 				_entity.AddValue_Boolean(EntityValue.ENABLED, gameObject.activeSelf);
 			}
 
-			foreach (var cmp in Components)
+			foreach (var cmp in SynchronisedComponents)
 			{
 				cmp.CreateEntityVariables(_entity);
 			}
@@ -437,7 +412,7 @@ namespace SentienceLab.MajorDomo
 		{
 			m_valEnabled = CanDisableGameObject ? m_entity.GetValue_Boolean(EntityValue.ENABLED) : null;
 
-			foreach (var cmp in Components)
+			foreach (var cmp in SynchronisedComponents)
 			{
 				cmp.FindEntityVariables(m_entity);
 			}
@@ -450,7 +425,7 @@ namespace SentienceLab.MajorDomo
 		{
 			m_valEnabled = null;
 
-			foreach (var cmp in Components)
+			foreach (var cmp in SynchronisedComponents)
 			{
 				cmp.DestroyEntityVariables();
 			}
@@ -469,7 +444,7 @@ namespace SentienceLab.MajorDomo
 				gameObject.SetActive(true);
 			}
 			// synchronise components
-			foreach (var cmp in Components)
+			foreach (var cmp in SynchronisedComponents)
 			{
 				cmp.SynchroniseFromEntity();
 			}
@@ -478,7 +453,7 @@ namespace SentienceLab.MajorDomo
 
 		protected bool IsModified()
 		{
-			foreach (var cmp in Components)
+			foreach (var cmp in SynchronisedComponents)
 			{
 				if (cmp.IsModified()) return true;
 			}
@@ -494,7 +469,7 @@ namespace SentienceLab.MajorDomo
 				m_valEnabled.Modify(gameObject.activeSelf);
 			}
 			// Synchronise components
-			foreach (var cmp in Components)
+			foreach (var cmp in SynchronisedComponents)
 			{
 				cmp.SynchroniseToEntity();
 			}
@@ -503,7 +478,7 @@ namespace SentienceLab.MajorDomo
 
 		protected void ResetModified()
 		{
-			foreach (var cmp in Components)
+			foreach (var cmp in SynchronisedComponents)
 			{
 				cmp.ResetModified();
 			}
