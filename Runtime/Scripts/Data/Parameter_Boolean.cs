@@ -19,8 +19,11 @@ namespace SentienceLab.Data
 			get { return m_value; }
 			set
 			{
-				m_checkForChange |= (value != m_value);
-				m_value = value;
+				if (value != m_value)
+				{
+					MarkModified();
+					m_value = value;
+				}
 			}
 		}
 
