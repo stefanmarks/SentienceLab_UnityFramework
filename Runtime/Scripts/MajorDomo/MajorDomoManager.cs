@@ -131,6 +131,13 @@ namespace SentienceLab.MajorDomo
 
 		public void Awake()
 		{
+			// is this the singleton instance?
+			if (ms_instance == null)
+			{
+				// preempt search in instance getter
+				ms_instance = this;
+			}
+
 			configuration.LoadConfiguration();
 
 			// force instantiation

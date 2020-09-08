@@ -116,6 +116,14 @@ namespace SentienceLab.MajorDomo
 				this.enabled = false;
 				return;
 			}
+			else
+			{
+				if (MainThreadTaskDispatcher.Instance == null)
+				{
+					// this component is needed as well
+					MajorDomoManager.Instance.gameObject.AddComponent<MainThreadTaskDispatcher>();
+				}
+			}
 		}
 
 
@@ -228,7 +236,9 @@ namespace SentienceLab.MajorDomo
 
 		private void EntityUpdated(EntityData _)
 		{
-			Update();
+			// this might have been called from a networking thread,
+			// so relay the Update call to the main thread
+			MainThreadTaskDispatcher.Instance.Add(Update);
 		}
 
 
