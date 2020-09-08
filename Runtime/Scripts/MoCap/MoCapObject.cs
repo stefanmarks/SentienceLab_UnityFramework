@@ -135,43 +135,54 @@ namespace SentienceLab.MoCap
 		/// 
 		private void CreateHierarchy()
 		{
-			// create node for containing all the hierarchy objects
-			rootNode = new GameObject();
-			rootNode.name = this.name + "_Root";
-			rootNode.transform.parent = this.transform.parent;
-			rootNode.transform.localPosition = Vector3.zero;
-			rootNode.transform.localRotation = Quaternion.identity;
-			rootNode.transform.localScale = Vector3.one;
-
-			// create hierarchy
-			GameObject boneNode = rootNode;
-			foreach (Bone bone in controllingBone.chain)
+			if (controllingBone.chain.Count > 1)
 			{
-				// add empty for position/orientation
-				boneNode = new GameObject();
-				boneNode.name = bone.name;
+				// create node for containing all the hierarchy objects
+				rootNode = new GameObject();
+				rootNode.name = this.name + "_Root";
+				rootNode.transform.parent = this.transform.parent;
+				rootNode.transform.localPosition = Vector3.zero;
+				rootNode.transform.localRotation = Quaternion.identity;
+				rootNode.transform.localScale = Vector3.one;
 
-				if (bone.parent != null)
+				// create hierarchy
+				GameObject boneNode = rootNode;
+				foreach (Bone bone in controllingBone.chain)
 				{
-					// attach to parent node
-					GameObject parentObject = boneList[bone.parent];
-					boneNode.transform.parent = parentObject.transform;
-				}
-				else
-				{
-					// no parent = root bone > attach to root node
-					boneNode.transform.parent = rootNode.transform;
-				}
-				boneNode.transform.localScale = Vector3.one;
+					// add empty for position/orientation
+					boneNode = new GameObject();
+					boneNode.name = bone.name;
 
-				boneList[bone] = boneNode;
+					if (bone.parent != null)
+					{
+						// attach to parent node
+						GameObject parentObject = boneList[bone.parent];
+						boneNode.transform.parent = parentObject.transform;
+					}
+					else
+					{
+						// no parent = root bone > attach to root node
+						boneNode.transform.parent = rootNode.transform;
+					}
+					boneNode.transform.localScale = Vector3.one;
+
+					boneList[bone] = boneNode;
+					bone.buffer.EnsureCapacityForModifiers(modifiers);
+				}
+
+				// move this transform to the end of the hierarchy
+				this.transform.parent = boneNode.transform;
+				this.transform.localPosition = Vector3.zero;
+				this.transform.localRotation = Quaternion.identity;
+			}
+			else
+			{
+				// only one bone, move game object directly
+				rootNode = this.gameObject;
+				Bone bone = controllingBone.chain[0];
+				boneList[bone] = rootNode;
 				bone.buffer.EnsureCapacityForModifiers(modifiers);
 			}
-
-			// move this transform to the end of the hierarchy
-			this.transform.parent        = boneNode.transform;
-			this.transform.localPosition = Vector3.zero;
-			this.transform.localRotation = Quaternion.identity;
 		}
 
 
