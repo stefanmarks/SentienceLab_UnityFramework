@@ -392,7 +392,6 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-
 		protected void CreateEntityVariables(EntityData _entity)
 		{
 			// transform variables
@@ -417,8 +416,6 @@ namespace SentienceLab.MajorDomo
 				cmp.FindEntityVariables(m_entity);
 			}
 		}
-
-
 
 
 		protected void DestroyEntityVariables()
@@ -483,7 +480,6 @@ namespace SentienceLab.MajorDomo
 				cmp.ResetModified();
 			}
 		}
-
 
 
 		public bool Registered
