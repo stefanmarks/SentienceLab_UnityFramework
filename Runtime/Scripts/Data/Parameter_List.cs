@@ -124,17 +124,14 @@ namespace SentienceLab.Data
 		}
 
 
-		/// <summary>
-		/// Check for changes to limits of the value and call event handlers accordingly.
-		/// </summary>
-		/// 
-		protected override void CheckForChange()
+		protected override bool CheckForChange()
 		{
 			if (m_oldSelectedItem != m_selectedItem)
 			{
 				m_oldSelectedItem = m_selectedItem;
 				InvokeOnValueChanged();
 			}
+			return true;
 		}
 
 

@@ -48,17 +48,14 @@ namespace SentienceLab.Data
 		}
 
 
-		/// <summary>
-		/// Check for changes to limits of the value and call event handlers accordingly.
-		/// </summary>
-		/// 
-		protected override void CheckForChange()
+		protected override bool CheckForChange()
 		{
 			if (m_oldValue != value)
 			{
 				InvokeOnValueChanged();
 				m_oldValue = value;
 			}
+			return true;
 		}
 
 

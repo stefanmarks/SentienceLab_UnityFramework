@@ -7,21 +7,22 @@ using UnityEngine;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Boolean Parameter")]
-	public class Parameter_Boolean : ParameterBase, IParameterAsBoolean
+	[AddComponentMenu("Parameter/Event Parameter")]
+	public class Parameter_Event : ParameterBase, IParameterAsBoolean
 	{
-		/// <summary>
-		/// The actual value.
-		/// </summary>
-		///
-		public bool Value
+		public int EventCounter
 		{
-			get { return m_value; }
-			set
-			{
-				m_checkForChange |= (value != m_value);
-				m_value = value;
-			}
+			get { return m_eventCounter; }
+			set { m_eventCounter = value; m_triggeredEventCounter = Mathf.Min(m_triggeredEventCounter, m_eventCounter); }
+		}
+
+
+		/// <summary>
+		/// Trigger an event.
+		/// </summary>
+		public void TriggerEvent()
+		{
+			EventCounter++;
 		}
 
 
@@ -34,31 +35,35 @@ namespace SentienceLab.Data
 		///
 		public override string ToFormattedString(string _formatString)
 		{
-			return string.Format(_formatString, m_value);
+			return string.Format(_formatString, EventCounter);
 		}
 
 
 		protected override bool CheckForChange()
 		{
-			// this is only called when the boolean has really changed, so no "old value" check necessary
-			InvokeOnValueChanged();
-			return true;
+			bool handled = true;
+			if (m_triggeredEventCounter != EventCounter)
+			{
+				InvokeOnValueChanged();
+				m_triggeredEventCounter++;
+				handled = false;
+			}
+			return handled;
 		}
 
 
 		public bool GetBooleanValue()
 		{
-			return Value;
+			return false;
 		}
 
 
 		public void SetBooleanValue(bool _value)
 		{
-			Value = _value;
+			if (_value) TriggerEvent();
 		}
 
 
-		[SerializeField]
-		protected bool m_value;
+		protected int m_eventCounter, m_triggeredEventCounter;
 	}
 }

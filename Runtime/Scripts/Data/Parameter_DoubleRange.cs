@@ -197,11 +197,7 @@ namespace SentienceLab.Data
 		}
 
 
-		/// <summary>
-		/// Check for changes to limits of the value and call event handlers accordingly.
-		/// </summary>
-		/// 
-		protected override void CheckForChange()
+		protected override bool CheckForChange()
 		{
 			if ((m_oldValue.limitMin != value.limitMin) || (m_oldValue.limitMax != value.limitMax))
 			{
@@ -215,6 +211,7 @@ namespace SentienceLab.Data
 				m_oldValue.valueMax = value.valueMax;
 				InvokeOnValueChanged();
 			}
+			return true;
 		}
 
 

@@ -43,8 +43,8 @@ namespace SentienceLab.Data
 		{
 			if (m_checkForChange)
 			{
-				CheckForChange();
-				m_checkForChange = false;
+				bool changeHandled = CheckForChange();
+				m_checkForChange = !changeHandled;
 			}
 		}
 
@@ -69,8 +69,9 @@ namespace SentienceLab.Data
 		/// <summary>
 		/// Override in derived classes to check for any changes to the parameter.
 		/// </summary>
+		/// <returns><c>true</c> when change has been dealt with, <c>false</c> when to check again in the next Update</returns>
 		/// 
-		protected abstract void CheckForChange();
+		protected abstract bool CheckForChange();
 
 
 		/// <summary>
