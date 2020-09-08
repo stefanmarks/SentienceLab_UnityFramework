@@ -201,7 +201,7 @@ namespace SentienceLab.MajorDomo
 			{
 				if (IsControlledByServer && m_entity.IsUpdated())
 				{
-					SynchroniseFromEntity();
+					SynchroniseFromEntity(false);
 					m_entity.ResetUpdated();
 					// every entity update resets the control change timeout
 					m_controlChangeCooldown = CONTROL_COOLDOWN_COUNT;
@@ -210,7 +210,7 @@ namespace SentienceLab.MajorDomo
 				{
 					// special case if you are synchronising an entity that belongs to this client:
 					// since no updates are sent to the client itself, we have to "manually" sync based on the "modified" flag
-					SynchroniseFromEntity();
+					SynchroniseFromEntity(false);
 				}
 				else if (SynchronisationMode == ESynchronisationMode.Shared)
 				{
@@ -256,7 +256,7 @@ namespace SentienceLab.MajorDomo
 			else if (  (SynchronisationMode == ESynchronisationMode.Server) ||
 					 ( (SynchronisationMode == ESynchronisationMode.Shared) && IsControlledByServer))
 			{
-				SynchroniseFromEntity();
+				SynchroniseFromEntity(false);
 				m_entity.ResetUpdated();
 			}
 		}
@@ -336,7 +336,7 @@ namespace SentienceLab.MajorDomo
 					if ((SynchronisationMode != ESynchronisationMode.Client) || Persistent)
 					{
 						// server authority or persistent > update immediately
-						SynchroniseFromEntity();
+						SynchroniseFromEntity(true);
 					}
 
 					m_entity.OnEntityUpdated += EntityUpdated;
@@ -439,7 +439,7 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		protected void SynchroniseFromEntity()
+		protected void SynchroniseFromEntity(bool _initialise)
 		{
 			// Synchronise enable flag
 			if (m_valEnabled != null && CanDisableGameObject)
@@ -453,7 +453,7 @@ namespace SentienceLab.MajorDomo
 			// synchronise components
 			foreach (var cmp in SynchronisedComponents)
 			{
-				cmp.SynchroniseFromEntity();
+				cmp.SynchroniseFromEntity(_initialise);
 			}
 		}
 

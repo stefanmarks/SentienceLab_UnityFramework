@@ -119,12 +119,12 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public override void SynchroniseFromEntity()
+		public override void SynchroniseFromEntity(bool _initialise)
 		{
 			// Synchronise parameters
 			foreach (var proxy in m_proxies)
 			{
-				proxy.TransferValueFromEntityToParameter();
+				proxy.TransferValueFromEntityToParameter(_initialise);
 			}
 		}
 
@@ -193,7 +193,7 @@ namespace SentienceLab.MajorDomo
 
 			
 			public abstract void TransferValueFromParameterToEntity();
-			public abstract void TransferValueFromEntityToParameter();
+			public abstract void TransferValueFromEntityToParameter(bool _initialise);
 			public abstract bool IsValid();
 			public abstract string GetTypeName();
 
@@ -226,7 +226,7 @@ namespace SentienceLab.MajorDomo
 			}
 
 
-			public override void TransferValueFromEntityToParameter()
+			public override void TransferValueFromEntityToParameter(bool _initialise)
 			{
 				m_parameter.Value = m_entityValue.Value;
 			}
@@ -272,9 +272,16 @@ namespace SentienceLab.MajorDomo
 			}
 
 
-			public override void TransferValueFromEntityToParameter()
+			public override void TransferValueFromEntityToParameter(bool _initialise)
 			{
-				m_parameter.EventCounter = m_entityValue.Value;
+				if (_initialise)
+				{
+					m_parameter.SetCounter(m_entityValue.Value);
+				}
+				else
+				{
+					m_parameter.EventCounter = m_entityValue.Value;
+				}
 			}
 
 
@@ -318,7 +325,7 @@ namespace SentienceLab.MajorDomo
 			}
 
 
-			public override void TransferValueFromEntityToParameter()
+			public override void TransferValueFromEntityToParameter(bool _initialise)
 			{
 				m_parameter.Value = m_entityValue.Value;
 			}
@@ -364,7 +371,7 @@ namespace SentienceLab.MajorDomo
 			}
 
 
-			public override void TransferValueFromEntityToParameter()
+			public override void TransferValueFromEntityToParameter(bool _initialise)
 			{
 				m_parameter.Value = m_entityValue.Value;
 			}
@@ -413,7 +420,7 @@ namespace SentienceLab.MajorDomo
 			}
 
 
-			public override void TransferValueFromEntityToParameter()
+			public override void TransferValueFromEntityToParameter(bool _initialise)
 			{
 				m_parameter.ValueMin = m_entityValueMin.Value;
 				m_parameter.ValueMax = m_entityValueMax.Value;
@@ -460,7 +467,7 @@ namespace SentienceLab.MajorDomo
 			}
 
 
-			public override void TransferValueFromEntityToParameter()
+			public override void TransferValueFromEntityToParameter(bool _initialise)
 			{
 				m_parameter.Value = m_entityValue.Value;
 			}
@@ -506,7 +513,7 @@ namespace SentienceLab.MajorDomo
 			}
 
 
-			public override void TransferValueFromEntityToParameter()
+			public override void TransferValueFromEntityToParameter(bool _initialise)
 			{
 				m_parameter.SelectedItemIndex = m_entityValue.Value;
 			}
@@ -552,7 +559,7 @@ namespace SentienceLab.MajorDomo
 			}
 
 
-			public override void TransferValueFromEntityToParameter()
+			public override void TransferValueFromEntityToParameter(bool _initialise)
 			{
 				m_parameter.Value = m_entityValue.Value;
 			}

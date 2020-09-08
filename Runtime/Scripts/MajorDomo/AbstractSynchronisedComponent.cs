@@ -14,7 +14,7 @@ namespace SentienceLab.MajorDomo
 		public abstract void FindEntityVariables(EntityData _entity);
 		public abstract void DestroyEntityVariables();
 		
-		public abstract void SynchroniseFromEntity();
+		public abstract void SynchroniseFromEntity(bool _initialise);
 		
 		public abstract bool IsModified();
 		public abstract void SynchroniseToEntity();

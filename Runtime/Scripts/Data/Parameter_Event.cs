@@ -23,6 +23,17 @@ namespace SentienceLab.Data
 
 
 		/// <summary>
+		/// Set the event counter without triggering a lot of events afterwards.
+		/// </summary>
+		/// <param name="_value">the value to set the counter to</param>
+		public void SetCounter(int _value)
+		{
+			m_eventCounter = _value;
+			m_triggeredEventCounter = _value;
+		}
+
+
+		/// <summary>
 		/// Trigger an event.
 		/// </summary>
 		public void TriggerEvent()
@@ -69,6 +80,7 @@ namespace SentienceLab.Data
 		}
 
 
-		protected int m_eventCounter, m_triggeredEventCounter;
+		private int m_eventCounter          = 0;
+		private int m_triggeredEventCounter = 0;
 	}
 }

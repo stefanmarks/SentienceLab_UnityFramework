@@ -99,7 +99,7 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public override void SynchroniseFromEntity()
+		public override void SynchroniseFromEntity(bool _initialise)
 		{
 			if (m_valPosition != null)
 			{
