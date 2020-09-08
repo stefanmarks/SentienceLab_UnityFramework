@@ -47,7 +47,7 @@ namespace SentienceLab.Data
 			value.limitMin = Vector3.Min(_min, _max);
 			value.limitMax = Vector3.Max(_min, _max);
 			value.value    = Vector3.Min(value.limitMax, Vector3.Max(value.limitMin, value.value));
-			m_checkForChange = true;
+			MarkModified();
 		}
 
 		/// <summary>
@@ -76,7 +76,7 @@ namespace SentienceLab.Data
 			set
 			{
 				this.value.value = Vector3.Min(Vector3.Max(this.value.limitMin, value), this.value.limitMax);
-				m_checkForChange = true;
+				MarkModified();
 			}
 		}
 
@@ -90,8 +90,7 @@ namespace SentienceLab.Data
 		{
 			this.value.limitMin = Vector3.Min(this.value.limitMin, _value);
 			this.value.limitMax = Vector3.Max(this.value.limitMax, _value);
-
-			m_checkForChange = true;
+			MarkModified();
 		}
 
 

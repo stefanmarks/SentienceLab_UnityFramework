@@ -31,7 +31,7 @@ namespace SentienceLab.Data
 			set
 			{
 				this.value = value;
-				m_checkForChange = true;
+				MarkModified();
 			}
 		}
 

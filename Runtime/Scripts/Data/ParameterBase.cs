@@ -3,6 +3,7 @@
 // (C) Sentience Lab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
+using System;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -50,12 +51,22 @@ namespace SentienceLab.Data
 
 
 		/// <summary>
+		/// Marks the parameter as modified and will trigger a check how to sync with the entity.
+		/// </summary>
+		/// 
+		public void MarkModified()
+		{
+			m_checkForChange = true;
+		}
+
+
+		/// <summary>
 		/// Any changes in the editor should cause events.
 		/// </summary>
 		/// 
 		public void OnValidate()
 		{
-			m_checkForChange = true;
+			MarkModified();
 		}
 
 
@@ -84,7 +95,7 @@ namespace SentienceLab.Data
 		}
 
 
-		protected bool m_checkForChange;
+		private bool m_checkForChange;
 	}
 
 

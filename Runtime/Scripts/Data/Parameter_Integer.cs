@@ -48,7 +48,7 @@ namespace SentienceLab.Data
 			value.limitMin = System.Math.Min(_min, _max);
 			value.limitMax = System.Math.Max(_min, _max);
 			value.value    = System.Math.Min(value.limitMax, System.Math.Max(value.limitMin, value.value));
-			m_checkForChange = true;
+			MarkModified();
 		}
 
 		/// <summary>
@@ -77,7 +77,7 @@ namespace SentienceLab.Data
 			set
 			{
 				this.value.value = System.Math.Min(System.Math.Max(this.value.limitMin, value), this.value.limitMax);
-				m_checkForChange = true;
+				MarkModified();
 			}
 		}
 
@@ -91,8 +91,7 @@ namespace SentienceLab.Data
 		{
 			this.value.limitMin = System.Math.Min(this.value.limitMin, _value);
 			this.value.limitMax = System.Math.Max(this.value.limitMax, _value);
-
-			m_checkForChange = true;
+			MarkModified();
 		}
 
 

@@ -23,6 +23,7 @@ namespace SentienceLab.Data
 		public void TriggerEvent()
 		{
 			EventCounter++;
+			MarkModified();
 		}
 
 
