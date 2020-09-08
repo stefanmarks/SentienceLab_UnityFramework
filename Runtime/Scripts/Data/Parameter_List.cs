@@ -51,7 +51,7 @@ namespace SentienceLab.Data
 		{
 			listItems.Clear();
 			m_selectedItem = -1;
-			CheckForChange();
+			MarkModified();
 		}
 
 
@@ -67,7 +67,7 @@ namespace SentienceLab.Data
 			if (m_selectedItem < 0)
 			{
 				m_selectedItem = 0;
-				CheckForChange();
+				MarkModified();
 			}
 		}
 
@@ -88,7 +88,7 @@ namespace SentienceLab.Data
 			set
 			{
 				m_selectedItem = SanityCheck(value);
-				CheckForChange();
+				MarkModified();
 			}
 		}
 
@@ -145,7 +145,7 @@ namespace SentienceLab.Data
 				m_floatDelta   -= (m_floatDelta < 0) ? -intDelta : intDelta;
 			}
 			m_selectedItem = SanityCheck(m_selectedItem);
-			CheckForChange();
+			MarkModified();
 		}
 
 

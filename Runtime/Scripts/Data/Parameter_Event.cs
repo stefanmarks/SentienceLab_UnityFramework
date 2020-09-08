@@ -13,7 +13,12 @@ namespace SentienceLab.Data
 		public int EventCounter
 		{
 			get { return m_eventCounter; }
-			set { m_eventCounter = value; m_triggeredEventCounter = Mathf.Min(m_triggeredEventCounter, m_eventCounter); }
+			set
+			{
+				m_eventCounter = value;
+				m_triggeredEventCounter = Mathf.Min(m_triggeredEventCounter, m_eventCounter);
+				MarkModified();
+			}
 		}
 
 
@@ -23,7 +28,6 @@ namespace SentienceLab.Data
 		public void TriggerEvent()
 		{
 			EventCounter++;
-			MarkModified();
 		}
 
 

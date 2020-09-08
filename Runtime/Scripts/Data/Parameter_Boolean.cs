@@ -21,8 +21,8 @@ namespace SentienceLab.Data
 			{
 				if (value != m_value)
 				{
-					MarkModified();
 					m_value = value;
+					MarkModified();
 				}
 			}
 		}
