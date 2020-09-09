@@ -58,7 +58,7 @@ namespace SentienceLab.Data
 		protected override bool CheckForChange()
 		{
 			bool handled = true;
-			if (m_triggeredEventCounter != EventCounter)
+			if (m_triggeredEventCounter < EventCounter)
 			{
 				InvokeOnValueChanged();
 				m_triggeredEventCounter++;
