@@ -231,6 +231,20 @@ namespace SentienceLab.MajorDomo
 				ResetModified();
 				m_controlChangeCooldown--;
 			}
+
+			foreach (var component in SynchronisedComponents)
+			{
+				component.Update();
+			}
+		}
+
+
+		public void FixedUpdate()
+		{
+			foreach (var component in SynchronisedComponents)
+			{
+				component.FixedUpdate();
+			}
 		}
 
 

@@ -17,6 +17,9 @@ namespace SentienceLab.MajorDomo
 		[Tooltip("Transform that this object's transform is based on\n(None: World coordinate system)")]
 		public Transform ReferenceTransform = null;
 
+		[Tooltip("How is the translation/rotation interpolated")]
+		public ETransformInterpolation InterpolationMode = ETransformInterpolation.None;
+
 		[Tooltip("How much translation can happen before synchronisation is requested")]
 		public float MovementThreshold = 0.001f;
 
@@ -34,6 +37,15 @@ namespace SentienceLab.MajorDomo
 			Rotation
 		}
 
+		/// <summary>
+		/// How is translation/rotation interpolated
+		/// </summary>
+		public enum ETransformInterpolation
+		{
+			None,
+			Linear
+		}
+
 
 		private bool DoTrans()
 		{
@@ -45,6 +57,12 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		private bool DoTransVel()
+		{
+			return DoTrans() && InterpolationMode == ETransformInterpolation.Linear;
+		}
+
+
 		private bool DoRot()
 		{
 			return
@@ -52,6 +70,12 @@ namespace SentienceLab.MajorDomo
 				(TransformComponents == ETransformComponents.TranslationRotation) ||
 				(TransformComponents == ETransformComponents.TranslationRotationScale)
 			;
+		}
+
+
+		private bool DoRotVel()
+		{
+			return DoRot() && InterpolationMode == ETransformInterpolation.Linear;
 		}
 
 
@@ -67,10 +91,18 @@ namespace SentienceLab.MajorDomo
 			{
 				_entity.AddValue_Vector3D(EntityValue.POSITION, transform.localPosition);
 			}
+			if (DoTransVel())
+			{
+				_entity.AddValue_Vector3D(EntityValue.VELOCITY, Vector3.zero);
+			}
 
 			if (DoRot())
 			{
 				_entity.AddValue_Quaternion(EntityValue.ROTATION, transform.localRotation);
+			}
+			if (DoRotVel())
+			{
+				_entity.AddValue_Vector3D(EntityValue.VELOCITY_ROTATION, Vector3.zero);
 			}
 
 			if (DoScale() && GetComponent<Camera>() == null)
@@ -84,24 +116,30 @@ namespace SentienceLab.MajorDomo
 		public override void FindEntityVariables(EntityData _entity)
 		{
 			// transform variables
-			m_valPosition = DoTrans() ? _entity.GetValue_Vector3D(EntityValue.POSITION) : null;
-			m_valRotation = DoRot()   ? _entity.GetValue_Quaternion(EntityValue.ROTATION) : null;
-			m_valScale    = DoScale() ? _entity.GetValue_Vector3D(EntityValue.SCALE) : null;
+			m_valPosition    = DoTrans()    ? _entity.GetValue_Vector3D(  EntityValue.POSITION) : null;
+			m_valVelocityPos = DoTransVel() ? _entity.GetValue_Vector3D(  EntityValue.VELOCITY) : null;
+			m_valRotation    = DoRot()      ? _entity.GetValue_Quaternion(EntityValue.ROTATION) : null;
+			m_valVelocityRot = DoRotVel()   ? _entity.GetValue_Vector3D(  EntityValue.VELOCITY_ROTATION) : null;
+			m_valScale       = DoScale()    ? _entity.GetValue_Vector3D(  EntityValue.SCALE) : null;
 		}
 
 
 		public override void DestroyEntityVariables()
 		{
 			// transform variables
-			m_valPosition = null;
-			m_valRotation = null;
-			m_valScale    = null;
+			m_valPosition    = null;
+			m_valVelocityPos = null;
+			m_valRotation    = null;
+			m_valVelocityRot = null;
+			m_valScale       = null;
 		}
 
 
 		public override void SynchroniseFromEntity(bool _initialise)
 		{
-			if (m_valPosition != null)
+			m_lastUpdateFrame = Time.frameCount;
+
+			if (m_valPosition != null && m_valVelocityPos == null) // set position without interpolation
 			{
 				Vector3 pos = m_valPosition.Value;
 				if (ReferenceTransform != null)
@@ -111,7 +149,7 @@ namespace SentienceLab.MajorDomo
 				transform.position = pos;
 			}
 
-			if (m_valRotation != null)
+			if (m_valRotation != null && m_valVelocityRot == null) // set rotation without interpolation
 			{
 				Quaternion rot = m_valRotation.Value;
 				if (ReferenceTransform != null)
@@ -132,6 +170,35 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		public override void Update()
+		{
+			float deltaT = (m_lastUpdateFrame - Time.frameCount) * Time.deltaTime;
+
+			if (m_valPosition != null && m_valVelocityPos != null) // set position with interpolation
+			{
+				Vector3 pos = m_valPosition.Value;
+				Vector3 vel = m_valVelocityPos.Value;
+				if (ReferenceTransform != null)
+				{
+					pos = ReferenceTransform.TransformPoint(pos);
+					vel = ReferenceTransform.TransformDirection(vel);
+				}
+				pos += vel * deltaT;
+				transform.position = pos;
+			}
+
+			if (m_valRotation != null && m_valVelocityRot != null) // set rotation with interpolation
+			{
+				Quaternion rot = m_valRotation.Value;
+				if (ReferenceTransform != null)
+				{
+					rot = ReferenceTransform.rotation * rot;
+				}
+				transform.rotation = rot;
+			}
+		}
+
+
 		public override bool IsModified()
 		{
 			if (!m_modified)
@@ -141,7 +208,6 @@ namespace SentienceLab.MajorDomo
 					if ((m_oldPosition - this.transform.position).magnitude > MovementThreshold)
 					{
 						m_modified = true;
-						m_oldPosition = this.transform.position;
 					}
 				}
 
@@ -151,7 +217,6 @@ namespace SentienceLab.MajorDomo
 					if (angle > RotationThreshold)
 					{
 						m_modified = true;
-						m_oldRotation = this.transform.rotation;
 					}
 				}
 
@@ -160,7 +225,6 @@ namespace SentienceLab.MajorDomo
 					if ((m_oldScale - this.transform.localScale).sqrMagnitude > 0)
 					{
 						m_modified = true;
-						m_oldScale = this.transform.localScale;
 					}
 				}
 			}
@@ -171,19 +235,26 @@ namespace SentienceLab.MajorDomo
 
 		public override void SynchroniseToEntity()
 		{
+			float deltaT = (m_lastUpdateFrame - Time.frameCount) * Time.deltaTime;
+			
 			if (m_valPosition != null)
 			{
 				Vector3 pos = transform.position;
+				Vector3 vel = (pos - m_oldPosition) / deltaT;
+				m_oldPosition = pos;
 				if (ReferenceTransform != null)
 				{
 					pos = ReferenceTransform.InverseTransformPoint(pos);
+					vel = ReferenceTransform.InverseTransformDirection(pos);
 				}
 				m_valPosition.Modify(pos);
+				if (m_valVelocityPos != null) m_valVelocityPos.Modify(vel);
 			}
 
 			if (m_valRotation != null)
 			{
 				Quaternion rot = transform.rotation;
+				m_oldRotation = rot;
 				if (ReferenceTransform != null) 
 				{ 
 					rot = Quaternion.Inverse(ReferenceTransform.rotation) * rot; 
@@ -197,7 +268,10 @@ namespace SentienceLab.MajorDomo
 				Vector3 scl = transform.localScale;
 				// if (ReferenceTransform != null) { ...??? }
 				m_valScale.Modify(scl);
+				m_oldScale = scl;
 			}
+
+			m_lastUpdateFrame = Time.frameCount;
 		}
 
 
@@ -209,12 +283,15 @@ namespace SentienceLab.MajorDomo
 
 
 		private EntityValue_Vector3D   m_valPosition;
+		private EntityValue_Vector3D   m_valVelocityPos;
 		private EntityValue_Quaternion m_valRotation;
+		private EntityValue_Vector3D   m_valVelocityRot;
 		private EntityValue_Vector3D   m_valScale;
 
 		private Vector3    m_oldPosition;
 		private Quaternion m_oldRotation;
 		private Vector3    m_oldScale;
+		private long       m_lastUpdateFrame;
 		private bool       m_modified;
 	}
 }

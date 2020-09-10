@@ -30,8 +30,12 @@ namespace SentienceLab.MajorDomo
 		public static readonly string ENABLED  = "enabled";
 		/// <summary> Value name for the position vector </summary>
 		public static readonly string POSITION = "pos";
+		/// <summary> Value name for the linear velocity vector </summary>
+		public static readonly string VELOCITY = "vel";
 		/// <summary> Value name for the rotation quaternion </summary>
 		public static readonly string ROTATION = "rot";
+		/// <summary> Value name for the rotational velocity vector</summary>
+		public static readonly string VELOCITY_ROTATION = "velr";
 		/// <summary> Value name for the scale vector </summary>
 		public static readonly string SCALE    = "scale";
 		/// <summary> Value name for the template name </summary>
