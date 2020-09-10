@@ -35,7 +35,7 @@ namespace SentienceLab.MajorDomo
 
 		[Tooltip("Explicit list of components to synchronise. If empty, use all existing components found in this game object.")]
 		[FormerlySerializedAs("Components")]
-		public List<AbstractSynchronisedComponent> SynchronisedComponents;
+		public List<AbstractSynchronisedComponent> SynchronisedComponents = new List<AbstractSynchronisedComponent>();
 
 		// number of frames to wait after another client has taken over control before trying to take control back
 		const int CONTROL_COOLDOWN_COUNT = 10;

@@ -309,7 +309,11 @@ namespace SentienceLab.MoCap
 		/// 
 		private void CreateManager()
 		{
-			configuration.LoadConfiguration();
+			// no sources listed? > load config file
+			if (configuration.Sources.Count == 0)
+			{
+				configuration.LoadConfiguration();
+			}
 
 			sceneListeners = new List<SceneListener>();
 

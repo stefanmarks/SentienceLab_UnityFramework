@@ -138,7 +138,11 @@ namespace SentienceLab.MajorDomo
 				ms_instance = this;
 			}
 
-			configuration.LoadConfiguration();
+			// no servers listed? > load config file
+			if (configuration.Servers.Count == 0)
+			{
+				configuration.LoadConfiguration();
+			}
 
 			// force instantiation
 			m_client = new MajorDomoClient();
