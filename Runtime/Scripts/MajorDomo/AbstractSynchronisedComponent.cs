@@ -10,12 +10,14 @@ namespace SentienceLab.MajorDomo
 {
 	public abstract class AbstractSynchronisedComponent : MonoBehaviour
 	{
+		public virtual void Initialise() { }
+
 		public abstract void CreateEntityVariables(EntityData _entity);
 		public abstract void FindEntityVariables(EntityData _entity);
 		public abstract void DestroyEntityVariables();
 
-		public virtual void Update() { }
-		public virtual void FixedUpdate() { }
+		public virtual void DoUpdate(bool _controlledByServer) { }
+		public virtual void DoFixedUpdate(bool _controlledByServer) { }
 
 		public abstract void SynchroniseFromEntity(bool _initialise);
 		

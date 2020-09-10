@@ -164,6 +164,12 @@ namespace SentienceLab.MajorDomo
 					SynchronisedComponents.AddRange(GetComponents<AbstractSynchronisedComponent>());
 				}
 
+				// initialise subcomponents
+				foreach(var component in SynchronisedComponents)
+				{
+					component.Initialise();
+				}
+
 				//Debug.LogFormat("Registering entity '{0}' with MajorDomo client.", EntityName);
 
 				MajorDomoManager.Instance.OnClientUnregistered   += ClientEventCallback;
@@ -234,7 +240,7 @@ namespace SentienceLab.MajorDomo
 
 			foreach (var component in SynchronisedComponents)
 			{
-				component.Update();
+				component.DoUpdate(IsControlledByServer);
 			}
 		}
 
@@ -243,7 +249,7 @@ namespace SentienceLab.MajorDomo
 		{
 			foreach (var component in SynchronisedComponents)
 			{
-				component.FixedUpdate();
+				component.DoFixedUpdate(IsControlledByServer);
 			}
 		}
 

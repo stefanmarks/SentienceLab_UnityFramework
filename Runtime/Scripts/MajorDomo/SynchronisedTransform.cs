@@ -47,6 +47,12 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		public override void Initialise()
+		{
+			m_firstUpdate = true;
+		}
+
+
 		private bool DoTrans()
 		{
 			return
@@ -170,8 +176,10 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public override void Update()
+		public override void DoUpdate(bool _controlledByServer)
 		{
+			if (!_controlledByServer) return;
+
 			float deltaT = (m_lastUpdateFrame - Time.frameCount) * Time.deltaTime;
 
 			if (m_valPosition != null && m_valVelocityPos != null) // set position with interpolation
@@ -240,12 +248,12 @@ namespace SentienceLab.MajorDomo
 			if (m_valPosition != null)
 			{
 				Vector3 pos = transform.position;
-				Vector3 vel = (pos - m_oldPosition) / deltaT;
+				Vector3 vel = m_firstUpdate ? Vector3.zero : (pos - m_oldPosition) / deltaT;
 				m_oldPosition = pos;
 				if (ReferenceTransform != null)
 				{
 					pos = ReferenceTransform.InverseTransformPoint(pos);
-					vel = ReferenceTransform.InverseTransformDirection(pos);
+					vel = ReferenceTransform.InverseTransformDirection(vel);
 				}
 				m_valPosition.Modify(pos);
 				if (m_valVelocityPos != null) m_valVelocityPos.Modify(vel);
@@ -272,6 +280,7 @@ namespace SentienceLab.MajorDomo
 			}
 
 			m_lastUpdateFrame = Time.frameCount;
+			m_firstUpdate     = false;
 		}
 
 
@@ -288,6 +297,7 @@ namespace SentienceLab.MajorDomo
 		private EntityValue_Vector3D   m_valVelocityRot;
 		private EntityValue_Vector3D   m_valScale;
 
+		private bool       m_firstUpdate = true;
 		private Vector3    m_oldPosition;
 		private Quaternion m_oldRotation;
 		private Vector3    m_oldScale;
