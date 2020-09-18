@@ -49,7 +49,6 @@ namespace SentienceLab.MajorDomo
 
 		public override void Initialise()
 		{
-			m_firstUpdate = true;
 			m_rigidbody = GetComponent<Rigidbody>();
 		}
 
@@ -66,7 +65,7 @@ namespace SentienceLab.MajorDomo
 
 		private bool DoTransVel()
 		{
-			return DoTrans() && InterpolationMode == ETransformInterpolation.Linear;
+			return DoTrans() && (InterpolationMode != ETransformInterpolation.None);
 		}
 
 
@@ -82,7 +81,7 @@ namespace SentienceLab.MajorDomo
 
 		private bool DoRotVel()
 		{
-			return DoRot() && InterpolationMode == ETransformInterpolation.Linear;
+			return DoRot() && (InterpolationMode != ETransformInterpolation.None);
 		}
 
 
@@ -185,7 +184,7 @@ namespace SentienceLab.MajorDomo
 		{
 			if (_controlledByServer && InterpolationMode != ETransformInterpolation.None)
 			{
-				float deltaT = (m_lastUpdateFrame - Time.frameCount) * Time.deltaTime;
+				float deltaT = (Time.frameCount - m_lastUpdateFrame) * Time.deltaTime;
 
 				if (m_valPosition != null && m_valVelocityPos != null) // set position with interpolation
 				{
@@ -250,14 +249,14 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public override void SynchroniseToEntity()
+		public override void SynchroniseToEntity(bool _firstTime)
 		{
-			float deltaT = (m_lastUpdateFrame - Time.frameCount) * Time.deltaTime;
+			float deltaT = (Time.frameCount - m_lastUpdateFrame) * Time.deltaTime;
 			
 			if (m_valPosition != null)
 			{
 				Vector3 pos = transform.position;
-				if (m_firstUpdate) 
+				if (_firstTime) 
 				{ 
 					m_oldPosition = pos; // don't start with a "jump"
 				}
@@ -265,6 +264,7 @@ namespace SentienceLab.MajorDomo
 				Vector3 vel = (m_rigidbody != null) 
 					? m_rigidbody.velocity
 					: (pos - m_oldPosition) / deltaT;
+				m_oldPosition = pos;
 				// make relative to reference tansform (if given)
 				if (ReferenceTransform != null)
 				{
@@ -274,14 +274,12 @@ namespace SentienceLab.MajorDomo
 				// send updated values
 				m_valPosition.Modify(pos);
 				if (m_valVelocityPos != null) m_valVelocityPos.Modify(vel);
-				// prepare for next step
-				m_oldPosition = pos;
 			}
 
 			if (m_valRotation != null)
 			{
 				Quaternion rot = transform.rotation;
-				if (m_firstUpdate)
+				if (_firstTime)
 				{
 					m_oldRotation = rot; // don't start with a "jump"
 				}
@@ -289,6 +287,7 @@ namespace SentienceLab.MajorDomo
 				Vector3 vel = (m_rigidbody != null)
 					? m_rigidbody.angularVelocity
 					: CalculateAngularVelocity(rot, m_oldRotation, deltaT);
+				m_oldRotation = rot;
 				// make relative to reference tansform (if given)
 				if (ReferenceTransform != null) 
 				{ 
@@ -297,9 +296,7 @@ namespace SentienceLab.MajorDomo
 				}
 				// send updated values
 				m_valRotation.Modify(rot);
-				if (m_valVelocityRot != null) m_valVelocityRot.Value = vel;
-				// get ready for next step
-				m_oldRotation = rot;
+				if (m_valVelocityRot != null) m_valVelocityRot.Modify(vel);
 			}
 
 			if (m_valScale != null)
@@ -312,7 +309,6 @@ namespace SentienceLab.MajorDomo
 			}
 
 			m_lastUpdateFrame = Time.frameCount;
-			m_firstUpdate     = false;
 		}
 
 
@@ -336,8 +332,9 @@ namespace SentienceLab.MajorDomo
 			Quaternion rotDelta = rotNow * Quaternion.Inverse(rotPrev);
 			rotDelta.ToAngleAxis(out float angle, out Vector3 axis);
 			angle *= Mathf.Deg2Rad;
-			return axis * angle;
-
+			angle /= deltaTime;
+			Vector3 vel = axis * angle;
+			return vel;
 			/*
 		    // Source: https://forum.unity.com/threads/manually-calculate-angular-velocity-of-gameobject.289462/
 			Vector3 velocity = Vector3.zero;
@@ -387,7 +384,6 @@ namespace SentienceLab.MajorDomo
 		private EntityValue_Vector3D   m_valVelocityRot;
 		private EntityValue_Vector3D   m_valScale;
 
-		private bool       m_firstUpdate = true;
 		private Rigidbody  m_rigidbody;
 		private Vector3    m_oldPosition;
 		private Quaternion m_oldRotation;

@@ -130,19 +130,24 @@ namespace SentienceLab.MajorDomo
 		public void Start()
 		{
 			// start registering in next frame
-			StartCoroutine(RegisterWithMajorDomoManager());
+			StartCoroutine(AutoRegisterWithMajorDomoManager());
 		}
 
 
-		protected IEnumerator RegisterWithMajorDomoManager()
+		protected IEnumerator AutoRegisterWithMajorDomoManager()
+		{
+			// wait one frame before auto registering
+			yield return null;
+			RegisterWithMajorDomoManager();
+		}
+
+
+		protected void RegisterWithMajorDomoManager()
 		{
 			if (!m_registered)
 			{
 				m_registered = true; 
-
-				// wait one frame before registering
-				yield return null;
-
+				
 				m_entity = null;
 				m_controlChangeCooldown = 0;
 				m_oldControlledByClient = IsControlledByClient;
@@ -155,10 +160,11 @@ namespace SentienceLab.MajorDomo
 				CheckEntityNameReplacements();
 
 				// no submodules given explicitely: search for them
-				if ((SynchronisedComponents) == null || (SynchronisedComponents.Count == 0))
+				if ((SynchronisedComponents == null) || (SynchronisedComponents.Count == 0))
 				{
 					SynchronisedComponents.AddRange(GetComponents<AbstractSynchronisedComponent>());
 				}
+				Debug.Log("init " + gameObject.name + " " + SynchronisedComponents.Count);
 
 				// initialise subcomponents
 				foreach(var component in SynchronisedComponents)
@@ -203,7 +209,7 @@ namespace SentienceLab.MajorDomo
 			{
 				if (IsControlledByServer && m_entity.IsUpdated())
 				{
-					SynchroniseFromEntity(false);
+					SynchroniseFromEntity();
 					m_entity.ResetUpdated();
 					// every entity update resets the control change timeout
 					m_controlChangeCooldown = CONTROL_COOLDOWN_COUNT;
@@ -212,7 +218,7 @@ namespace SentienceLab.MajorDomo
 				{
 					// special case if you are synchronising an entity that belongs to this client:
 					// since no updates are sent to the client itself, we have to "manually" sync based on the "modified" flag
-					SynchroniseFromEntity(false);
+					SynchroniseFromEntity();
 				}
 				else if (SynchronisationMode == ESynchronisationMode.Shared)
 				{
@@ -260,20 +266,25 @@ namespace SentienceLab.MajorDomo
 
 		public void OnEnable()
 		{
-			if (m_entity == null) return;
-
-			// make sure current state is synchronised
-			if (  (SynchronisationMode == ESynchronisationMode.Client) ||
-				( (SynchronisationMode == ESynchronisationMode.Shared) && IsControlledByClient))
+			if (m_entity != null)
 			{
-				SynchroniseToEntity();
-				ResetModified();
+				// make sure current state is synchronised
+				if (  (SynchronisationMode == ESynchronisationMode.Client) ||
+					( (SynchronisationMode == ESynchronisationMode.Shared) && IsControlledByClient))
+				{
+					SynchroniseToEntity();
+					ResetModified();
+				}
+				else if (  (SynchronisationMode == ESynchronisationMode.Server) ||
+						 ( (SynchronisationMode == ESynchronisationMode.Shared) && IsControlledByServer))
+				{
+					SynchroniseFromEntity();
+					m_entity.ResetUpdated();
+				}
 			}
-			else if (  (SynchronisationMode == ESynchronisationMode.Server) ||
-					 ( (SynchronisationMode == ESynchronisationMode.Shared) && IsControlledByServer))
+			else
 			{
-				SynchroniseFromEntity(false);
-				m_entity.ResetUpdated();
+				StartCoroutine(AutoRegisterWithMajorDomoManager());
 			}
 		}
 
@@ -309,8 +320,9 @@ namespace SentienceLab.MajorDomo
 					}
 				}
 
-				m_entity     = null;
-				m_registered = false;
+				m_entity        = null;
+				m_registered    = false;
+				m_firstTimeSync = true;
 			}
 		}
 
@@ -331,6 +343,8 @@ namespace SentienceLab.MajorDomo
 		{
 			if (m_entity == null)
 			{
+				m_firstTimeSync = true;
+
 				// entity not found/created yet. Let's search first
 				CheckEntityNameReplacements();
 				m_entity = MajorDomoManager.Instance.FindEntity(EntityName);
@@ -352,7 +366,7 @@ namespace SentienceLab.MajorDomo
 					if ((SynchronisationMode != ESynchronisationMode.Client) || Persistent)
 					{
 						// server authority or persistent > update immediately
-						SynchroniseFromEntity(true);
+						SynchroniseFromEntity();
 					}
 
 					m_entity.OnEntityUpdated += EntityUpdated;
@@ -455,7 +469,7 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		protected void SynchroniseFromEntity(bool _initialise)
+		protected void SynchroniseFromEntity()
 		{
 			// Synchronise enable flag
 			if (m_valEnabled != null && CanDisableGameObject)
@@ -469,8 +483,10 @@ namespace SentienceLab.MajorDomo
 			// synchronise components
 			foreach (var cmp in SynchronisedComponents)
 			{
-				cmp.SynchroniseFromEntity(_initialise);
+				cmp.SynchroniseFromEntity(m_firstTimeSync);
 			}
+
+			m_firstTimeSync = false;
 		}
 
 
@@ -494,8 +510,10 @@ namespace SentienceLab.MajorDomo
 			// Synchronise components
 			foreach (var cmp in SynchronisedComponents)
 			{
-				cmp.SynchroniseToEntity();
+				cmp.SynchroniseToEntity(m_firstTimeSync);
 			}
+
+			m_firstTimeSync = false;
 		}
 
 
@@ -517,7 +535,8 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		private bool m_registered = false;
+		private bool m_registered    = false;
+		private bool m_firstTimeSync = true;
 
 		private bool m_oldControlledByClient;
 		private int  m_controlChangeCooldown = 0;

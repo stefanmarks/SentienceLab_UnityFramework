@@ -51,8 +51,9 @@ namespace SentienceLab.MajorDomo
 		/// <summary>
 		/// Called when data needs to be synchronised from the entity variables to the component (server control)
 		/// </summary>
-		/// <param name="_initialise"><c>true</c> when this is the first call of this kind</param>
-		public abstract void SynchroniseFromEntity(bool _initialise);
+		/// <param name="_firstTime"><c>true</c> when this is the first call of this kind</param>
+		/// 
+		public abstract void SynchroniseFromEntity(bool _firstTime);
 
 		
 		/// <summary>
@@ -64,7 +65,9 @@ namespace SentienceLab.MajorDomo
 		/// <summary>
 		/// Called when data needs to be synchronised from the component to the entity variables (client control).
 		/// </summary>
-		public abstract void SynchroniseToEntity();
+		/// <param name="_firstTime"><c>true</c> when this is the first call of this kind</param>
+		///
+		public abstract void SynchroniseToEntity(bool _firstTime);
 
 		/// <summary>
 		/// Called to reset the "modified" flag in the component.
