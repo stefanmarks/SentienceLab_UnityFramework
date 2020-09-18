@@ -50,6 +50,7 @@ namespace SentienceLab.MajorDomo
 		public override void Initialise()
 		{
 			m_firstUpdate = true;
+			m_rigidbody = GetComponent<Rigidbody>();
 		}
 
 
@@ -176,33 +177,41 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public override void DoUpdate(bool _controlledByServer)
+		/// <summary>
+		/// Fuidly animate the game object in case interpolation mode is not "None"
+		/// </summary>
+		/// 
+		public override void OnUpdate(bool _controlledByServer)
 		{
-			if (!_controlledByServer) return;
-
-			float deltaT = (m_lastUpdateFrame - Time.frameCount) * Time.deltaTime;
-
-			if (m_valPosition != null && m_valVelocityPos != null) // set position with interpolation
+			if (_controlledByServer && InterpolationMode != ETransformInterpolation.None)
 			{
-				Vector3 pos = m_valPosition.Value;
-				Vector3 vel = m_valVelocityPos.Value;
-				if (ReferenceTransform != null)
-				{
-					pos = ReferenceTransform.TransformPoint(pos);
-					vel = ReferenceTransform.TransformDirection(vel);
-				}
-				pos += vel * deltaT;
-				transform.position = pos;
-			}
+				float deltaT = (m_lastUpdateFrame - Time.frameCount) * Time.deltaTime;
 
-			if (m_valRotation != null && m_valVelocityRot != null) // set rotation with interpolation
-			{
-				Quaternion rot = m_valRotation.Value;
-				if (ReferenceTransform != null)
+				if (m_valPosition != null && m_valVelocityPos != null) // set position with interpolation
 				{
-					rot = ReferenceTransform.rotation * rot;
+					Vector3 pos = m_valPosition.Value;
+					Vector3 vel = m_valVelocityPos.Value;
+					if (ReferenceTransform != null)
+					{
+						pos = ReferenceTransform.TransformPoint(pos);
+						vel = ReferenceTransform.TransformDirection(vel);
+					}
+					pos += vel * deltaT;
+					transform.position = pos;
 				}
-				transform.rotation = rot;
+
+				if (m_valRotation != null && m_valVelocityRot != null) // set rotation with interpolation
+				{
+					Quaternion rot = m_valRotation.Value;
+					Vector3    vel = m_valVelocityRot.Value;
+					if (ReferenceTransform != null)
+					{
+						rot = ReferenceTransform.rotation * rot;
+						vel = ReferenceTransform.rotation * vel;
+					}
+					rot = IntegrateAngularVelocity(rot, vel, deltaT);
+					transform.rotation = rot;
+				}
 			}
 		}
 
@@ -248,26 +257,49 @@ namespace SentienceLab.MajorDomo
 			if (m_valPosition != null)
 			{
 				Vector3 pos = transform.position;
-				Vector3 vel = m_firstUpdate ? Vector3.zero : (pos - m_oldPosition) / deltaT;
-				m_oldPosition = pos;
+				if (m_firstUpdate) 
+				{ 
+					m_oldPosition = pos; // don't start with a "jump"
+				}
+				// calculate or get velocity
+				Vector3 vel = (m_rigidbody != null) 
+					? m_rigidbody.velocity
+					: (pos - m_oldPosition) / deltaT;
+				// make relative to reference tansform (if given)
 				if (ReferenceTransform != null)
 				{
 					pos = ReferenceTransform.InverseTransformPoint(pos);
 					vel = ReferenceTransform.InverseTransformDirection(vel);
 				}
+				// send updated values
 				m_valPosition.Modify(pos);
 				if (m_valVelocityPos != null) m_valVelocityPos.Modify(vel);
+				// prepare for next step
+				m_oldPosition = pos;
 			}
 
 			if (m_valRotation != null)
 			{
 				Quaternion rot = transform.rotation;
-				m_oldRotation = rot;
+				if (m_firstUpdate)
+				{
+					m_oldRotation = rot; // don't start with a "jump"
+				}
+				// caluclate or get velocity
+				Vector3 vel = (m_rigidbody != null)
+					? m_rigidbody.angularVelocity
+					: CalculateAngularVelocity(rot, m_oldRotation, deltaT);
+				// make relative to reference tansform (if given)
 				if (ReferenceTransform != null) 
 				{ 
-					rot = Quaternion.Inverse(ReferenceTransform.rotation) * rot; 
+					rot = Quaternion.Inverse(ReferenceTransform.rotation) * rot;
+					vel = Quaternion.Inverse(ReferenceTransform.rotation) * vel;
 				}
+				// send updated values
 				m_valRotation.Modify(rot);
+				if (m_valVelocityRot != null) m_valVelocityRot.Value = vel;
+				// get ready for next step
+				m_oldRotation = rot;
 			}
 
 			if (m_valScale != null)
@@ -290,6 +322,64 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		/// <summary>
+		/// Calculate rotation velocity from two orientations (current and previous frame) and a delta time.
+		/// </summary>
+		/// <param name="rotNow">Rotation now</param>
+		/// <param name="rotPrev">Rotation in previous frame</param>
+		/// <param name="deltaTime">time between rotations in seconds</param>
+		/// <returns>Rotation axis scaled by speed in radians/s</returns>
+		/// 
+		protected Vector3 CalculateAngularVelocity(Quaternion rotNow, Quaternion rotPrev, float deltaTime)
+		{
+			// calculate difference rotation
+			Quaternion rotDelta = rotNow * Quaternion.Inverse(rotPrev);
+			rotDelta.ToAngleAxis(out float angle, out Vector3 axis);
+			angle *= Mathf.Deg2Rad;
+			return axis * angle;
+
+			/*
+		    // Source: https://forum.unity.com/threads/manually-calculate-angular-velocity-of-gameobject.289462/
+			Vector3 velocity = Vector3.zero;
+			Quaternion rotDelta = rotNow * Quaternion.Inverse(rotPrev);
+			// Is there any "significant" rotation?
+			if (Mathf.Abs(rotDelta.w) < 0.9995f)
+			{
+				float magnitude;
+				// handle negatives, we could just flip it but this is faster
+				if (rotDelta.w < 0.0f)
+				{
+					float angle = Mathf.Acos(-rotDelta.w);
+					magnitude = -2.0f * angle / (Mathf.Sin(angle) * deltaTime);
+				}
+				else
+				{
+					float angle = Mathf.Acos(rotDelta.w);
+					magnitude = 2.0f * angle / (Mathf.Sin(angle) * deltaTime);
+				}
+				velocity.Set(rotDelta.x * magnitude, rotDelta.y * magnitude, rotDelta.z * magnitude);
+			}
+			return velocity;
+			*/
+		}
+
+
+		/// <summary>
+		/// Calculate an orientation based on a start orientation, a rotation velocity, and a delta time.
+		/// </summary>
+		/// <param name="rotNow">Rotation now</param>
+		/// <param name="velocity">Rotation axis scaled by speed in radians/s</param>
+		/// <param name="deltaTime">Time interval to integrate the rotation velocity over</param>
+		/// <returns>Integrated orientation</returns>
+		/// 
+		protected Quaternion IntegrateAngularVelocity(Quaternion rotNow, Vector3 velocity, float deltaTime)
+		{
+			float angle = velocity.magnitude;
+			angle *= Mathf.Rad2Deg * deltaTime;
+			Quaternion qDelta = Quaternion.AngleAxis(angle, velocity);
+			return rotNow * qDelta;
+		}
+
 
 		private EntityValue_Vector3D   m_valPosition;
 		private EntityValue_Vector3D   m_valVelocityPos;
@@ -298,6 +388,7 @@ namespace SentienceLab.MajorDomo
 		private EntityValue_Vector3D   m_valScale;
 
 		private bool       m_firstUpdate = true;
+		private Rigidbody  m_rigidbody;
 		private Vector3    m_oldPosition;
 		private Quaternion m_oldRotation;
 		private Vector3    m_oldScale;

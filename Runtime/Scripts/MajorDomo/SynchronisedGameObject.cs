@@ -154,12 +154,8 @@ namespace SentienceLab.MajorDomo
 				}
 				CheckEntityNameReplacements();
 
-				// no submodules given explicitely, search for them
-				if (SynchronisedComponents == null)
-				{
-					SynchronisedComponents = new List<AbstractSynchronisedComponent>();
-				}
-				if (SynchronisedComponents.Count == 0)
+				// no submodules given explicitely: search for them
+				if ((SynchronisedComponents) == null || (SynchronisedComponents.Count == 0))
 				{
 					SynchronisedComponents.AddRange(GetComponents<AbstractSynchronisedComponent>());
 				}
@@ -240,7 +236,7 @@ namespace SentienceLab.MajorDomo
 
 			foreach (var component in SynchronisedComponents)
 			{
-				component.DoUpdate(IsControlledByServer);
+				component.OnUpdate(IsControlledByServer);
 			}
 		}
 
@@ -249,7 +245,7 @@ namespace SentienceLab.MajorDomo
 		{
 			foreach (var component in SynchronisedComponents)
 			{
-				component.DoFixedUpdate(IsControlledByServer);
+				component.OnFixedUpdate(IsControlledByServer);
 			}
 		}
 
