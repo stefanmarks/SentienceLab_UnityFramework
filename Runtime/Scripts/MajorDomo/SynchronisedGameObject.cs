@@ -164,7 +164,6 @@ namespace SentienceLab.MajorDomo
 				{
 					SynchronisedComponents.AddRange(GetComponents<AbstractSynchronisedComponent>());
 				}
-				Debug.Log("init " + gameObject.name + " " + SynchronisedComponents.Count);
 
 				// initialise subcomponents
 				foreach(var component in SynchronisedComponents)
