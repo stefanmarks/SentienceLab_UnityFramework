@@ -26,6 +26,9 @@ namespace SentienceLab.MajorDomo
 		[Tooltip("How much rotation (degrees) can happen before synchronisation is requested")]
 		public float RotationThreshold = 0.1f;
 
+		// vector magnitude threshold for treating it as zero
+		private float VECTOR_ZERO_EPSILON = 0.00001f; 
+
 		/// <summary>
 		/// What components of this game object's transform are synchronised.
 		/// </summary>
@@ -226,7 +229,14 @@ namespace SentienceLab.MajorDomo
 						m_modified = true;
 					}
 				}
-
+				if (DoTransVel())
+				{
+					// non-zero velocity forces update
+					if ((m_valVelocityPos != null) && (m_valVelocityPos.Value.magnitude > 0))
+					{
+						m_modified = true;
+					}
+				}	
 				if (DoRot())
 				{
 					float angle = Quaternion.Angle(this.transform.rotation, m_oldRotation);
@@ -235,7 +245,14 @@ namespace SentienceLab.MajorDomo
 						m_modified = true;
 					}
 				}
-
+				if (DoRotVel())
+				{
+					// non-zero velocity forces update
+					if ((m_valVelocityRot != null) && (m_valVelocityRot.Value.magnitude > 0))
+					{
+						m_modified = true;
+					}
+				}
 				if (DoScale())
 				{
 					if ((m_oldScale - this.transform.localScale).sqrMagnitude > 0)
@@ -261,9 +278,27 @@ namespace SentienceLab.MajorDomo
 					m_oldPosition = pos; // don't start with a "jump"
 				}
 				// calculate or get velocity
-				Vector3 vel = (m_rigidbody != null) 
-					? m_rigidbody.velocity
-					: (pos - m_oldPosition) / deltaT;
+				Vector3 vel;
+				if (m_rigidbody != null)
+				{
+					if (m_rigidbody.IsSleeping())
+					{
+						vel = Vector3.zero;
+					}
+					else
+					{ 
+						vel = m_rigidbody.velocity; 
+					}
+				}
+				else
+				{
+					vel = (pos - m_oldPosition) / deltaT;
+				}
+				// cut off very low values
+				if (vel.magnitude < VECTOR_ZERO_EPSILON)
+				{
+					vel = Vector3.zero;
+				}
 				m_oldPosition = pos;
 				// make relative to reference tansform (if given)
 				if (ReferenceTransform != null)
@@ -284,9 +319,27 @@ namespace SentienceLab.MajorDomo
 					m_oldRotation = rot; // don't start with a "jump"
 				}
 				// caluclate or get velocity
-				Vector3 vel = (m_rigidbody != null)
-					? m_rigidbody.angularVelocity
-					: CalculateAngularVelocity(rot, m_oldRotation, deltaT);
+				Vector3 vel;
+				if (m_rigidbody != null)
+				{
+					if (m_rigidbody.IsSleeping())
+					{
+						vel = Vector3.zero;
+					}
+					else
+					{
+						vel = m_rigidbody.angularVelocity;
+					}
+				}
+				else
+				{
+					vel = CalculateAngularVelocity(rot, m_oldRotation, deltaT);
+				}
+				// cut off very low values
+				if (vel.magnitude < VECTOR_ZERO_EPSILON)
+				{
+					vel = Vector3.zero;
+				}
 				m_oldRotation = rot;
 				// make relative to reference tansform (if given)
 				if (ReferenceTransform != null) 
