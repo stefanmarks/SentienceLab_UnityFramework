@@ -12,15 +12,8 @@ using global::FlatBuffers;
 public enum EProtocolVersion : sbyte
 {
   MAJOR = 0,
-  REVISION = 3,
-  MINOR = 5,
-};
-
-/// Server information
-[System.FlagsAttribute]
-public enum ServerProperties : ushort
-{
-  RemoteControlAllowed = 1,
+  REVISION = 1,
+  MINOR = 6,
 };
 
 /// Types of entity values
@@ -109,18 +102,18 @@ public struct Version : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Struct(_i, _bb); }
   public Version __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public sbyte NumMajor { get { return __p.bb.GetSbyte(__p.bb_pos + 0); } }
-  public void MutateNumMajor(sbyte numMajor) { __p.bb.PutSbyte(__p.bb_pos + 0, numMajor); }
-  public sbyte NumMinor { get { return __p.bb.GetSbyte(__p.bb_pos + 1); } }
-  public void MutateNumMinor(sbyte numMinor) { __p.bb.PutSbyte(__p.bb_pos + 1, numMinor); }
+  public byte NumMajor { get { return __p.bb.Get(__p.bb_pos + 0); } }
+  public void MutateNumMajor(byte numMajor) { __p.bb.Put(__p.bb_pos + 0, numMajor); }
+  public byte NumMinor { get { return __p.bb.Get(__p.bb_pos + 1); } }
+  public void MutateNumMinor(byte numMinor) { __p.bb.Put(__p.bb_pos + 1, numMinor); }
   public ushort NumRevision { get { return __p.bb.GetUshort(__p.bb_pos + 2); } }
   public void MutateNumRevision(ushort numRevision) { __p.bb.PutUshort(__p.bb_pos + 2, numRevision); }
 
-  public static Offset<AUT_WH.MajorDomoProtocol.Version> CreateVersion(FlatBufferBuilder builder, sbyte NumMajor, sbyte NumMinor, ushort NumRevision) {
+  public static Offset<AUT_WH.MajorDomoProtocol.Version> CreateVersion(FlatBufferBuilder builder, byte NumMajor, byte NumMinor, ushort NumRevision) {
     builder.Prep(2, 4);
     builder.PutUshort(NumRevision);
-    builder.PutSbyte(NumMinor);
-    builder.PutSbyte(NumMajor);
+    builder.PutByte(NumMinor);
+    builder.PutByte(NumMajor);
     return new Offset<AUT_WH.MajorDomoProtocol.Version>(builder.Offset);
   }
 };
@@ -200,6 +193,58 @@ public struct Quaternion : IFlatbufferObject
     builder.PutFloat(Y);
     builder.PutFloat(X);
     return new Offset<AUT_WH.MajorDomoProtocol.Quaternion>(builder.Offset);
+  }
+};
+
+/// Server information
+public struct ServerInformation : IFlatbufferObject
+{
+  private Table __p;
+  public ByteBuffer ByteBuffer { get { return __p.bb; } }
+  public static void ValidateVersion() { FlatBufferConstants.FLATBUFFERS_1_12_0(); }
+  public static ServerInformation GetRootAsServerInformation(ByteBuffer _bb) { return GetRootAsServerInformation(_bb, new ServerInformation()); }
+  public static ServerInformation GetRootAsServerInformation(ByteBuffer _bb, ServerInformation obj) { return (obj.__assign(_bb.GetInt(_bb.Position) + _bb.Position, _bb)); }
+  public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
+  public ServerInformation __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
+
+  public string Name { get { int o = __p.__offset(4); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetNameBytes() { return __p.__vector_as_span<byte>(4, 1); }
+#else
+  public ArraySegment<byte>? GetNameBytes() { return __p.__vector_as_arraysegment(4); }
+#endif
+  public byte[] GetNameArray() { return __p.__vector_as_array<byte>(4); }
+  public AUT_WH.MajorDomoProtocol.Version? ServerVersion { get { int o = __p.__offset(6); return o != 0 ? (AUT_WH.MajorDomoProtocol.Version?)(new AUT_WH.MajorDomoProtocol.Version()).__assign(o + __p.bb_pos, __p.bb) : null; } }
+  public AUT_WH.MajorDomoProtocol.Version? ProtocolVersion { get { int o = __p.__offset(8); return o != 0 ? (AUT_WH.MajorDomoProtocol.Version?)(new AUT_WH.MajorDomoProtocol.Version()).__assign(o + __p.bb_pos, __p.bb) : null; } }
+  public ushort ServerEventPort { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
+  public bool MutateServerEventPort(ushort serverEventPort) { int o = __p.__offset(10); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, serverEventPort); return true; } else { return false; } }
+  public ushort ClientUpdatePort { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
+  public bool MutateClientUpdatePort(ushort clientUpdatePort) { int o = __p.__offset(12); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, clientUpdatePort); return true; } else { return false; } }
+  public ushort ServerUpdatePort { get { int o = __p.__offset(14); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
+  public bool MutateServerUpdatePort(ushort serverUpdatePort) { int o = __p.__offset(14); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, serverUpdatePort); return true; } else { return false; } }
+  public ushort UpdateInterval { get { int o = __p.__offset(16); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
+  public bool MutateUpdateInterval(ushort updateInterval) { int o = __p.__offset(16); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, updateInterval); return true; } else { return false; } }
+  public ushort ClientHeartbeatInterval { get { int o = __p.__offset(18); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
+  public bool MutateClientHeartbeatInterval(ushort clientHeartbeatInterval) { int o = __p.__offset(18); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, clientHeartbeatInterval); return true; } else { return false; } }
+  public bool AllowsRemoteControl { get { int o = __p.__offset(20); return o != 0 ? 0!=__p.bb.Get(o + __p.bb_pos) : (bool)false; } }
+  public bool MutateAllowsRemoteControl(bool allowsRemoteControl) { int o = __p.__offset(20); if (o != 0) { __p.bb.Put(o + __p.bb_pos, (byte)(allowsRemoteControl ? 1 : 0)); return true; } else { return false; } }
+
+  public static void StartServerInformation(FlatBufferBuilder builder) { builder.StartTable(9); }
+  public static void AddName(FlatBufferBuilder builder, StringOffset nameOffset) { builder.AddOffset(0, nameOffset.Value, 0); }
+  public static void AddServerVersion(FlatBufferBuilder builder, Offset<AUT_WH.MajorDomoProtocol.Version> serverVersionOffset) { builder.AddStruct(1, serverVersionOffset.Value, 0); }
+  public static void AddProtocolVersion(FlatBufferBuilder builder, Offset<AUT_WH.MajorDomoProtocol.Version> protocolVersionOffset) { builder.AddStruct(2, protocolVersionOffset.Value, 0); }
+  public static void AddServerEventPort(FlatBufferBuilder builder, ushort serverEventPort) { builder.AddUshort(3, serverEventPort, 0); }
+  public static void AddClientUpdatePort(FlatBufferBuilder builder, ushort clientUpdatePort) { builder.AddUshort(4, clientUpdatePort, 0); }
+  public static void AddServerUpdatePort(FlatBufferBuilder builder, ushort serverUpdatePort) { builder.AddUshort(5, serverUpdatePort, 0); }
+  public static void AddUpdateInterval(FlatBufferBuilder builder, ushort updateInterval) { builder.AddUshort(6, updateInterval, 0); }
+  public static void AddClientHeartbeatInterval(FlatBufferBuilder builder, ushort clientHeartbeatInterval) { builder.AddUshort(7, clientHeartbeatInterval, 0); }
+  public static void AddAllowsRemoteControl(FlatBufferBuilder builder, bool allowsRemoteControl) { builder.AddBool(8, allowsRemoteControl, false); }
+  public static Offset<AUT_WH.MajorDomoProtocol.ServerInformation> EndServerInformation(FlatBufferBuilder builder) {
+    int o = builder.EndTable();
+    builder.Required(o, 4);  // name
+    builder.Required(o, 6);  // serverVersion
+    builder.Required(o, 8);  // protocolVersion
+    return new Offset<AUT_WH.MajorDomoProtocol.ServerInformation>(o);
   }
 };
 
@@ -450,43 +495,24 @@ public struct SvRep_ClientConnect : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public SvRep_ClientConnect __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public string ServerName { get { int o = __p.__offset(4); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
-#if ENABLE_SPAN_T
-  public Span<byte> GetServerNameBytes() { return __p.__vector_as_span<byte>(4, 1); }
-#else
-  public ArraySegment<byte>? GetServerNameBytes() { return __p.__vector_as_arraysegment(4); }
-#endif
-  public byte[] GetServerNameArray() { return __p.__vector_as_array<byte>(4); }
-  public AUT_WH.MajorDomoProtocol.Version? ServerVersion { get { int o = __p.__offset(6); return o != 0 ? (AUT_WH.MajorDomoProtocol.Version?)(new AUT_WH.MajorDomoProtocol.Version()).__assign(o + __p.bb_pos, __p.bb) : null; } }
-  public AUT_WH.MajorDomoProtocol.Version? ServerProtocol { get { int o = __p.__offset(8); return o != 0 ? (AUT_WH.MajorDomoProtocol.Version?)(new AUT_WH.MajorDomoProtocol.Version()).__assign(o + __p.bb_pos, __p.bb) : null; } }
-  public ushort ServerEventPort { get { int o = __p.__offset(10); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
-  public bool MutateServerEventPort(ushort serverEventPort) { int o = __p.__offset(10); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, serverEventPort); return true; } else { return false; } }
-  public ushort ClientUpdatePort { get { int o = __p.__offset(12); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
-  public bool MutateClientUpdatePort(ushort clientUpdatePort) { int o = __p.__offset(12); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, clientUpdatePort); return true; } else { return false; } }
-  public ushort ServerUpdatePort { get { int o = __p.__offset(14); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
-  public bool MutateServerUpdatePort(ushort serverUpdatePort) { int o = __p.__offset(14); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, serverUpdatePort); return true; } else { return false; } }
-  public ushort HeartbeatInterval { get { int o = __p.__offset(16); return o != 0 ? __p.bb.GetUshort(o + __p.bb_pos) : (ushort)0; } }
-  public bool MutateHeartbeatInterval(ushort heartbeatInterval) { int o = __p.__offset(16); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, heartbeatInterval); return true; } else { return false; } }
-  public AUT_WH.MajorDomoProtocol.ServerProperties ServerProperties { get { int o = __p.__offset(18); return o != 0 ? (AUT_WH.MajorDomoProtocol.ServerProperties)__p.bb.GetUshort(o + __p.bb_pos) : 0; } }
-  public bool MutateServerProperties(AUT_WH.MajorDomoProtocol.ServerProperties serverProperties) { int o = __p.__offset(18); if (o != 0) { __p.bb.PutUshort(o + __p.bb_pos, (ushort)serverProperties); return true; } else { return false; } }
-  public uint ClientUID { get { int o = __p.__offset(20); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
-  public bool MutateClientUID(uint clientUID) { int o = __p.__offset(20); if (o != 0) { __p.bb.PutUint(o + __p.bb_pos, clientUID); return true; } else { return false; } }
+  public uint ClientUID { get { int o = __p.__offset(4); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public bool MutateClientUID(uint clientUID) { int o = __p.__offset(4); if (o != 0) { __p.bb.PutUint(o + __p.bb_pos, clientUID); return true; } else { return false; } }
+  public AUT_WH.MajorDomoProtocol.ServerInformation? ServerInformation { get { int o = __p.__offset(6); return o != 0 ? (AUT_WH.MajorDomoProtocol.ServerInformation?)(new AUT_WH.MajorDomoProtocol.ServerInformation()).__assign(__p.__indirect(o + __p.bb_pos), __p.bb) : null; } }
 
-  public static void StartSvRep_ClientConnect(FlatBufferBuilder builder) { builder.StartTable(9); }
-  public static void AddServerName(FlatBufferBuilder builder, StringOffset serverNameOffset) { builder.AddOffset(0, serverNameOffset.Value, 0); }
-  public static void AddServerVersion(FlatBufferBuilder builder, Offset<AUT_WH.MajorDomoProtocol.Version> serverVersionOffset) { builder.AddStruct(1, serverVersionOffset.Value, 0); }
-  public static void AddServerProtocol(FlatBufferBuilder builder, Offset<AUT_WH.MajorDomoProtocol.Version> serverProtocolOffset) { builder.AddStruct(2, serverProtocolOffset.Value, 0); }
-  public static void AddServerEventPort(FlatBufferBuilder builder, ushort serverEventPort) { builder.AddUshort(3, serverEventPort, 0); }
-  public static void AddClientUpdatePort(FlatBufferBuilder builder, ushort clientUpdatePort) { builder.AddUshort(4, clientUpdatePort, 0); }
-  public static void AddServerUpdatePort(FlatBufferBuilder builder, ushort serverUpdatePort) { builder.AddUshort(5, serverUpdatePort, 0); }
-  public static void AddHeartbeatInterval(FlatBufferBuilder builder, ushort heartbeatInterval) { builder.AddUshort(6, heartbeatInterval, 0); }
-  public static void AddServerProperties(FlatBufferBuilder builder, AUT_WH.MajorDomoProtocol.ServerProperties serverProperties) { builder.AddUshort(7, (ushort)serverProperties, 0); }
-  public static void AddClientUID(FlatBufferBuilder builder, uint clientUID) { builder.AddUint(8, clientUID, 0); }
+  public static Offset<AUT_WH.MajorDomoProtocol.SvRep_ClientConnect> CreateSvRep_ClientConnect(FlatBufferBuilder builder,
+      uint clientUID = 0,
+      Offset<AUT_WH.MajorDomoProtocol.ServerInformation> serverInformationOffset = default(Offset<AUT_WH.MajorDomoProtocol.ServerInformation>)) {
+    builder.StartTable(2);
+    SvRep_ClientConnect.AddServerInformation(builder, serverInformationOffset);
+    SvRep_ClientConnect.AddClientUID(builder, clientUID);
+    return SvRep_ClientConnect.EndSvRep_ClientConnect(builder);
+  }
+
+  public static void StartSvRep_ClientConnect(FlatBufferBuilder builder) { builder.StartTable(2); }
+  public static void AddClientUID(FlatBufferBuilder builder, uint clientUID) { builder.AddUint(0, clientUID, 0); }
+  public static void AddServerInformation(FlatBufferBuilder builder, Offset<AUT_WH.MajorDomoProtocol.ServerInformation> serverInformationOffset) { builder.AddOffset(1, serverInformationOffset.Value, 0); }
   public static Offset<AUT_WH.MajorDomoProtocol.SvRep_ClientConnect> EndSvRep_ClientConnect(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    builder.Required(o, 4);  // serverName
-    builder.Required(o, 6);  // serverVersion
-    builder.Required(o, 8);  // serverProtocol
     return new Offset<AUT_WH.MajorDomoProtocol.SvRep_ClientConnect>(o);
   }
 };

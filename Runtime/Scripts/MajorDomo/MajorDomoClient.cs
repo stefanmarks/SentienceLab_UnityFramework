@@ -16,11 +16,14 @@ namespace SentienceLab.MajorDomo
 	/// 
 	public class MajorDomoClient
 	{
-		// Client Version number
-		public const int VERSION_MAJOR    = 0;
-		public const int VERSION_MINOR    = 5;
-		public const int VERSION_REVISION = 3;
+		// Client version number
+		public readonly VersionNumber CLIENT_VERSION = new VersionNumber(0, 6, 1);
 
+		// Protocol version number
+		public readonly VersionNumber PROTOCOL_VERSION = new VersionNumber(
+			(byte)   AUT_WH.MajorDomoProtocol.EProtocolVersion.MAJOR,
+			(byte)   AUT_WH.MajorDomoProtocol.EProtocolVersion.MINOR,
+			(ushort) AUT_WH.MajorDomoProtocol.EProtocolVersion.REVISION);
 
 		public ClientManager ClientManager { get; private set; } 
 		
@@ -61,6 +64,8 @@ namespace SentienceLab.MajorDomo
 				AsyncIO.ForceDotNet.Force();
 				m_NetMQ_Initialised = true;
 			}
+			
+			m_serverInformation = new ServerInformation();
 
 			ClientManager = new ClientManager();
 			EntityManager = new EntityManager();
@@ -150,19 +155,13 @@ namespace SentienceLab.MajorDomo
 
 				// build request
 				m_bufReq.Clear();
-				var clientName = m_bufReq.CreateString(_applicationName);
+				var offsetApplicationName = m_bufReq.CreateString(_applicationName);
 				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.StartClReq_ClientConnect(m_bufReq);
-				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddClientName(m_bufReq, clientName);
-				var clientVersion = AUT_WH.MajorDomoProtocol.Version.CreateVersion(m_bufReq,
-					VERSION_MAJOR,
-					VERSION_MINOR,
-					VERSION_REVISION);
-				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddClientVersion(m_bufReq, clientVersion);
-				var clientProtocol = AUT_WH.MajorDomoProtocol.Version.CreateVersion(m_bufReq,
-					(sbyte)AUT_WH.MajorDomoProtocol.EProtocolVersion.MAJOR,
-					(sbyte)AUT_WH.MajorDomoProtocol.EProtocolVersion.MINOR,
-					(ushort)AUT_WH.MajorDomoProtocol.EProtocolVersion.REVISION);
-				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddClientProtocol(m_bufReq, clientProtocol);
+				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddClientName(m_bufReq, offsetApplicationName);
+				var offsetClientVersion = CLIENT_VERSION.ToFlatbuffer(m_bufReq);
+				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddClientVersion(m_bufReq, offsetClientVersion);
+				var offsetProtocolVersion = PROTOCOL_VERSION.ToFlatbuffer(m_bufReq);
+				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddClientProtocol(m_bufReq, offsetProtocolVersion);
 				var reqClientConnect = AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.EndClReq_ClientConnect(m_bufReq);
 				// send and receive
 				if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_ClientConnect, reqClientConnect.Value))
@@ -170,11 +169,13 @@ namespace SentienceLab.MajorDomo
 					if (m_serverReply.RepType == AUT_WH.MajorDomoProtocol.UServerReply.SvRep_ClientConnect)
 					{
 						var ack = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_ClientConnect>().Value;
+						m_serverInformation = new ServerInformation(ack.ServerInformation.Value, _serverAddress, _serverPort);
 						Debug.LogFormat(
-							"'{0}' connected to MajorDomo server '{1}' v{2}.{3}.{4} (protocol v{5}.{6}.{7}, server time {8}) with Client UID {9}",
-							_applicationName, ack.ServerName,
-							ack.ServerVersion.Value.NumMajor, ack.ServerVersion.Value.NumMinor, ack.ServerVersion.Value.NumRevision,
-							ack.ServerProtocol.Value.NumMajor, ack.ServerProtocol.Value.NumMinor, ack.ServerProtocol.Value.NumRevision,
+							"'{0}' connected to MajorDomo server '{1}' v{2} (protocol v{3}, server time {4}) with Client UID {5}",
+							_applicationName, 
+							m_serverInformation.name,
+							m_serverInformation.serverVersion.ToString(),
+							m_serverInformation.protocolVersion.ToString(),
 							m_serverReply.Timestamp,
 							ack.ClientUID);
 
@@ -184,28 +185,22 @@ namespace SentienceLab.MajorDomo
 
 						// create other connections for:
 						// server events
-						string serverEventSocket = "tcp://" + _serverAddress + ":" + ack.ServerEventPort;
+						string serverEventSocket = "tcp://" + _serverAddress + ":" + m_serverInformation.serverEventPort;
 						Debug.LogFormat("Server event socket: {0}", serverEventSocket);
 						m_serverEventSocket = new NetMQ.Sockets.SubscriberSocket(serverEventSocket);
 						m_serverEventSocket.SubscribeToAnyTopic();
 						
 						// Client updates
-						string clientUpdateSocket = "tcp://" + _serverAddress + ":" + ack.ClientUpdatePort;
+						string clientUpdateSocket = "tcp://" + _serverAddress + ":" + m_serverInformation.clientUpdatePort;
 						Debug.LogFormat("Client update socket: {0}", clientUpdateSocket);
 						m_clientUpdateSocket = new NetMQ.Sockets.PushSocket(clientUpdateSocket);
 					
 						// Server updates
-						string serverUpdateSocket = "tcp://" + _serverAddress + ":" + ack.ServerUpdatePort;
+						string serverUpdateSocket = "tcp://" + _serverAddress + ":" + m_serverInformation.serverUpdatePort;
 						Debug.LogFormat("Server update socket: {0}", serverUpdateSocket);
 						m_serverUpdateSocket = new NetMQ.Sockets.SubscriberSocket(serverUpdateSocket);
 						m_serverUpdateSocket.SubscribeToAnyTopic();
 						
-						// get interval for sending heartbeat signal
-						m_heartbeatInterval = ack.HeartbeatInterval / 1000.0f;
-						// get server properties
-						m_serverAllowsRemoteControl =
-							(ack.ServerProperties & AUT_WH.MajorDomoProtocol.ServerProperties.RemoteControlAllowed) > 0;
-
 						success = true;
 
 						m_entityListRetrieved = false;
@@ -253,6 +248,12 @@ namespace SentienceLab.MajorDomo
 		public bool IsConnected()
 		{
 			return m_client != null;
+		}
+
+
+		public ServerInformation ServerInformation()
+		{
+			return m_serverInformation;
 		}
 
 
@@ -685,7 +686,7 @@ namespace SentienceLab.MajorDomo
 
 		public bool CanRemoteControlServer()
 		{
-			return IsConnected() && m_serverAllowsRemoteControl;
+			return IsConnected() && m_serverInformation.allowsRemoteControl;
 		}
 
 
@@ -1097,7 +1098,7 @@ namespace SentienceLab.MajorDomo
 			List<EntityData> modifiedEntities = EntityManager.GetModifiedEntities();
 
 			// send a packet regularly as heartbeat, even if empty
-			bool sendHeartbeat = (DateTime.Now - m_lastUpdateSent).TotalSeconds > m_heartbeatInterval;
+			bool sendHeartbeat = (DateTime.Now - m_lastUpdateSent).TotalSeconds > (m_serverInformation.clientHeartbeatInterval / 1000.0);
 
 			// is there anything to send at all?
 			if (!sendHeartbeat && modifiedEntities.Count == 0) return false;
@@ -1193,16 +1194,15 @@ namespace SentienceLab.MajorDomo
 		private readonly DateTime   m_startTime;
 		private          ClientData m_client;
 
+		private ServerInformation m_serverInformation;
+
 		private NetMQ.Sockets.RequestSocket    m_clientRequestSocket;
 		private NetMQ.Sockets.SubscriberSocket m_serverEventSocket;
 		private NetMQ.Sockets.PushSocket       m_clientUpdateSocket;
 		private NetMQ.Sockets.SubscriberSocket m_serverUpdateSocket;
 
 		private float    m_timeoutInterval;
-		private float    m_heartbeatInterval;
 		private DateTime m_lastUpdateSent;
-
-		private bool     m_serverAllowsRemoteControl;
 
 		private FlatBuffers.FlatBufferBuilder  m_bufReq;
 		private NetMQ.Msg                      m_msgReq;

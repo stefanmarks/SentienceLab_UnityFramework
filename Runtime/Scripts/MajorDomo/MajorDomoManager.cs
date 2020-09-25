@@ -10,6 +10,7 @@ using System.Net;
 using System.Threading;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using System.Diagnostics;
 
 namespace SentienceLab.MajorDomo
 {
@@ -125,6 +126,11 @@ namespace SentienceLab.MajorDomo
 		public bool IsConnected()
 		{
 			return m_state == ManagerState.Connected;
+		}
+
+		public ServerInformation GetServerInformation()
+		{
+			return m_client.ServerInformation();
 		}
 
 		public uint ClientUID { get { return (m_client != null) ? m_client.ClientUID : ClientData.UID_UNASSIGNED; } private set { } }
@@ -361,6 +367,14 @@ namespace SentienceLab.MajorDomo
 
 		public void Update()
 		{
+			Process();
+		}
+
+
+		public bool Process()
+		{
+			bool didProcess = false;
+
 			if (m_state == ManagerState.Connected && m_prevState == ManagerState.Connecting)
 			{
 				// client just connected: invoke event handlers
@@ -377,7 +391,7 @@ namespace SentienceLab.MajorDomo
 			if (m_client.IsConnected())
 			{
 				// process server updates and events here so entity updates are processed in the render loop
-				m_client.ProcessServerUpdates();
+				didProcess |= m_client.ProcessServerUpdates();
 			}
 
 			// relay events to handlers in render loop:
@@ -479,6 +493,7 @@ namespace SentienceLab.MajorDomo
 			}
 
 			m_prevState = m_state;
+			return didProcess;
 		}
 
 
