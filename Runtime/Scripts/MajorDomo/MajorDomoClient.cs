@@ -4,6 +4,7 @@
 // (C) Westfälische Hochschule, Gelsenkirchen, Germany
 #endregion Copyright Information
 
+using NetMQ;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -734,7 +735,7 @@ namespace SentienceLab.MajorDomo
 			{
 				// process as long as there are events (max 5 to avoid deadlock)
 				int maxEventsToProcess = 5;
-				while (maxEventsToProcess > 0 &&  m_serverEventSocket.Poll(TimeSpan.Zero))
+				while (maxEventsToProcess > 0 && m_serverEventSocket.Poll(TimeSpan.Zero))
 				{
 					maxEventsToProcess--;
 					didProcess = true;
@@ -892,70 +893,77 @@ namespace SentienceLab.MajorDomo
 		private void ServerEvent_ReceiveReady(object sender, NetMQ.NetMQSocketEventArgs e)
 		{
 			m_msgSvEvt.InitEmpty();
-			if (e.Socket.TryReceive(ref m_msgSvEvt, TimeSpan.Zero) && (m_msgSvEvt.Data != null))
+			try
 			{
-				var m_bufSvEvt = new FlatBuffers.ByteBuffer(m_msgSvEvt.Data);
-				m_serverEvent = AUT_WH.MajorDomoProtocol.ServerEvent.GetRootAsServerEvent(m_bufSvEvt, m_serverEvent);
-
-				if (!IsConnected()) return; // in case this packet comes too late
-
-				switch (m_serverEvent.EventType)
+				if (e.Socket.TryReceive(ref m_msgSvEvt, TimeSpan.Zero) && (m_msgSvEvt.Data != null))
 				{
-					case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_ClientConnected:
-						{
-							var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ClientConnected>();
-							if (evt.HasValue) ServerEvent_ClientConnected(evt.Value);
-							break;
-						}
+					var m_bufSvEvt = new FlatBuffers.ByteBuffer(m_msgSvEvt.Data);
+					m_serverEvent = AUT_WH.MajorDomoProtocol.ServerEvent.GetRootAsServerEvent(m_bufSvEvt, m_serverEvent);
 
-					case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_ClientDisconnected:
-						{
-							var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ClientDisconnected>();
-							if (evt.HasValue) ServerEvent_ClientDisconnected(evt.Value);
-							break;
-						}
+					if (!IsConnected()) return; // in case this packet comes too late
 
-					case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_EntitiesPublished:
-						{
-							var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_EntitiesPublished>();
-							if (evt.HasValue) ServerEvent_EntitiesPublished(evt.Value);
-							break;
-						}
+					switch (m_serverEvent.EventType)
+					{
+						case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_ClientConnected:
+							{
+								var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ClientConnected>();
+								if (evt.HasValue) ServerEvent_ClientConnected(evt.Value);
+								break;
+							}
 
-					case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_EntitiesRevoked:
-						{
-							var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_EntitiesRevoked>();
-							if (evt.HasValue) ServerEvent_EntitiesRevoked(evt.Value);
-							break;
-						}
+						case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_ClientDisconnected:
+							{
+								var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ClientDisconnected>();
+								if (evt.HasValue) ServerEvent_ClientDisconnected(evt.Value);
+								break;
+							}
 
-					case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_EntitiesChangedClient:
-						{
-							var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_EntitiesChangedClient>();
-							if (evt.HasValue) ServerEvent_EntityControlChanged(evt.Value);
-							break;
-						}
+						case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_EntitiesPublished:
+							{
+								var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_EntitiesPublished>();
+								if (evt.HasValue) ServerEvent_EntitiesPublished(evt.Value);
+								break;
+							}
 
-					case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_ClientBroadcast:
-						{
-							var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ClientBroadcast>();
-							if (evt.HasValue) ServerEvent_ClientBroadcast(evt.Value);
-							break;
-						}
+						case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_EntitiesRevoked:
+							{
+								var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_EntitiesRevoked>();
+								if (evt.HasValue) ServerEvent_EntitiesRevoked(evt.Value);
+								break;
+							}
 
-					case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_ServerShutdown:
-						{
-							var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ServerShutdown>();
-							if (evt.HasValue) ServerEvent_ServerShutdown(evt.Value);
-							break;
-						}
+						case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_EntitiesChangedClient:
+							{
+								var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_EntitiesChangedClient>();
+								if (evt.HasValue) ServerEvent_EntityControlChanged(evt.Value);
+								break;
+							}
 
-					default:
-						Debug.LogWarningFormat(
-							"Unhandled server event {0}",
-							m_serverEvent.EventType.ToString());
-						break;
+						case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_ClientBroadcast:
+							{
+								var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ClientBroadcast>();
+								if (evt.HasValue) ServerEvent_ClientBroadcast(evt.Value);
+								break;
+							}
+
+						case AUT_WH.MajorDomoProtocol.UServerEvent.ServerEvent_ServerShutdown:
+							{
+								var evt = m_serverEvent.Event<AUT_WH.MajorDomoProtocol.ServerEvent_ServerShutdown>();
+								if (evt.HasValue) ServerEvent_ServerShutdown(evt.Value);
+								break;
+							}
+
+						default:
+							Debug.LogWarningFormat(
+								"Unhandled server event {0}",
+								m_serverEvent.EventType.ToString());
+							break;
+					}
 				}
+			}
+			catch (TerminatingException)
+			{
+				// message system is already shutting down. ignore
 			}
 		}
 
