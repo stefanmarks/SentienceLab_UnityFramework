@@ -407,6 +407,7 @@ namespace SentienceLab.MajorDomo
 				// process newly registered client events
 				foreach (ClientData client in m_processingClients) OnClientRegistered?.Invoke(client);
 				m_processingClients.Clear();
+				didProcess = true;
 			}
 
 			// unregistered clients
@@ -421,6 +422,7 @@ namespace SentienceLab.MajorDomo
 				// process newly unregistered client events
 				foreach (ClientData client in m_processingClients) OnClientUnregistered?.Invoke(client);
 				m_processingClients.Clear();
+				didProcess = true;
 			}
 		
 			// publishing entities
@@ -435,6 +437,7 @@ namespace SentienceLab.MajorDomo
 				// process published entity events
 				OnEntitiesPublished?.Invoke(m_processingEntities);
 				m_processingEntities.Clear();
+				didProcess = true;
 			}
 
 			// revoking entities
@@ -449,6 +452,7 @@ namespace SentienceLab.MajorDomo
 				// process revoked entity events
 				OnEntitiesRevoked?.Invoke(m_processingEntities);
 				m_processingEntities.Clear();
+				didProcess = true;
 			}
 
 			lock (m_controlledEntities)
@@ -462,6 +466,7 @@ namespace SentienceLab.MajorDomo
 				// process control-changed entity events
 				OnEntityControlChanged?.Invoke(m_processingEntities);
 				m_processingEntities.Clear();
+				didProcess = true;
 			}
 
 			// broadcasts
@@ -479,6 +484,7 @@ namespace SentienceLab.MajorDomo
 					OnClientBroadcastReceived?.Invoke(broadcast);
 				}
 				m_processingBroadcasts.Clear();
+				didProcess = true;
 			}
 
 			lock (m_serverShutdown)
