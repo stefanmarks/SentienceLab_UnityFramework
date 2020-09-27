@@ -441,7 +441,7 @@ namespace SentienceLab.MajorDomo
 		private Vector3    m_oldPosition;
 		private Quaternion m_oldRotation;
 		private Vector3    m_oldScale;
-		private long       m_lastUpdateFrame;
+		private int        m_lastUpdateFrame;
 		private bool       m_modified;
 	}
 }
