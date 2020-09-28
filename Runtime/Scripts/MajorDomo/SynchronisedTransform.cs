@@ -292,7 +292,14 @@ namespace SentienceLab.MajorDomo
 				}
 				else
 				{
-					vel = (pos - m_oldPosition) / deltaT;
+					if (deltaT > 0)
+					{
+						vel = (pos - m_oldPosition) / deltaT;
+					}
+					else
+					{
+						vel = Vector3.zero;
+					}
 				}
 				// cut off very low values
 				if (vel.magnitude < VECTOR_ZERO_EPSILON)
@@ -381,13 +388,17 @@ namespace SentienceLab.MajorDomo
 		/// 
 		protected Vector3 CalculateAngularVelocity(Quaternion rotNow, Quaternion rotPrev, float deltaTime)
 		{
-			// calculate difference rotation
-			Quaternion rotDelta = rotNow * Quaternion.Inverse(rotPrev);
-			rotDelta.ToAngleAxis(out float angle, out Vector3 axis);
-			angle *= Mathf.Deg2Rad;
-			angle /= deltaTime;
-			Vector3 vel = axis * angle;
-			return vel;
+			Vector3 rvel = Vector3.zero;
+			if (deltaTime > 0)
+			{
+				// calculate difference rotation
+				Quaternion rotDelta = rotNow * Quaternion.Inverse(rotPrev);
+				rotDelta.ToAngleAxis(out float angle, out Vector3 axis);
+				angle *= Mathf.Deg2Rad;
+				angle /= deltaTime;
+				rvel = axis * angle;
+			}
+			return rvel;
 			/*
 		    // Source: https://forum.unity.com/threads/manually-calculate-angular-velocity-of-gameobject.289462/
 			Vector3 velocity = Vector3.zero;
