@@ -438,7 +438,7 @@ namespace SentienceLab.MajorDomo
 			float angle = velocity.magnitude;
 			angle *= Mathf.Rad2Deg * deltaTime;
 			Quaternion qDelta = Quaternion.AngleAxis(angle, velocity);
-			return rotNow * qDelta;
+			return qDelta * rotNow;
 		}
 
 
