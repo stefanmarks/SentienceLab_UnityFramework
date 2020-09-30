@@ -12,7 +12,7 @@ namespace SentienceLab.Data
 	public class Parameter_String : ParameterBase
 	{
 		[SerializeField]
-		private string value;
+		private string value = "";
 
 
 		public new void Start()
