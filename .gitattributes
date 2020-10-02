@@ -1,0 +1,15 @@
+# Auto detect text files and perform LF normalization
+#
+* text=auto
+
+# Handle merge of Unity YML files differently
+#
+*.anim merge=unityyamlmerge eol=lf
+*.asset merge=unityyamlmerge eol=lf
+*.controller merge=unityyamlmerge eol=lf
+*.mat merge=unityyamlmerge eol=lf
+*.meta merge=unityyamlmerge eol=lf
+*.physicsMaterial merge=unityyamlmerge eol=lf
+*.physicsMaterial2D merge=unityyamlmerge eol=lf
+*.prefab merge=unityyamlmerge eol=lf
+*.unity merge=unityyamlmerge eol=lf
