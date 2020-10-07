@@ -30,11 +30,11 @@ namespace SentienceLab.MajorDomo
 		[Tooltip("Entity stays on the server when the client disconnects")]
 		public bool Persistent = false;
 
-		[Tooltip("If enabled, the 'active' flag is synchronised and loss off connection to the server can disable the object")]
+		[Tooltip("If enabled, the game object's 'active' flag is synchronised.\n"
+			+ "Also, loss of connection to the server can disable the object")]
 		public bool CanDisableGameObject = true;
 
 		[Tooltip("Explicit list of components to synchronise. If empty, use all existing components found in this game object.")]
-		[FormerlySerializedAs("Components")]
 		public List<AbstractSynchronisedComponent> SynchronisedComponents = new List<AbstractSynchronisedComponent>();
 
 		// number of frames to wait after another client has taken over control before trying to take control back
