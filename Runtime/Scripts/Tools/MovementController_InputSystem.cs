@@ -64,6 +64,7 @@ public class MovementController_InputSystem : MonoBehaviour
 
 	void Update() 
 	{
+		// Rotation
 		Vector3 vecR = Vector3.zero;
 		vecR.x = (actionRotateX != null) ? actionRotateX.action.ReadValue<float>() : 0;
 		vecR.y = (actionRotateY != null) ? actionRotateY.action.ReadValue<float>() : 0;
@@ -83,6 +84,7 @@ public class MovementController_InputSystem : MonoBehaviour
 		lerpFactor = 1.0f - Mathf.Pow(smoothing, Time.deltaTime);
 		m_vecTranslate = Vector3.Lerp(m_vecTranslate, vecT, lerpFactor);
 
+		// Translation
 		// translate forward (Z)
 		Vector3 v = RotationBasisNode.forward;
 		if (TranslationIgnoresPitch) { v.y = 0; }
