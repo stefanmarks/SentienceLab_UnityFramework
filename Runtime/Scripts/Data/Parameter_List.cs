@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/List")]
+	[AddComponentMenu("Parameter/List Parameter")]
 	public class Parameter_List : ParameterBase, IParameterModify
 	{
 		[Serializable]
@@ -51,7 +51,7 @@ namespace SentienceLab.Data
 		{
 			listItems.Clear();
 			m_selectedItem = -1;
-			CheckForChange();
+			MarkModified();
 		}
 
 
@@ -67,7 +67,7 @@ namespace SentienceLab.Data
 			if (m_selectedItem < 0)
 			{
 				m_selectedItem = 0;
-				CheckForChange();
+				MarkModified();
 			}
 		}
 
@@ -88,7 +88,7 @@ namespace SentienceLab.Data
 			set
 			{
 				m_selectedItem = SanityCheck(value);
-				CheckForChange();
+				MarkModified();
 			}
 		}
 
@@ -124,17 +124,14 @@ namespace SentienceLab.Data
 		}
 
 
-		/// <summary>
-		/// Check for changes to limits of the value and call event handlers accordingly.
-		/// </summary>
-		/// 
-		protected override void CheckForChange()
+		protected override bool CheckForChange()
 		{
 			if (m_oldSelectedItem != m_selectedItem)
 			{
 				m_oldSelectedItem = m_selectedItem;
 				InvokeOnValueChanged();
 			}
+			return true;
 		}
 
 
@@ -148,7 +145,7 @@ namespace SentienceLab.Data
 				m_floatDelta   -= (m_floatDelta < 0) ? -intDelta : intDelta;
 			}
 			m_selectedItem = SanityCheck(m_selectedItem);
-			CheckForChange();
+			MarkModified();
 		}
 
 

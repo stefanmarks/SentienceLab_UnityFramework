@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Vector3")]
+	[AddComponentMenu("Parameter/Vector3 Parameter")]
 	public class Parameter_Vector3 : ParameterBase, IParameterModify
 	{
 		public delegate void LimitChanged(ParameterBase _value);
@@ -47,7 +47,7 @@ namespace SentienceLab.Data
 			value.limitMin = Vector3.Min(_min, _max);
 			value.limitMax = Vector3.Max(_min, _max);
 			value.value    = Vector3.Min(value.limitMax, Vector3.Max(value.limitMin, value.value));
-			m_checkForChange = true;
+			MarkModified();
 		}
 
 		/// <summary>
@@ -76,7 +76,7 @@ namespace SentienceLab.Data
 			set
 			{
 				this.value.value = Vector3.Min(Vector3.Max(this.value.limitMin, value), this.value.limitMax);
-				m_checkForChange = true;
+				MarkModified();
 			}
 		}
 
@@ -90,16 +90,11 @@ namespace SentienceLab.Data
 		{
 			this.value.limitMin = Vector3.Min(this.value.limitMin, _value);
 			this.value.limitMax = Vector3.Max(this.value.limitMax, _value);
-
-			m_checkForChange = true;
+			MarkModified();
 		}
 
 
-		/// <summary>
-		/// Check for changes to limits of the value and call event handlers accordingly.
-		/// </summary>
-		/// 
-		protected override void CheckForChange()
+		protected override bool CheckForChange()
 		{
 			if ((m_oldValue.limitMin != value.limitMin) || (m_oldValue.limitMax != value.limitMax))
 			{
@@ -112,6 +107,7 @@ namespace SentienceLab.Data
 				InvokeOnValueChanged();
 				m_oldValue.value = value.value;
 			}
+			return true;
 		}
 
 

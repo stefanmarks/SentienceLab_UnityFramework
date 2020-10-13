@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Boolean")]
+	[AddComponentMenu("Parameter/Boolean Parameter")]
 	public class Parameter_Boolean : ParameterBase, IParameterAsBoolean
 	{
 		/// <summary>
@@ -19,8 +19,11 @@ namespace SentienceLab.Data
 			get { return m_value; }
 			set
 			{
-				m_checkForChange |= (value != m_value);
-				m_value = value;
+				if (value != m_value)
+				{
+					m_value = value;
+					MarkModified();
+				}
 			}
 		}
 
@@ -38,10 +41,11 @@ namespace SentienceLab.Data
 		}
 
 
-		protected override void CheckForChange()
+		protected override bool CheckForChange()
 		{
 			// this is only called when the boolean has really changed, so no "old value" check necessary
 			InvokeOnValueChanged();
+			return true;
 		}
 
 

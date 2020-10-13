@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Double Range")]
+	[AddComponentMenu("Parameter/Double Range Parameter")]
 	public class Parameter_DoubleRange : ParameterBase, IParameterModify
 	{
 		public delegate void LimitChanged(ParameterBase _value);
@@ -50,7 +50,7 @@ namespace SentienceLab.Data
 			value.limitMax = System.Math.Max(min, max);
 			value.valueMin = System.Math.Max(value.limitMin, value.valueMin);
 			value.valueMax = System.Math.Min(value.limitMax, value.valueMax);
-			m_checkForChange = true;
+			MarkModified();
 		}
 
 
@@ -62,7 +62,7 @@ namespace SentienceLab.Data
 		{
 			value.valueMin = value.limitMin;
 			value.valueMax = value.limitMax;
-			m_checkForChange = true;
+			MarkModified();
 		}
 
 		
@@ -93,7 +93,7 @@ namespace SentienceLab.Data
 			{
 				this.value.valueMin = System.Math.Max(System.Math.Min(LimitMax, value), LimitMin);
 				this.value.valueMax = System.Math.Max(this.value.valueMax, this.value.valueMin);
-				m_checkForChange = true;
+				MarkModified();
 			}
 		}
 
@@ -107,7 +107,7 @@ namespace SentienceLab.Data
 			{
 				this.value.valueMax = System.Math.Min(System.Math.Max(LimitMin, value), LimitMax);
 				this.value.valueMin = System.Math.Min(this.value.valueMax, this.value.valueMin);
-				m_checkForChange = true;
+				MarkModified();
 			}
 		}
 
@@ -121,8 +121,7 @@ namespace SentienceLab.Data
 		{
 			this.value.limitMin = System.Math.Min(this.value.limitMin, value);
 			this.value.limitMax = System.Math.Max(this.value.limitMax, value);
-
-			m_checkForChange = true;
+			MarkModified();
 		}
 
 		/// <summary>
@@ -134,8 +133,7 @@ namespace SentienceLab.Data
 		{
 			this.value.valueMin = System.Math.Max(this.value.limitMin, System.Math.Min(this.value.valueMin, value));
 			this.value.valueMax = System.Math.Min(this.value.limitMax, System.Math.Max(this.value.valueMax, value));
-
-			m_checkForChange = true;
+			MarkModified();
 		}
 
 		/// <summary>
@@ -197,11 +195,7 @@ namespace SentienceLab.Data
 		}
 
 
-		/// <summary>
-		/// Check for changes to limits of the value and call event handlers accordingly.
-		/// </summary>
-		/// 
-		protected override void CheckForChange()
+		protected override bool CheckForChange()
 		{
 			if ((m_oldValue.limitMin != value.limitMin) || (m_oldValue.limitMax != value.limitMax))
 			{
@@ -215,6 +209,7 @@ namespace SentienceLab.Data
 				m_oldValue.valueMax = value.valueMax;
 				InvokeOnValueChanged();
 			}
+			return true;
 		}
 
 

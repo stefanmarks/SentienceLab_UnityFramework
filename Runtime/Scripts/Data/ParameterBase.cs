@@ -3,6 +3,7 @@
 // (C) Sentience Lab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
+using System;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -43,9 +44,19 @@ namespace SentienceLab.Data
 		{
 			if (m_checkForChange)
 			{
-				CheckForChange();
-				m_checkForChange = false;
+				bool changeHandled = CheckForChange();
+				m_checkForChange = !changeHandled;
 			}
+		}
+
+
+		/// <summary>
+		/// Marks the parameter as modified and will trigger a check how to sync with the entity.
+		/// </summary>
+		/// 
+		public void MarkModified()
+		{
+			m_checkForChange = true;
 		}
 
 
@@ -55,7 +66,7 @@ namespace SentienceLab.Data
 		/// 
 		public void OnValidate()
 		{
-			m_checkForChange = true;
+			MarkModified();
 		}
 
 
@@ -69,8 +80,9 @@ namespace SentienceLab.Data
 		/// <summary>
 		/// Override in derived classes to check for any changes to the parameter.
 		/// </summary>
+		/// <returns><c>true</c> when change has been dealt with, <c>false</c> when to check again in the next Update</returns>
 		/// 
-		protected abstract void CheckForChange();
+		protected abstract bool CheckForChange();
 
 
 		/// <summary>
@@ -83,7 +95,7 @@ namespace SentienceLab.Data
 		}
 
 
-		protected bool m_checkForChange;
+		private bool m_checkForChange;
 	}
 
 

@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Double")]
+	[AddComponentMenu("Parameter/Double Parameter")]
 	public class Parameter_Double : ParameterBase, IParameterModify, IParameterAsBoolean
 	{
 		public delegate void LimitChanged(ParameterBase _value);
@@ -47,7 +47,7 @@ namespace SentienceLab.Data
 			value.limitMin = System.Math.Min(_min, _max);
 			value.limitMax = System.Math.Max(_min, _max);
 			value.value    = System.Math.Min(value.limitMax, System.Math.Max(value.limitMin, value.value));
-			m_checkForChange = true;
+			MarkModified();
 		}
 
 		/// <summary>
@@ -76,7 +76,7 @@ namespace SentienceLab.Data
 			set
 			{
 				this.value.value = System.Math.Min(System.Math.Max(this.value.limitMin, value), this.value.limitMax);
-				m_checkForChange = true;
+				MarkModified();
 			}
 		}
 
@@ -90,8 +90,7 @@ namespace SentienceLab.Data
 		{
 			this.value.limitMin = System.Math.Min(this.value.limitMin, _value);
 			this.value.limitMax = System.Math.Max(this.value.limitMax, _value);
-
-			m_checkForChange = true;
+			MarkModified();
 		}
 
 
@@ -153,11 +152,7 @@ namespace SentienceLab.Data
 		}
 
 
-		/// <summary>
-		/// Check for changes to limits of the value and call event handlers accordingly.
-		/// </summary>
-		/// 
-		protected override void CheckForChange()
+		protected override bool CheckForChange()
 		{
 			if ((m_oldValue.limitMin != value.limitMin) || (m_oldValue.limitMax != value.limitMax))
 			{
@@ -170,6 +165,7 @@ namespace SentienceLab.Data
 				InvokeOnValueChanged();
 				m_oldValue.value = value.value;
 			}
+			return true;
 		}
 
 

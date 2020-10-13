@@ -8,11 +8,11 @@ using UnityEngine;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/String")]
+	[AddComponentMenu("Parameter/String Parameter")]
 	public class Parameter_String : ParameterBase
 	{
 		[SerializeField]
-		private String value;
+		private string value = "";
 
 
 		public new void Start()
@@ -25,13 +25,13 @@ namespace SentienceLab.Data
 		/// The actual value.
 		/// </summary>
 		///
-		public String Value
+		public string Value
 		{
 			get { return value; }
 			set
 			{
 				this.value = value;
-				m_checkForChange = true;
+				MarkModified();
 			}
 		}
 
@@ -48,17 +48,14 @@ namespace SentienceLab.Data
 		}
 
 
-		/// <summary>
-		/// Check for changes to limits of the value and call event handlers accordingly.
-		/// </summary>
-		/// 
-		protected override void CheckForChange()
+		protected override bool CheckForChange()
 		{
 			if (m_oldValue != value)
 			{
 				InvokeOnValueChanged();
 				m_oldValue = value;
 			}
+			return true;
 		}
 
 
@@ -68,6 +65,6 @@ namespace SentienceLab.Data
 		}
 
 
-		protected String m_oldValue;
+		protected string m_oldValue;
 	}
 }
