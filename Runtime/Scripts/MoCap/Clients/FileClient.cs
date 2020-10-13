@@ -107,7 +107,7 @@ namespace SentienceLab.MoCap
 		}
 
 
-		public String GetDataSourceName()
+		public string GetDataSourceName()
 		{
 			return "MOT file '" + dataStream.GetName() + "'";
 		}
@@ -288,7 +288,7 @@ namespace SentienceLab.MoCap
 			for (int boneIdx = 0; boneIdx < nBones; boneIdx++)
 			{
 				int    id   = dataStream.GetNextInt();    // bone ID
-				String name = dataStream.GetNextString(); // bone name 
+				string name = dataStream.GetNextString(); // bone name 
 				Bone   bone = new Bone(actor, name, id);
 
 				int parentId = dataStream.GetNextInt(); // Skeleton parent ID

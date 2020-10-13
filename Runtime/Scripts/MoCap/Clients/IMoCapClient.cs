@@ -51,7 +51,7 @@ namespace SentienceLab.MoCap
 		/// </summary>
 		/// <returns>the name of the data source</returns>
 		/// 
-		String GetDataSourceName();
+		string GetDataSourceName();
 
 
 		/// <summary>
