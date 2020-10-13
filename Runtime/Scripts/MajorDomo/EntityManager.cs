@@ -200,15 +200,15 @@ namespace SentienceLab.MajorDomo
 
 		public static string EntityListAsString(IReadOnlyList<EntityData> _list)
 		{
-			m_sOutput.Clear();
+			StringBuilder sb = new StringBuilder();
 			int idx = 1;
 			foreach(var e in _list)
 			{
-				if (idx > 1) m_sOutput.Append('\n');
-				m_sOutput.Append(idx).Append(":\t").Append(e.ToString(true, true));
+				if (idx > 1) sb.Append('\n');
+				sb.Append(idx).Append(":\t").Append(e.ToString(true, true));
 				idx++;
 			}
-			return m_sOutput.ToString();
+			return sb.ToString();
 		}
 
 
@@ -217,7 +217,5 @@ namespace SentienceLab.MajorDomo
 		private readonly List<EntityData>    m_clientEntityList;
 		private bool                         m_rebuildClientEntityList;
 		private readonly List<EntityData>    m_modifiedEntities;
-
-		private readonly static StringBuilder m_sOutput = new StringBuilder();
 	}
 }

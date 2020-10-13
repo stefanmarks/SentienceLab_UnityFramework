@@ -10,6 +10,7 @@ using System.Net;
 using System.Threading;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using System.Diagnostics;
 
 namespace SentienceLab.MajorDomo
 {
@@ -58,15 +59,6 @@ namespace SentienceLab.MajorDomo
 		[ContextMenuItem("Load configuration from config file", "LoadConfiguration")]
 		[ContextMenuItem("Save configuration to config file", "SaveConfiguration")]
 		public Configuration configuration = new Configuration();
-
-
-		/// <summary>
-		/// Interface for objects that need to automatically register with the manager on startup
-		/// </summary>
-		public interface IAutoRegister
-		{
-			void RegisterWithMajorDomoManager();
-		}
 
 
 		// Singleton accessor
@@ -136,11 +128,27 @@ namespace SentienceLab.MajorDomo
 			return m_state == ManagerState.Connected;
 		}
 
+		public ServerInformation GetServerInformation()
+		{
+			return m_client.ServerInformation();
+		}
+
 		public uint ClientUID { get { return (m_client != null) ? m_client.ClientUID : ClientData.UID_UNASSIGNED; } private set { } }
 
 		public void Awake()
 		{
-			configuration.LoadConfiguration();
+			// is this the singleton instance?
+			if (ms_instance == null)
+			{
+				// preempt search in instance getter
+				ms_instance = this;
+			}
+
+			// no servers listed? > load config file
+			if (configuration.Servers.Count == 0)
+			{
+				configuration.LoadConfiguration();
+			}
 
 			// force instantiation
 			m_client = new MajorDomoClient();
@@ -175,13 +183,6 @@ namespace SentienceLab.MajorDomo
 			ReplaceSpecialApplicationNameParts();
 
 			if (configuration.AutoConnectDelay > 0) StartCoroutine(AutoConnectAsync());
-
-			// auto-register objects that use MajorDomo
-			IAutoRegister[] autoRegisterObjects = Resources.FindObjectsOfTypeAll<SynchronisedGameObject>();
-			foreach (var obj in autoRegisterObjects)
-			{
-				obj.RegisterWithMajorDomoManager();
-			}
 		}
 
 
@@ -366,6 +367,14 @@ namespace SentienceLab.MajorDomo
 
 		public void Update()
 		{
+			Process();
+		}
+
+
+		public bool Process()
+		{
+			bool didProcess = false;
+
 			if (m_state == ManagerState.Connected && m_prevState == ManagerState.Connecting)
 			{
 				// client just connected: invoke event handlers
@@ -382,7 +391,7 @@ namespace SentienceLab.MajorDomo
 			if (m_client.IsConnected())
 			{
 				// process server updates and events here so entity updates are processed in the render loop
-				m_client.ProcessServerUpdates();
+				didProcess |= m_client.ProcessServerUpdates();
 			}
 
 			// relay events to handlers in render loop:
@@ -398,6 +407,7 @@ namespace SentienceLab.MajorDomo
 				// process newly registered client events
 				foreach (ClientData client in m_processingClients) OnClientRegistered?.Invoke(client);
 				m_processingClients.Clear();
+				didProcess = true;
 			}
 
 			// unregistered clients
@@ -412,6 +422,7 @@ namespace SentienceLab.MajorDomo
 				// process newly unregistered client events
 				foreach (ClientData client in m_processingClients) OnClientUnregistered?.Invoke(client);
 				m_processingClients.Clear();
+				didProcess = true;
 			}
 		
 			// publishing entities
@@ -426,6 +437,7 @@ namespace SentienceLab.MajorDomo
 				// process published entity events
 				OnEntitiesPublished?.Invoke(m_processingEntities);
 				m_processingEntities.Clear();
+				didProcess = true;
 			}
 
 			// revoking entities
@@ -440,6 +452,7 @@ namespace SentienceLab.MajorDomo
 				// process revoked entity events
 				OnEntitiesRevoked?.Invoke(m_processingEntities);
 				m_processingEntities.Clear();
+				didProcess = true;
 			}
 
 			lock (m_controlledEntities)
@@ -453,6 +466,7 @@ namespace SentienceLab.MajorDomo
 				// process control-changed entity events
 				OnEntityControlChanged?.Invoke(m_processingEntities);
 				m_processingEntities.Clear();
+				didProcess = true;
 			}
 
 			// broadcasts
@@ -470,6 +484,7 @@ namespace SentienceLab.MajorDomo
 					OnClientBroadcastReceived?.Invoke(broadcast);
 				}
 				m_processingBroadcasts.Clear();
+				didProcess = true;
 			}
 
 			lock (m_serverShutdown)
@@ -484,6 +499,7 @@ namespace SentienceLab.MajorDomo
 			}
 
 			m_prevState = m_state;
+			return didProcess;
 		}
 
 
