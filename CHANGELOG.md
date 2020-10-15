@@ -13,10 +13,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Redirected Walking modifier
 - Green and red laser material
 - Event parameter
+- InputSystem based MovementController
+- TouchpadButtonComposite
 
 ### Changed
 
-- Menu names for parameteres and controllers
+- MajorDomo protocol update to v0.6.1 + Flatbuffer/NetMQ updates
+- Menu names for parameters and controllers
 - Introduced a central SynchronisedGameObject, which uses SynchronisedTransform and SynchronisedParameters as "components"
 
 ### Removed
