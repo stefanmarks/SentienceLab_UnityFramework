@@ -41,14 +41,17 @@ namespace SentienceLab.Physics
 				m_activeBody = m_candidate != null ? m_candidate : DefaultRigidBody;
 				if (m_activeBody != null)
 				{
-					if (m_candidate != null) m_candidate.InvokeGrabStart(this.gameObject);
+					m_activeBody.InvokeGrabStart(this.gameObject);
 					m_localGrabPoint = m_activeBody.transform.InverseTransformPoint(this.transform.position);
 				}
 			}
 			else if (m_handlerActive.IsDeactivated())
 			{
-				if (m_candidate != null) m_candidate.InvokeGrabEnd(this.gameObject);
-				m_activeBody = null;
+				if (m_activeBody != null)
+				{
+					m_activeBody.InvokeGrabEnd(this.gameObject);
+					m_activeBody = null;
+				}
 			}
 		}
 

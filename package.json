@@ -7,8 +7,8 @@
   "keywords": [
     "vr",
     "xr",
-	"multiuser",
-	"network"
+    "multiuser",
+    "network"
   ],
   "dependencies": {
     "com.unity.inputsystem": "1.0.0"
