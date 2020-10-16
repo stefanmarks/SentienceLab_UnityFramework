@@ -33,15 +33,19 @@ public class HelpUI : MonoBehaviour
 		canvas.enabled = true;
 		time = deactivateTime;
 		isWithinTrigger = false;
+		foreach (var actionRef in hideInputActions)
+		{
+			actionRef.action.Enable();
+		}
 	}
 
 
 	void Update()
 	{
 		// fade out UI when specific actions are active
-		foreach (var action in hideInputActions)
+		foreach (var actionRef in hideInputActions)
 		{
-			if (action.action.ReadValue<float>() > 0)
+			if (actionRef.action.ReadValue<float>() > 0)
 			{
 				isWithinTrigger = false;
 				time = float.Epsilon;
