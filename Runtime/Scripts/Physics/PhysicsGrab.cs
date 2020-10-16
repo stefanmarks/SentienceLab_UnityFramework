@@ -77,14 +77,20 @@ namespace SentienceLab.Physics
 		public void OnTriggerEnter(Collider other)
 		{
 			m_candidate = other.GetComponentInParent<InteractiveRigidbody>();
-			m_candidate?.InvokeHoverStart(this.gameObject);
+			if (m_candidate != null)
+			{
+				m_candidate.InvokeHoverStart(this.gameObject);
+			}
 		}
 
 
 		public void OnTriggerExit(Collider other)
 		{
-			m_candidate?.InvokeHoverEnd(this.gameObject);
-			m_candidate = null;
+			if (m_candidate != null)
+			{
+				m_candidate.InvokeHoverEnd(this.gameObject);
+				m_candidate = null;
+			}
 		}
 
 
