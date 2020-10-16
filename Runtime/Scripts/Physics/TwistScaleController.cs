@@ -59,12 +59,12 @@ namespace SentienceLab.Physics
 					m_rotation = Mathf.Clamp(m_rotation,
 						Curve.keys[0].time,
 						Curve.keys[Curve.length - 1].time);
-					// actually change parameter
-
+					// calculate scale change
+					float deltaScale = Curve.Evaluate(m_rotation);
 					InteractiveRigidbody irb = m_physicsGrabScript.GetActiveBody();
-					if ((Mathf.Abs(m_rotation) > 1) && (irb != null) && irb.CanScale)
+					if ((Mathf.Abs(deltaScale) > 0) && (irb != null) && irb.CanScale)
 					{
-						float relScaleFactor = 1.0f + Curve.Evaluate(m_rotation) * Time.fixedDeltaTime;
+						float relScaleFactor = 1.0f + deltaScale * Time.fixedDeltaTime;
 						Vector3 oldScale = irb.Rigidbody.transform.localScale;
 						Vector3 newScale = oldScale * relScaleFactor;
 						Vector3 pivot    = m_physicsGrabScript.GetGrabPoint();
