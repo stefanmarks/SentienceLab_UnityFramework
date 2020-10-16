@@ -129,6 +129,7 @@ namespace SentienceLab.Data
 				 (transform.localScale.x != m_lastScale))
 			{
 				m_lastScaleChange = Time.frameCount;
+				m_lastScale       = transform.localScale.x;
 				scaleParameter.Value = m_lastScale;
 				// copy back in case limits were met
 				m_lastScale          = (float)scaleParameter.Value;
