@@ -45,12 +45,12 @@ public class TouchpadButtonComposite : InputBindingComposite<bool>
         var touchpadPartValue  = context.ReadValue<Vector2, Vector2MagnitudeComparer>(TouchpadPart, _comparer);
         var buttonPartValue    = context.ReadValueAsButton(ButtonPart);
 
-        float angle = Mathf.Atan2(touchpadPartValue.y, touchpadPartValue.x) * Mathf.Rad2Deg;
-        float mag   = touchpadPartValue.magnitude;
+        float mag = touchpadPartValue.magnitude;
 
         if (buttonPartValue && (mag > DeadZone))
 		{
-            // convert to "compass angle" (0=N, E=90, S=180, W=270)
+            float angle = Mathf.Atan2(touchpadPartValue.y, touchpadPartValue.x) * Mathf.Rad2Deg;
+            // convert from atan angle to "compass angle" (0=N, E=90, S=180, W=270)
             angle = 90 - angle;
             if (angle <   0) { angle += 360; }
             if (angle > 360) { angle -= 360; }
