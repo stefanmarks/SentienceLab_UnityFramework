@@ -279,7 +279,7 @@ namespace SentienceLab
 				// update cursor
 				UpdateCursor(ref ctrl);
 
-				if (ctrl.actionState == ControllerActionState.Pressed)
+				if (ctrl.actionState == ControllerActionState.Pressing)
 				{
 					ClearSelection();
 
@@ -323,7 +323,7 @@ namespace SentienceLab
 						ctrl.currentDragging = ctrl.currentPressed;
 					}
 
-					ctrl.actionState = ControllerActionState.Pressing;
+					ctrl.actionState = ControllerActionState.Pressed;
 				}
 
 				if (ctrl.actionState == ControllerActionState.Releasing)
