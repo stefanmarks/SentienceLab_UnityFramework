@@ -9,6 +9,7 @@ using UnityEngine;
 /// <summary>
 /// Script to move an object forwards/sideways
 /// </summary>
+[System.Obsolete("Please consider using the new InputSystem and its MovementController_InputSystem")]
 public class MovementController : MonoBehaviour 
 {
 	public string actionMoveX         = "moveX";

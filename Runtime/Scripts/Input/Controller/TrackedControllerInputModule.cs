@@ -3,10 +3,10 @@
 // (C) Sentience Lab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
-using SentienceLab.Input;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 namespace SentienceLab
 {
@@ -20,8 +20,8 @@ namespace SentienceLab
 		[System.Serializable]
 		public class ControllerInfo
 		{
-			public Transform trackedObject;
-			public string    actionName;
+			public Transform            trackedObject;
+			public InputActionReference action;
 		}
 
 		[Tooltip("Layers that this tracked controller reacts to")]
@@ -85,7 +85,14 @@ namespace SentienceLab
 					{
 						ControllerData data = new ControllerData();
 						data.transform = controllers[idx].trackedObject.transform;
-						data.actionHandler = InputHandler.Find(controllers[idx].actionName);
+						data.action    = controllers[idx].action.action;
+						if (data.action != null)
+						{
+							data.action.performed += data.OnPerformed;
+							data.action.canceled  += data.OnCanceled;
+							data.action.Enable();
+						}
+						data.actionState = ControllerActionState.Released;
 						data.ray = controllers[idx].trackedObject.GetComponentInChildren<PointerRay>();
 						controllerDataList.Add(data);
 					}
@@ -272,7 +279,7 @@ namespace SentienceLab
 				// update cursor
 				UpdateCursor(ref ctrl);
 
-				if (ctrl.actionHandler.IsActivated())
+				if (ctrl.actionState == ControllerActionState.Pressed)
 				{
 					ClearSelection();
 
@@ -315,9 +322,11 @@ namespace SentienceLab
 						ctrl.eventData.pointerDrag = ctrl.currentPressed;
 						ctrl.currentDragging = ctrl.currentPressed;
 					}
+
+					ctrl.actionState = ControllerActionState.Pressing;
 				}
 
-				if (ctrl.actionHandler.IsDeactivated())
+				if (ctrl.actionState == ControllerActionState.Releasing)
 				{
 					if (ctrl.currentDragging)
 					{
@@ -338,6 +347,8 @@ namespace SentienceLab
 					}
 
 					ClearSelection();
+
+					ctrl.actionState = ControllerActionState.Released;
 				}
 
 				// drag handling
@@ -349,16 +360,23 @@ namespace SentienceLab
 		}
 
 
+
+		protected enum ControllerActionState { Pressing, Pressed, Releasing, Released }
+
 		protected class ControllerData
 		{
-			public int              index;
-			public Transform        transform;
-			public InputHandler     actionHandler;
-			public GameObject       currentPoint;
-			public GameObject       currentPressed;
-			public GameObject       currentDragging;
-			public PointerEventData eventData;
-			public PointerRay       ray;
+			public int                   index;
+			public Transform             transform;
+			public InputAction           action;
+			public ControllerActionState actionState;
+			public GameObject            currentPoint;
+			public GameObject            currentPressed;
+			public GameObject            currentDragging;
+			public PointerEventData      eventData;
+			public PointerRay            ray;
+
+			public void OnPerformed(InputAction.CallbackContext _ctx) { actionState = ControllerActionState.Pressing; }
+			public void OnCanceled(InputAction.CallbackContext _ctx)  { actionState = ControllerActionState.Releasing; }
 		}
 
 
