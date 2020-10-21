@@ -3,11 +3,11 @@
 // (C) Sentience Lab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
-using SentienceLab.Input;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 namespace SentienceLab.MoCap
@@ -46,8 +46,11 @@ namespace SentienceLab.MoCap
 		[ContextMenuItem("Save configuration to config file", "SaveConfiguration")]
 		public Configuration configuration;
 
+		[Tooltip("Action for pausing/running the client")]
+		public InputActionReference PauseAction;
 
-		private readonly byte[] clientAppVersion = new byte[] { 1, 4, 4, 0 };
+
+		private readonly byte[] clientAppVersion = new byte[] { 1, 4, 5, 0 };
 
 
 		/// <summary>
@@ -58,10 +61,10 @@ namespace SentienceLab.MoCap
 		{
 			CreateManager(); // trigger creation of singleton (if not already happened)
 
-			if (instance == null)
+			if (ms_instance == null)
 			{
-				instance = this;
-				Debug.Log("MoCap Manager instance created (" + client.GetDataSourceName() + ")");
+				ms_instance = this;
+				Debug.Log("MoCap Manager instance created (" + m_client.GetDataSourceName() + ")");
 			}
 			else
 			{
@@ -69,8 +72,16 @@ namespace SentienceLab.MoCap
 				GameObject.Destroy(this);
 			}
 
-			lastUpdateFrame    = -1;
-			lastPreRenderFrame = -1;
+			if (PauseAction != null)
+			{
+				PauseAction.action.performed += OnPausedActionPerformed;
+				PauseAction.action.Enable();
+			}
+
+			m_pauseClient = false;
+
+			m_lastUpdateFrame    = -1;
+			m_lastPreRenderFrame = -1;
 		}
 
 
@@ -81,15 +92,15 @@ namespace SentienceLab.MoCap
 		///
 		public void OnDestroy()
 		{
-			clientMutex.WaitOne();
-			if (client != null)
+			m_clientMutex.WaitOne();
+			if (m_client != null)
 			{
-				client.Disconnect();
-				client = null;
+				m_client.Disconnect();
+				m_client = null;
 
-				sceneListeners.Clear();
+				ms_sceneListeners.Clear();
 			}
-			clientMutex.ReleaseMutex();
+			m_clientMutex.ReleaseMutex();
 			// MoCap Objects might have registered Coroutines here
 			StopAllCoroutines();
 		}
@@ -102,10 +113,22 @@ namespace SentienceLab.MoCap
 		/// 
 		public void OnApplicationPause(bool pause)
 		{
-			if (client != null)
+			if (m_client != null)
 			{
-				client.SetPaused(pause);
+				m_client.SetPaused(pause);
 			}
+		}
+
+
+		/// <summary>
+		/// Called when the application is paused or continued.
+		/// </summary>
+		/// <param name="pause"><c>true</c> when the application is paused</param>
+		/// 
+		public void OnPausedActionPerformed(InputAction.CallbackContext _ctx)
+		{
+			m_pauseClient = !m_pauseClient;
+			OnApplicationPause(m_pauseClient);
 		}
 
 
@@ -115,10 +138,10 @@ namespace SentienceLab.MoCap
 		///
 		public void Update()
 		{
-			if (lastUpdateFrame < Time.frameCount)
+			if (m_lastUpdateFrame < Time.frameCount)
 			{
 				UpdateScene();
-				lastUpdateFrame = Time.frameCount;
+				m_lastUpdateFrame = Time.frameCount;
 			}
 		}
 
@@ -129,10 +152,10 @@ namespace SentienceLab.MoCap
 		///
 		public void OnPreRender()
 		{
-			if (lastPreRenderFrame < Time.frameCount)
+			if (m_lastPreRenderFrame < Time.frameCount)
 			{
 				UpdateScene();
-				lastPreRenderFrame = Time.frameCount;
+				m_lastPreRenderFrame = Time.frameCount;
 			}
 		}
 
@@ -143,13 +166,13 @@ namespace SentienceLab.MoCap
 		///
 		public void UpdateScene()
 		{
-			if (client != null)
+			if (m_client != null)
 			{
-				if (client.IsConnected())
+				if (m_client.IsConnected())
 				{
 					bool dataChanged  = false;
 					bool sceneChanged = false;
-					client.Update(ref dataChanged, ref sceneChanged);
+					m_client.Update(ref dataChanged, ref sceneChanged);
 
 					if (sceneChanged) NotifyListeners_Change(Scene);
 					if (dataChanged ) NotifyListeners_Update(Scene);
@@ -167,7 +190,7 @@ namespace SentienceLab.MoCap
 		{
 			get
 			{
-				return (client != null) && client.IsConnected();
+				return (m_client != null) && m_client.IsConnected();
 			}
 		}
 
@@ -180,7 +203,7 @@ namespace SentienceLab.MoCap
 		{
 			get
 			{
-				return (client != null) ? client.GetDataSourceName() : "";
+				return (m_client != null) ? m_client.GetDataSourceName() : "";
 			}
 		}
 
@@ -194,7 +217,7 @@ namespace SentienceLab.MoCap
 		{
 			get
 			{
-				return (client != null) ? client.GetFramerate() : 0.0f;
+				return (m_client != null) ? m_client.GetFramerate() : 0.0f;
 			}
 		}
 
@@ -206,7 +229,7 @@ namespace SentienceLab.MoCap
 		public Scene Scene {
 			get
 			{
-				return (client != null) ? client.GetScene() : null;
+				return (m_client != null) ? m_client.GetScene() : null;
 			}
 		}
 
@@ -220,12 +243,12 @@ namespace SentienceLab.MoCap
 		public bool AddSceneListener(SceneListener listener)
 		{
 			bool added = false;
-			if (!sceneListeners.Contains(listener))
+			if (!ms_sceneListeners.Contains(listener))
 			{
-				sceneListeners.Add(listener);
+				ms_sceneListeners.Add(listener);
 				added = true;
 				// immediately trigger callback
-				if (client != null)
+				if (m_client != null)
 				{
 					Scene scene = Scene;
 					scene.mutex.WaitOne();
@@ -245,7 +268,7 @@ namespace SentienceLab.MoCap
 		/// 
 		public bool RemoveSceneListener(SceneListener listener)
 		{
-			return sceneListeners.Remove(listener);
+			return ms_sceneListeners.Remove(listener);
 		}
 
 
@@ -265,7 +288,7 @@ namespace SentienceLab.MoCap
 			}
 
 			// call listeners
-			foreach (SceneListener listener in sceneListeners)
+			foreach (SceneListener listener in ms_sceneListeners)
 			{
 				listener.SceneDataUpdated(scene);
 			}
@@ -281,7 +304,7 @@ namespace SentienceLab.MoCap
 		private void NotifyListeners_Change(Scene scene)
 		{
 			scene.mutex.WaitOne();
-			foreach (SceneListener listener in sceneListeners)
+			foreach (SceneListener listener in ms_sceneListeners)
 			{
 				listener.SceneDefinitionChanged(scene);
 			}
@@ -297,12 +320,16 @@ namespace SentienceLab.MoCap
 		/// 
 		private void CreateManager()
 		{
-			configuration.LoadConfiguration();
+			// no sources listed? > load config file
+			if (configuration.Sources.Count == 0)
+			{
+				configuration.LoadConfiguration();
+			}
 
-			sceneListeners = new List<SceneListener>();
+			ms_sceneListeners = new List<SceneListener>();
 
-			clientMutex.WaitOne();
-			if (client == null)
+			m_clientMutex.WaitOne();
+			if (m_client == null)
 			{
 				// only connect when this script is actually enabled
 				if (this.isActiveAndEnabled)
@@ -320,34 +347,48 @@ namespace SentienceLab.MoCap
 						if (info is NatNetClient.ConnectionInfo)
 						{
 							// is client already the right type?
-							if (!(client is NatNetClient))
+							if (!(m_client is NatNetClient))
 							{
-								client = new NatNetClient(ClientName, clientAppVersion);
+								m_client = new NatNetClient(ClientName, clientAppVersion);
 							}
 						}
 						else if (info is FileClient.ConnectionInfo) 
 						{
 							// is client already the right type?
-							if (!(client is FileClient))
+							if (!(m_client is FileClient))
 							{
-								client = new FileClient();
+								m_client = new FileClient();
 							}
 						}
 
-						if (client.Connect(info))
+						if (m_client.Connect(info))
 						{
 							// connection established > that's it
 							break;
 						}
 					}
 
-					if ((client != null) && client.IsConnected())
+					// no client yet > try OpenVR
+					if (((m_client == null) || !m_client.IsConnected()) && UnityEngine.XR.XRDevice.isPresent)
 					{
-						Debug.Log("MoCap client connected to " + client.GetDataSourceName() + ".\n" +
-						          "Framerate: " + client.GetFramerate() + " fps");
+						m_client = new OpenVR_Client();
+						m_client.Connect(null);
+						
+						// did OpenVR work? If not, try he more generic Unity XR client
+						if (!m_client.IsConnected())
+						{
+							m_client = new UnityXR_Client();
+							m_client.Connect(null);
+						}
+					}
+
+					if ((m_client != null) && m_client.IsConnected())
+					{
+						Debug.Log("MoCap client connected to " + m_client.GetDataSourceName() + ".\n" +
+						          "Framerate: " + m_client.GetFramerate() + " fps");
 
 						// print list of actor and device names
-						Scene scene = client.GetScene();
+						Scene scene = m_client.GetScene();
 						if (scene.actors.Count > 0)
 						{
 							string actorNames = "";
@@ -371,19 +412,19 @@ namespace SentienceLab.MoCap
 					}
 				}
 
-				if ((client == null) || !client.IsConnected())
+				if ((m_client == null) || !m_client.IsConnected())
 				{
 					// not active or not able to connect to any data source: create dummy singleton 
-					client = new DummyClient();
+					m_client = new DummyClient();
 				}
 
 				// all fine, notify listeners of scene change
-				if ((client != null) && client.IsConnected())
+				if ((m_client != null) && m_client.IsConnected())
 				{
 					NotifyListeners_Change(Scene);
 				}
 			}
-			clientMutex.ReleaseMutex();
+			m_clientMutex.ReleaseMutex();
 		}
 
 
@@ -479,16 +520,16 @@ namespace SentienceLab.MoCap
 		{
 			get
 			{
-				if (instance == null)
+				if (ms_instance == null)
 				{
-					if (!warningIssued)
+					if (!m_warningIssued)
 					{
 						Debug.LogWarning("No MoCapManager in scene");
-						warningIssued = true;
+						m_warningIssued = true;
 					}
 				}
 
-				return instance;
+				return ms_instance;
 			}
 		}
 
@@ -505,15 +546,16 @@ namespace SentienceLab.MoCap
 		}
 
 
-		private static MoCapManager        instance       = null;
-		private static List<SceneListener> sceneListeners = null;
+		private static MoCapManager        ms_instance       = null;
+		private static List<SceneListener> ms_sceneListeners = null;
 
-		private static bool         warningIssued = false;
-		private static IMoCapClient client        = null;
-		private static Mutex        clientMutex   = new Mutex();
+		private static bool         m_warningIssued = false;
+		private static IMoCapClient m_client        = null;
+		private static Mutex        m_clientMutex   = new Mutex();
 
-		private long lastUpdateFrame, lastPreRenderFrame;
-		private bool pauseClient; 
+		private long m_lastUpdateFrame, m_lastPreRenderFrame;
+
+		private bool m_pauseClient; 
 	}
 
 }
