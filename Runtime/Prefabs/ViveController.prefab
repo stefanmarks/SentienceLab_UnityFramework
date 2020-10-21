@@ -551,6 +551,7 @@ GameObject:
   - component: {fileID: 4000013662465882}
   - component: {fileID: 120000011820340380}
   - component: {fileID: 8868652371079873084}
+  - component: {fileID: 7341972984352414518}
   - component: {fileID: 114000011056450068}
   m_Layer: 0
   m_Name: PointerRay
@@ -693,6 +694,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: pointerRayEnabled
   m_value: 1
+--- !u!114 &7341972984352414518
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000012404638840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe3fc58bfc5500947a1076e79b0734d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Parameter: {fileID: 8868652371079873084}
+  Action: {fileID: 0}
+  Mode: 0
 --- !u!114 &114000011056450068
 MonoBehaviour:
   m_ObjectHideFlags: 0

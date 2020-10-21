@@ -1627,6 +1627,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4937432694096486078}
+  - component: {fileID: 2088240621077724149}
+  - component: {fileID: 439935412047555389}
   - component: {fileID: 4980558400285768688}
   - component: {fileID: 4981313524236019064}
   m_Layer: 0
@@ -1651,6 +1653,35 @@ Transform:
   m_Father: {fileID: 4937432697632184830}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2088240621077724149
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4938461545883612572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b10f23c720d827478cb8b7394c157ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Name: pointerRayEnabled
+  m_value: 1
+--- !u!114 &439935412047555389
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4938461545883612572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe3fc58bfc5500947a1076e79b0734d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Parameter: {fileID: 2088240621077724149}
+  Action: {fileID: 0}
+  Mode: 0
 --- !u!114 &4980558400285768688
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1663,7 +1694,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 949087bc370be80498db2994bae8dcb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  activationParameter: {fileID: 0}
+  activationParameter: {fileID: 2088240621077724149}
   rayRange: 10
   tagList: []
   checkInsideColliders: []

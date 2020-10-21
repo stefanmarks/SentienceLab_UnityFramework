@@ -144,6 +144,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4000012803716452}
+  - component: {fileID: 8846845535040420444}
   - component: {fileID: 114000010451637892}
   - component: {fileID: 120000011456027732}
   m_Layer: 0
@@ -168,6 +169,20 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8846845535040420444
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1000011784063806}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b10f23c720d827478cb8b7394c157ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Name: pointerRayEnabled
+  m_value: 1
 --- !u!114 &114000010451637892
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -180,13 +195,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 949087bc370be80498db2994bae8dcb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rayEnabled: 1
+  activationParameter: {fileID: 8846845535040420444}
   rayRange: 10
   tagList: []
   checkInsideColliders: []
   activeEndPoint: {fileID: 4000012982419298}
-  activationAction: 
-  activationParameter: {fileID: 0}
   rayDirection: {fileID: 0}
 --- !u!120 &120000011456027732
 LineRenderer:
@@ -213,6 +226,7 @@ LineRenderer:
   m_ProbeAnchor: {fileID: 0}
   m_LightProbeVolumeOverride: {fileID: 0}
   m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
   m_PreserveUVs: 0
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
