@@ -15,9 +15,18 @@ namespace SentienceLab.Data
 	/// 
 	public class TransformParameterManager : MonoBehaviour
 	{
+		[ContextMenuItem("Copy transform limits to parameter limits", "CopyLimitsToParameters_Position")]
+		[ContextMenuItem("Copy parameter limits to transform limits", "CopyLimitsFromParameters_Position")]
 		public Parameter_Vector3 positionParameter;
+
+		[ContextMenuItem("Copy transform limits to parameter limits", "CopyLimitsToParameters_Rotation")]
+		[ContextMenuItem("Copy parameter limits to transform limits", "CopyLimitsFromParameters_Rotation")]
 		public Parameter_Vector3 rotationParameter;
+
+		[ContextMenuItem("Copy transform limits to parameter limits", "CopyLimitsToParameters_Scale")]
+		[ContextMenuItem("Copy parameter limits to transform limits", "CopyLimitsFromParameters_Scale")]
 		public Parameter_Double  scaleParameter;
+
 
 
 		public void Start()
@@ -134,6 +143,69 @@ namespace SentienceLab.Data
 				// copy back in case limits were met
 				m_lastScale          = (float)scaleParameter.Value;
 				transform.localScale = Vector3.one * m_lastScale;
+			}
+		}
+
+
+		public void CopyLimitsToParameters_Position()
+		{
+			var limit = GetComponent<PositionLimits>();
+			if ((limit != null) && (positionParameter != null))
+			{
+				positionParameter.SetLimits(limit.Minimum, limit.Maximum);
+			}
+		}
+
+
+		public void CopyLimitsFromParameters_Position()
+		{
+			var limit = GetComponent<PositionLimits>();
+			if ((limit != null) && (positionParameter != null))
+			{
+				limit.Minimum = positionParameter.LimitMin;
+				limit.Maximum = positionParameter.LimitMax;
+			}
+		}
+
+
+		public void CopyLimitsToParameters_Rotation()
+		{
+			var limit = GetComponent<RotationLimits>();
+			if ((limit != null) && (rotationParameter != null))
+			{
+				rotationParameter.SetLimits(limit.Minimum, limit.Maximum);
+			}
+		}
+
+
+		public void CopyLimitsFromParameters_Rotation()
+		{
+			var limit = GetComponent<RotationLimits>();
+			if ((limit != null) && (rotationParameter != null))
+			{
+				limit.Minimum = rotationParameter.LimitMin;
+				limit.Maximum = rotationParameter.LimitMax;
+			}
+		}
+
+
+		public void CopyLimitsToParameters_Scale()
+		{
+			var limit = GetComponent<ScaleLimits>();
+			if ((limit != null) && (scaleParameter != null))
+			{
+				scaleParameter.SetLimits(limit.Minimum, limit.Maximum);
+			}
+		}
+
+
+		public void CopyLimitsFromParameters_Scale()
+		{
+			var limit = GetComponent<ScaleLimits>();
+			if ((limit != null) && (scaleParameter != null))
+			{
+				limit.Minimum = (float) scaleParameter.LimitMin;
+				limit.Maximum = (float) scaleParameter.LimitMax;
 			}
 		}
 
