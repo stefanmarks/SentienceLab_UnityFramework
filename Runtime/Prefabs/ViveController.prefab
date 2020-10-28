@@ -785,8 +785,8 @@ MonoBehaviour:
     m_Interactions: 
     m_SingletonActionBindings:
     - m_Name: 
-      m_Id: 3fa6d431-a255-4c0c-a260-f480eeb1adc3
-      m_Path: <ViveWand>{LeftHand}/devicePosition
+      m_Id: 015f3b8f-6e38-4ee0-ba9d-156ded5812f3
+      m_Path: <ViveWand>/devicePosition
       m_Interactions: 
       m_Processors: 
       m_Groups: 
@@ -802,7 +802,7 @@ MonoBehaviour:
     m_SingletonActionBindings:
     - m_Name: 
       m_Id: 85a68710-f27e-432d-b3ca-d9eeef9b7606
-      m_Path: <ViveWand>{LeftHand}/deviceRotation
+      m_Path: <ViveWand>/deviceRotation
       m_Interactions: 
       m_Processors: 
       m_Groups: 
@@ -830,7 +830,7 @@ MonoBehaviour:
     m_SingletonActionBindings:
     - m_Name: 
       m_Id: 1db68d89-6244-40e2-8dc6-339f11537f9f
-      m_Path: <ViveWand>{LeftHand}/isTracked
+      m_Path: <ViveWand>/isTracked
       m_Interactions: 
       m_Processors: 
       m_Groups: 
