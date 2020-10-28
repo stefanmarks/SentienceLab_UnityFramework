@@ -29,6 +29,7 @@ namespace SentienceLab.Data
 		[Tooltip("Factor to change the parameter by per step")]
 		public int Multiplier = 1;
 
+#if ENABLE_LEGACY_INPUT_MANAGER
 
 		public void Start()
 		{
@@ -74,5 +75,8 @@ namespace SentienceLab.Data
 
 		private IParameterModify m_modify;
 		private InputHandler     m_handlerInc, m_handlerDec;
+
+#endif
+
 	}
 }

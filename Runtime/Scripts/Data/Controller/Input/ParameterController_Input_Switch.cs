@@ -30,6 +30,7 @@ namespace SentienceLab.Data
 		[Tooltip("Mode of the switch")]
 		public eMode Mode;
 
+#if ENABLE_LEGACY_INPUT_MANAGER
 
 		public void Start()
 		{
@@ -83,5 +84,8 @@ namespace SentienceLab.Data
 
 		private IParameterAsBoolean m_boolean;
 		private InputHandler        m_handler;
+
+#endif
+
 	}
 }

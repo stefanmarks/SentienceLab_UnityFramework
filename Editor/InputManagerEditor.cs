@@ -7,6 +7,8 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
+#if ENABLE_LEGACY_INPUT_MANAGER
+
 namespace SentienceLab.Input
 {
 	/// <summary>
@@ -54,3 +56,5 @@ namespace SentienceLab.Input
 		}
 	}
 }
+
+#endif

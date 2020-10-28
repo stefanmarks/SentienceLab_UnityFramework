@@ -26,6 +26,7 @@ namespace SentienceLab.Data
 		[Tooltip("Factor to change the parameter by per second")]
 		public float Multiplier = 1.0f;
 
+#if ENABLE_LEGACY_INPUT_MANAGER
 
 		public void Start()
 		{
@@ -66,5 +67,8 @@ namespace SentienceLab.Data
 
 		private IParameterModify m_modify;
 		private InputHandler     m_handler;
+
+#endif
+
 	}
 }

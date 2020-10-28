@@ -26,6 +26,7 @@ public class MovementController : MonoBehaviour
 	public bool      translationIgnoresPitch = true;
 	public Transform rotationBasisNode;
 
+#if ENABLE_LEGACY_INPUT_MANAGER
 
 	void Start()
 	{
@@ -81,4 +82,7 @@ public class MovementController : MonoBehaviour
 	private InputHandler handlerMoveX, handlerMoveY, handlerMoveZ;  // input handlers for moving
 	private InputHandler handlerRotateX, handlerRotateY;            // input handlers for rotating
 	private Vector3      vecTranslate, vecRotate, vec;
+
+#endif
+
 }

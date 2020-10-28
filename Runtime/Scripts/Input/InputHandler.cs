@@ -3,6 +3,8 @@
 // (C) Sentience Lab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
+#if ENABLE_LEGACY_INPUT_MANAGER
+
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -683,3 +685,5 @@ namespace SentienceLab.Input
 		}
 	}
 }
+
+#endif
