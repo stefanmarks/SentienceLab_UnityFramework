@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-using SentienceLab.Input;
 using SentienceLab.PostProcessing;
 using System.Collections.Generic;
 
@@ -11,19 +11,13 @@ using System.Collections.Generic;
 public class SceneSelection : MonoBehaviour 
 {
 	[Tooltip("Action for tiggering the next scene")]
-	public string actionNameNext = "nextScene";
+	public InputActionReference NextSceneAction;
 
 	[Tooltip("Action for tiggering the previous scene")]
-	public string actionNamePrev = "prevScene";
-
-	[Tooltip("Duration in seconds to press the scene selection key")]
-	public float activationTime = 1.0f;
+	public InputActionReference PreviousSceneAction;
 
 	[Tooltip("Time in seconds for the fade out and in")]
 	private float fadeTime = 1.0f;
-
-	[Tooltip("Use keys 1-9 to directly select scenes")]
-	public bool useNumberKeys = false;
 
 
 	public void Start()
@@ -41,8 +35,16 @@ public class SceneSelection : MonoBehaviour
 		faders = ScreenFade.AttachToAllCameras();
 
 		// create action handlers for next/prev scene selection
-		actionNext = InputHandler.Find(actionNameNext);
-		actionPrev = InputHandler.Find(actionNamePrev);
+		if (NextSceneAction != null)
+		{
+			NextSceneAction.action.performed += delegate { NextScene(); };
+			NextSceneAction.action.Enable();
+		}
+		if (PreviousSceneAction != null)
+		{
+			PreviousSceneAction.action.performed += delegate { PreviousScene(); };
+			PreviousSceneAction.action.Enable();
+		}
 	}
 
 
@@ -77,76 +79,42 @@ public class SceneSelection : MonoBehaviour
 				fade.FadeFactor = fadeLevel;
 			}
 		}
-		else
+	}
+	
+	
+	public void NextScene()
+	{
+		SetScene(sceneIndex + 1);
+	}
+	
+
+	public void PreviousScene()
+	{
+		SetScene(sceneIndex - 1);
+	}
+	
+
+	public void SetScene(int _sceneIndex)
+	{
+		// scene index sanity check
+		if (_sceneIndex < 0) { _sceneIndex = maxSceneIndex; }
+		if (_sceneIndex > maxSceneIndex) { _sceneIndex = 0; }
+
+		if (_sceneIndex != currentSceneIndex)
 		{
-			// no fade in progress and no scene selected > check keys
+			// new scene number > start fading
+			sceneIndex = _sceneIndex;
+			Debug.Log("About to load scene #" + sceneIndex);
 
-			if (actionNext.IsActive())
-			{
-				if (timeout < activationTime)
-				{
-					// keep on pressing...
-					timeout += Time.deltaTime;
-				}
-				else
-				{
-					// pressed long enough: select previous scene
-					sceneIndex++;
-				}
-			}
-			else if (actionPrev.IsActive())
-			{
-				if (timeout < activationTime)
-				{
-					// keep on pressing...
-					timeout += Time.deltaTime;
-				}
-				else
-				{
-					// pressed long enough: select previous scene
-					sceneIndex--;
-				}
-			}
-			else
-			{
-				// buttons released
-				timeout = 0;
-			}
-
-			if (useNumberKeys)
-			{
-				// check number keys
-				for (int idx = 0; idx < Mathf.Min(maxSceneIndex, 9); idx++)
-				{
-					if (Input.GetKeyDown(KeyCode.Alpha1 + idx))
-					{
-						sceneIndex = idx;
-					}
-				}
-			}
-
-			// scene index sanity check
-			if (sceneIndex < 0            ) { sceneIndex = maxSceneIndex; }
-			if (sceneIndex > maxSceneIndex) { sceneIndex = 0;             }
-
-			if (sceneIndex != currentSceneIndex)
-			{
-				// new scene number > start fading
-				Debug.Log("About to load scene " + sceneIndex);
-
-				// start the fade
-				fadeLevel = 0.01f;
-				fadeTime  = 1;
-			}
+			// start the fade
+			fadeLevel = 0.01f;
+			fadeTime = 1;
 		}
 	}
 
 
-
 	private float fadeLevel;
 	private int   sceneIndex;
-	private float timeout;
 	private int   maxSceneIndex, currentSceneIndex;
 	private List<ScreenFade> faders;
-	private InputHandler     actionNext, actionPrev;
 }

@@ -5,8 +5,7 @@ using UnityEngine.InputSystem;
 namespace SentienceLab.Input
 {
     /// <summary>
-    /// The TrackedPoseDriver component applies the current Pose value of a tracked device to the transform of the GameObject.
-    /// TrackedPoseDriver can track multiple types of devices including XR HMDs, controllers, and remotes.
+    /// The TrackingStateEnabler component applies the "tracked" state of a device to the game object's "enable" status.
     /// </summary>
     [Serializable]
     [AddComponentMenu("XR/Tracking State Enabler (New Input System)")]
@@ -63,12 +62,12 @@ namespace SentienceLab.Input
         }
 
 
-		public void Update()
-		{
-			if (m_trackedStateAction != null)
-			{
-                gameObject.SetActive(m_trackedStateAction.ReadValue<float>() > 0);
-			}
-		}
-	}
+        public void Update()
+        {
+            if (m_trackedStateAction != null)
+            {
+                this.gameObject.SetActive(m_trackedStateAction.ReadValue<float>() > 0);
+            }
+        }
+    }
 }

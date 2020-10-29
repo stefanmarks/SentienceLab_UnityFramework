@@ -348,7 +348,7 @@ namespace SentienceLab.MajorDomo
 					vel = Vector3.zero;
 				}
 				m_oldRotation = rot;
-				// make relative to reference tansform (if given)
+				// make relative to reference transform (if given)
 				if (ReferenceTransform != null) 
 				{ 
 					rot = Quaternion.Inverse(ReferenceTransform.rotation) * rot;

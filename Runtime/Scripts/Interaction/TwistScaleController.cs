@@ -86,12 +86,19 @@ namespace SentienceLab.Physics
 				if ((Mathf.Abs(m_rotation) > 1) && (irb != null) && irb.CanScale)
 				{
 					float relScaleFactor = 1.0f + Curve.Evaluate(m_rotation) * Time.fixedDeltaTime;
-					Vector3 oldScale = irb.Rigidbody.transform.localScale;
-					Vector3 newScale = oldScale * relScaleFactor;
-					Vector3 pivot    = m_physicsGrabScript.GetGrabPoint();
-					Vector3 posDiff  = irb.Rigidbody.transform.position - pivot;
-					irb.Rigidbody.MovePosition(pivot + posDiff * relScaleFactor);
-					irb.Rigidbody.transform.localScale = newScale;
+					float oldScale = irb.Rigidbody.transform.localScale.x;
+					float newScale = oldScale * relScaleFactor;
+
+					// check if there is a scale limit
+					ScaleLimits scaleLimits = irb.gameObject.GetComponent<ScaleLimits>();
+					if ((scaleLimits == null) || !scaleLimits.CheckLimits(newScale, true))
+					{
+						// apply scale and keep object at same grab position
+						Vector3 pivot = m_physicsGrabScript.GetGrabPoint();
+						Vector3 posDiff = irb.Rigidbody.transform.position - pivot;
+						irb.Rigidbody.MovePosition(pivot + posDiff * relScaleFactor);
+						irb.Rigidbody.transform.localScale = newScale * Vector3.one;
+					}
 				}
 				m_lastRotation = newRot;
 			}

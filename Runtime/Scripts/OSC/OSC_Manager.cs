@@ -31,7 +31,7 @@ using UnityOSC;
 /// Tracks incoming and outgoing messages.
 /// </summary>
 /// 
-[AddComponentMenu("OSC/Manager")]
+[AddComponentMenu("OSC/OSC Manager")]
 [DisallowMultipleComponent]
 public class OSC_Manager : MonoBehaviour
 {

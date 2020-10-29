@@ -38,8 +38,16 @@ namespace SentienceLab
 
 		void Start()
 		{
+			if (TeleportAction == null)
+			{
+				Debug.LogWarning("Teleport action not defined");
+				this.enabled = false;
+				return;
+			}
+			
 			TeleportAction.action.performed += OnTeleportStart;
 			TeleportAction.action.canceled  += OnTeleportStop;
+			TeleportAction.action.Enable();
 			
 			m_pointerRay = GetComponentInChildren<PointerRay>();
 			if (m_pointerRay == null)

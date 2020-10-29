@@ -22,9 +22,9 @@ namespace SentienceLab.Physics
 		public class OnGrabEndEvent    : UnityEvent<InteractiveRigidbody, GameObject> { }
 
 
-		public bool CanTranslate = true;
-		public bool CanRotate    = true;
-		public bool CanScale     = false;
+		public bool  CanTranslate  = true;
+		public bool  CanRotate     = true;
+		public bool  CanScale      = false;
 
 
 		public OnHoverStartEvent OnHoverStart;
@@ -35,12 +35,14 @@ namespace SentienceLab.Physics
 
 		public Rigidbody Rigidbody { get; private set; }
 
+
 		public void Awake()
 		{
 			Rigidbody = GetComponent<Rigidbody>();
 		}
 
 
+		
 		public void InvokeHoverStart(GameObject _other) { OnHoverStart.Invoke(this, _other); }
 		public void InvokeHoverEnd(GameObject _other) { OnHoverEnd.Invoke(this, _other); }
 		public void InvokeGrabStart(GameObject _other) { OnGrabStart.Invoke(this, _other); }

@@ -19,7 +19,7 @@ namespace SentienceLab
 
 	public class PointerRay : MonoBehaviour
 	{
-		[Tooltip("Parameter that activates the ray")]
+		[Tooltip("Parameter that activates the ray\n(None: ray is permanently enabled)")]
 		public Parameter_Boolean activationParameter;
 
 		[Tooltip("Maximum range of the ray")]
@@ -72,6 +72,10 @@ namespace SentienceLab
 			if (activationParameter != null)
 			{
 				m_rayEnabled = activationParameter.Value;
+			}
+			else
+			{
+				m_rayEnabled = true;
 			}
 
 			// change in enabled flag
@@ -167,7 +171,7 @@ namespace SentienceLab
 					}
 				}
 			}
-			
+
 			HandleEvents();
 		}
 
