@@ -368,20 +368,6 @@ namespace SentienceLab.MoCap
 						}
 					}
 
-					// no client yet > try OpenVR
-					if (((m_client == null) || !m_client.IsConnected()) && UnityEngine.XR.XRDevice.isPresent)
-					{
-						m_client = new OpenVR_Client();
-						m_client.Connect(null);
-						
-						// did OpenVR work? If not, try he more generic Unity XR client
-						if (!m_client.IsConnected())
-						{
-							m_client = new UnityXR_Client();
-							m_client.Connect(null);
-						}
-					}
-
 					if ((m_client != null) && m_client.IsConnected())
 					{
 						Debug.Log("MoCap client connected to " + m_client.GetDataSourceName() + ".\n" +
