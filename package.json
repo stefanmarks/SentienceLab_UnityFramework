@@ -1,7 +1,7 @@
 {
   "name": "nz.ac.aut.sentiencelab",
   "displayName": "Sentience Lab Unity Framework",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "unity": "2019.2",
   "description": "A framework for multiuser XR development",
   "keywords": [
