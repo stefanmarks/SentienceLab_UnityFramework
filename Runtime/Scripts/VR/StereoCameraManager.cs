@@ -88,12 +88,6 @@ namespace SentienceLab
 			if (XRDevice.isPresent)
 				return;
 
-			//foreach ( string s in VRSettings.supportedDevices )
-			//{
-			//	Debug.Log(s);
-			//}
-			//VRSettings.LoadDeviceByName(DisplayProfileName);
-
 			// search for the display configuration stated in the parameter
 			config = DisplayManager.GetInstance().GetConfig(DisplayProfileName);
 			if (config is ScreenConfig)
@@ -127,7 +121,6 @@ namespace SentienceLab
 				// Check presence of any VR display which would take care of the configuration automatically
 				if (XRDevice.isPresent)
 				{
-					Debug.Log("VR Display: " + XRDevice.model);
 					needsCameraConfigure = false;
 				}
 			}
