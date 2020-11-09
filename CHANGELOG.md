@@ -15,8 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Removed
 
-- Removed XR/OpenVR MoCap Modules
-- Deprecated XR functions in ConfigurationManager
+- XR/OpenVR MoCap Modules
+- ConfigurationManager, StartPosition
 - Default Inputs JSON file
 
 ### Changed
