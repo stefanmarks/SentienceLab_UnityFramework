@@ -83,6 +83,10 @@ namespace SentienceLab
 		private void CreateSpaceGuardWalls()
 		{
 			bool foundChaperoneBounds = false;
+
+#if UNITY_2019_3_OR_NEWER
+			// Unity 2019.3 > Check XR Input Subsystem for chaperone bounds
+
 			List<XRInputSubsystem> xrSubsystems = new List<XRInputSubsystem>();
 			SubsystemManager.GetInstances(xrSubsystems);
 
@@ -101,7 +105,8 @@ namespace SentienceLab
 					//CreateFloor(area.vCorners0.v0, area.vCorners0.v2, area.vCorners2.v0, area.vCorners2.v2);
 				}
 			}
-			
+#endif // UNITY_2019_3_OR_NEWER
+
 			if (!foundChaperoneBounds)
 			{
 				if (FallbackSize > 0)
