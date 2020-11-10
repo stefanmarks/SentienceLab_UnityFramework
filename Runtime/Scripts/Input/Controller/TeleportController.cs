@@ -140,6 +140,7 @@ namespace SentienceLab
 				{
 					targetMarker.gameObject.SetActive(false);
 				}
+				m_doTeleport = false;
 			}
 		}
 
