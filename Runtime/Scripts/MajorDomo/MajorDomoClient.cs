@@ -75,13 +75,15 @@ namespace SentienceLab.MajorDomo
 
 			m_client = null;
 
-			m_bufReq    = new FlatBuffers.FlatBufferBuilder(1024);
-			m_msgReq    = new NetMQ.Msg();
-			m_bufUpdate = new FlatBuffers.FlatBufferBuilder(1024);
-			m_msgUpdate = new NetMQ.Msg();
-			m_msgClReq  = new NetMQ.Msg();
-			m_msgSvEvt  = new NetMQ.Msg();
-			m_msgSvUpd	= new NetMQ.Msg();
+			m_bufClientRequest      = new FlatBuffers.FlatBufferBuilder(1024);
+			m_msgClientRequest      = new NetMQ.Msg();
+			m_msgClientRequestReply = new NetMQ.Msg();
+			
+			m_bufClientUpdate = new FlatBuffers.FlatBufferBuilder(1024);
+			m_msgClientUpdate = new NetMQ.Msg();
+			
+			m_msgServerEvent  = new NetMQ.Msg();
+			m_msgServerUpdate = new NetMQ.Msg();
 
 			m_serverReply   = new AUT_WH.MajorDomoProtocol.ServerReply();
 			m_serverEvent   = new AUT_WH.MajorDomoProtocol.ServerEvent();
@@ -92,7 +94,8 @@ namespace SentienceLab.MajorDomo
 			m_clientUpdateSocket  = null;
 			m_serverUpdateSocket  = null;
 
-			m_updatedEntities = new List<EntityData>();
+			m_updatedEntities  = new List<EntityData>();
+			m_modifiedEntities = new List<EntityData>();
 
 			m_lastUpdateSent = DateTime.Now;
 
@@ -155,15 +158,15 @@ namespace SentienceLab.MajorDomo
 					_applicationName);
 
 				// build request
-				m_bufReq.Clear();
-				var offsetApplicationName = m_bufReq.CreateString(_applicationName);
-				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.StartClReq_ClientConnect(m_bufReq);
-				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddClientName(m_bufReq, offsetApplicationName);
-				var offsetClientVersion = CLIENT_VERSION.ToFlatbuffer(m_bufReq);
-				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddClientVersion(m_bufReq, offsetClientVersion);
-				var offsetProtocolVersion = PROTOCOL_VERSION.ToFlatbuffer(m_bufReq);
-				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddClientProtocol(m_bufReq, offsetProtocolVersion);
-				var reqClientConnect = AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.EndClReq_ClientConnect(m_bufReq);
+				m_bufClientRequest.Clear();
+				var offsetApplicationName = m_bufClientRequest.CreateString(_applicationName);
+				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.StartClReq_ClientConnect(m_bufClientRequest);
+				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddClientName(m_bufClientRequest, offsetApplicationName);
+				var offsetClientVersion = CLIENT_VERSION.ToFlatbuffer(m_bufClientRequest);
+				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddClientVersion(m_bufClientRequest, offsetClientVersion);
+				var offsetProtocolVersion = PROTOCOL_VERSION.ToFlatbuffer(m_bufClientRequest);
+				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddClientProtocol(m_bufClientRequest, offsetProtocolVersion);
+				var reqClientConnect = AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.EndClReq_ClientConnect(m_bufClientRequest);
 				// send and receive
 				if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_ClientConnect, reqClientConnect.Value))
 				{
@@ -275,9 +278,9 @@ namespace SentienceLab.MajorDomo
 			if (IsConnected())
 			{
 				// build request
-				m_bufReq.Clear();
-				var clientUIDs = AUT_WH.MajorDomoProtocol.ClReq_GetClientList.CreateClientUIDsVector(m_bufReq, new uint[] { });
-				var requestGetClientList = AUT_WH.MajorDomoProtocol.ClReq_GetClientList.CreateClReq_GetClientList(m_bufReq, clientUIDs);
+				m_bufClientRequest.Clear();
+				var clientUIDs = AUT_WH.MajorDomoProtocol.ClReq_GetClientList.CreateClientUIDsVector(m_bufClientRequest, new uint[] { });
+				var requestGetClientList = AUT_WH.MajorDomoProtocol.ClReq_GetClientList.CreateClReq_GetClientList(m_bufClientRequest, clientUIDs);
 				// send and receive
 				if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_GetClientList, requestGetClientList.Value))
 				{
@@ -318,9 +321,9 @@ namespace SentienceLab.MajorDomo
 			if (IsConnected())
 			{
 				// build request
-				m_bufReq.Clear();
-				var entityUIDs = AUT_WH.MajorDomoProtocol.ClReq_GetEntityList.CreateEntityUIDsVector(m_bufReq, new uint[] { });
-				var requestGetEntityList = AUT_WH.MajorDomoProtocol.ClReq_GetEntityList.CreateClReq_GetEntityList(m_bufReq, entityUIDs);
+				m_bufClientRequest.Clear();
+				var entityUIDs = AUT_WH.MajorDomoProtocol.ClReq_GetEntityList.CreateEntityUIDsVector(m_bufClientRequest, new uint[] { });
+				var requestGetEntityList = AUT_WH.MajorDomoProtocol.ClReq_GetEntityList.CreateClReq_GetEntityList(m_bufClientRequest, entityUIDs);
 				// send and receive
 				if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_GetEntityList, requestGetEntityList.Value))
 				{
@@ -382,16 +385,16 @@ namespace SentienceLab.MajorDomo
 			if (_entities.Count == 0) return;
 
 			// prepare publish packet
-			m_bufReq.Clear();
+			m_bufClientRequest.Clear();
 
 			var listInfos = new List<FlatBuffers.Offset<AUT_WH.MajorDomoProtocol.EntityInformation>>();
 			foreach (var entity in _entities)
 			{
 				entity.SetClientUID(this.ClientUID);
-				listInfos.Add(entity.WriteEntityInformation(m_bufReq));
+				listInfos.Add(entity.WriteEntityInformation(m_bufClientRequest));
 			}
-			var entityInfos = AUT_WH.MajorDomoProtocol.ClReq_PublishEntities.CreateEntitiesVector(m_bufReq, listInfos.ToArray());
-			var requestPublishEntities = AUT_WH.MajorDomoProtocol.ClReq_PublishEntities.CreateClReq_PublishEntities(m_bufReq, this.ClientUID, entityInfos);
+			var entityInfos = AUT_WH.MajorDomoProtocol.ClReq_PublishEntities.CreateEntitiesVector(m_bufClientRequest, listInfos.ToArray());
+			var requestPublishEntities = AUT_WH.MajorDomoProtocol.ClReq_PublishEntities.CreateClReq_PublishEntities(m_bufClientRequest, this.ClientUID, entityInfos);
 			// send and receive
 			if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_PublishEntities, requestPublishEntities.Value))
 			{
@@ -460,14 +463,14 @@ namespace SentienceLab.MajorDomo
 			entitiesToRevoke.RemoveAll(entity => entity.State == EntityData.EntityState.Revoked);
 
 			// prepare revoke packet
-			m_bufReq.Clear();
-			m_bufReq.StartVector(sizeof(uint), entitiesToRevoke.Count, sizeof(int));
+			m_bufClientRequest.Clear();
+			m_bufClientRequest.StartVector(sizeof(uint), entitiesToRevoke.Count, sizeof(int));
 			foreach (var entity in entitiesToRevoke)
 			{
-				m_bufReq.AddUint(entity.EntityUID);
+				m_bufClientRequest.AddUint(entity.EntityUID);
 			}
-			var entityUIDs = m_bufReq.EndVector();
-			var requestRevokeEntities = AUT_WH.MajorDomoProtocol.ClReq_RevokeEntities.CreateClReq_RevokeEntities(m_bufReq, this.ClientUID, entityUIDs);
+			var entityUIDs = m_bufClientRequest.EndVector();
+			var requestRevokeEntities = AUT_WH.MajorDomoProtocol.ClReq_RevokeEntities.CreateClReq_RevokeEntities(m_bufClientRequest, this.ClientUID, entityUIDs);
 			// send and receive
 			if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_RevokeEntities, requestRevokeEntities.Value))
 			{
@@ -558,14 +561,14 @@ namespace SentienceLab.MajorDomo
 			if (_entities.Count == 0) return;
 
 			// prepare control request packet
-			m_bufReq.Clear();
-			m_bufReq.StartVector(sizeof(uint), _entities.Count, sizeof(int));
+			m_bufClientRequest.Clear();
+			m_bufClientRequest.StartVector(sizeof(uint), _entities.Count, sizeof(int));
 			foreach (var entity in _entities)
 			{
-				m_bufReq.AddUint(entity.EntityUID);
+				m_bufClientRequest.AddUint(entity.EntityUID);
 			}
-			var entityUIDs = m_bufReq.EndVector();
-			var requestControlEntities = AUT_WH.MajorDomoProtocol.ClReq_RequestEntityControl.CreateClReq_RequestEntityControl(m_bufReq, this.ClientUID, entityUIDs);
+			var entityUIDs = m_bufClientRequest.EndVector();
+			var requestControlEntities = AUT_WH.MajorDomoProtocol.ClReq_RequestEntityControl.CreateClReq_RequestEntityControl(m_bufClientRequest, this.ClientUID, entityUIDs);
 			// send and receive
 			if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_RequestEntityControl, requestControlEntities.Value))
 			{
@@ -611,14 +614,14 @@ namespace SentienceLab.MajorDomo
 			if (_entities.Count == 0) return;
 
 			// prepare control release packet
-			m_bufReq.Clear();
-			m_bufReq.StartVector(sizeof(uint), _entities.Count, sizeof(int));
+			m_bufClientRequest.Clear();
+			m_bufClientRequest.StartVector(sizeof(uint), _entities.Count, sizeof(int));
 			foreach (var entity in _entities)
 			{
-				m_bufReq.AddUint(entity.EntityUID);
+				m_bufClientRequest.AddUint(entity.EntityUID);
 			}
-			var entityUIDs = m_bufReq.EndVector();
-			var releaseControlEntities = AUT_WH.MajorDomoProtocol.ClReq_ReleaseEntityControl.CreateClReq_ReleaseEntityControl(m_bufReq, this.ClientUID, entityUIDs);
+			var entityUIDs = m_bufClientRequest.EndVector();
+			var releaseControlEntities = AUT_WH.MajorDomoProtocol.ClReq_ReleaseEntityControl.CreateClReq_ReleaseEntityControl(m_bufClientRequest, this.ClientUID, entityUIDs);
 			// send and receive
 			if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_ReleaseEntityControl, releaseControlEntities.Value))
 			{
@@ -668,15 +671,15 @@ namespace SentienceLab.MajorDomo
 		public void SendBroadcast(uint _identifier, byte[] _data)
 		{
 			// prepare broadcast
-			m_bufReq.Clear();
+			m_bufClientRequest.Clear();
 			// add data buffer (reverse order)
-			m_bufReq.StartVector(1, _data.Length, 1);
+			m_bufClientRequest.StartVector(1, _data.Length, 1);
 			for (int idx = _data.Length - 1; idx >= 0; idx--)
 			{
-				m_bufReq.AddByte(_data[idx]);
+				m_bufClientRequest.AddByte(_data[idx]);
 			}
-			var data = m_bufReq.EndVector();
-			var broadcast = AUT_WH.MajorDomoProtocol.ClReq_ClientBroadcast.CreateClReq_ClientBroadcast(m_bufReq, this.ClientUID, _identifier, data);
+			var data = m_bufClientRequest.EndVector();
+			var broadcast = AUT_WH.MajorDomoProtocol.ClReq_ClientBroadcast.CreateClReq_ClientBroadcast(m_bufClientRequest, this.ClientUID, _identifier, data);
 			// send and receive
 			if (!ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_ClientBroadcast, broadcast.Value))
 			{
@@ -698,10 +701,10 @@ namespace SentienceLab.MajorDomo
 			string strAction = _restart ? "restart server" : "stop server";
 			Debug.LogFormat("Sending remote control request: {0}", strAction);
 			// build request
-			m_bufReq.Clear();
-			var commandStop = AUT_WH.MajorDomoProtocol.RemoteControlCommand_StopServer.CreateRemoteControlCommand_StopServer(m_bufReq,
+			m_bufClientRequest.Clear();
+			var commandStop = AUT_WH.MajorDomoProtocol.RemoteControlCommand_StopServer.CreateRemoteControlCommand_StopServer(m_bufClientRequest,
 				_restart, _purgePersistentEntities);
-			var command = AUT_WH.MajorDomoProtocol.ClReq_RemoteControlCommand.CreateClReq_RemoteControlCommand(m_bufReq,
+			var command = AUT_WH.MajorDomoProtocol.ClReq_RemoteControlCommand.CreateClReq_RemoteControlCommand(m_bufClientRequest,
 				this.ClientUID,
 				AUT_WH.MajorDomoProtocol.URemoteControlCommand.RemoteControlCommand_StopServer,
 				commandStop.Value);
@@ -790,8 +793,8 @@ namespace SentienceLab.MajorDomo
 				Debug.Log("Trying to disconnect from MajorDomo server...");
 
 				// build request
-				m_bufReq.Clear();
-				var requestClientDisconnect = AUT_WH.MajorDomoProtocol.ClReq_ClientDisconnect.CreateClReq_ClientDisconnect(m_bufReq, this.ClientUID);
+				m_bufClientRequest.Clear();
+				var requestClientDisconnect = AUT_WH.MajorDomoProtocol.ClReq_ClientDisconnect.CreateClReq_ClientDisconnect(m_bufClientRequest, this.ClientUID);
 				// send and receive
 				if (ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest.ClReq_ClientDisconnect, requestClientDisconnect.Value) && 
 					m_serverReply.RepType == AUT_WH.MajorDomoProtocol.UServerReply.SvRep_ClientDisconnect)
@@ -848,19 +851,19 @@ namespace SentienceLab.MajorDomo
 			try
 			{
 				// prepare message to send
-				var req = AUT_WH.MajorDomoProtocol.ClientRequest.CreateClientRequest(m_bufReq, GetTimestamp(), _requestType, _requestOffset);
-				m_bufReq.Finish(req.Value);
+				var clientRequest = AUT_WH.MajorDomoProtocol.ClientRequest.CreateClientRequest(m_bufClientRequest, GetTimestamp(), _requestType, _requestOffset);
+				m_bufClientRequest.Finish(clientRequest.Value);
 
-				byte[] buf = m_bufReq.SizedByteArray();
-				m_msgReq.InitGC(buf, buf.Length);
+				byte[] buf = m_bufClientRequest.SizedByteArray();
+				m_msgClientRequest.InitGC(buf, buf.Length);
 
-				if (m_clientRequestSocket.TrySend(ref m_msgReq, TimeSpan.Zero, false))
+				if (m_clientRequestSocket.TrySend(ref m_msgClientRequest, TimeSpan.Zero, false))
 				{
-					m_msgClReq.InitEmpty();
-					if (m_clientRequestSocket.TryReceive(ref m_msgClReq, TimeSpan.FromSeconds(m_timeoutInterval)) && (m_msgClReq.Data != null))
+					m_msgClientRequestReply.InitEmpty();
+					if (m_clientRequestSocket.TryReceive(ref m_msgClientRequestReply, TimeSpan.FromSeconds(m_timeoutInterval)) && (m_msgClientRequestReply.Data != null))
 					{
-						m_bufClReq = new FlatBuffers.ByteBuffer(m_msgClReq.Data);
-						m_serverReply = AUT_WH.MajorDomoProtocol.ServerReply.GetRootAsServerReply(m_bufClReq, m_serverReply);
+						m_bufClientRequestReply = new FlatBuffers.ByteBuffer(m_msgClientRequestReply.Data);
+						m_serverReply = AUT_WH.MajorDomoProtocol.ServerReply.GetRootAsServerReply(m_bufClientRequestReply, m_serverReply);
 						if (m_serverReply.RepType == AUT_WH.MajorDomoProtocol.UServerReply.SvRep_Error)
 						{
 							var error = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_Error>().Value;
@@ -873,10 +876,14 @@ namespace SentienceLab.MajorDomo
 							success = true;
 						}
 					}
+					else
+					{
+						Debug.LogWarning("Timeout while waiting for server reply");
+					}
 				}
 				else
 				{
-					Debug.LogWarning("Could not send request");
+					Debug.LogWarning("Could not send client request");
 				}
 			}
 			catch (Exception e)
@@ -892,13 +899,13 @@ namespace SentienceLab.MajorDomo
 
 		private void ServerEvent_ReceiveReady(object sender, NetMQ.NetMQSocketEventArgs e)
 		{
-			m_msgSvEvt.InitEmpty();
+			m_msgServerEvent.InitEmpty();
 			try
 			{
-				if (e.Socket.TryReceive(ref m_msgSvEvt, TimeSpan.Zero) && (m_msgSvEvt.Data != null))
+				if (e.Socket.TryReceive(ref m_msgServerEvent, TimeSpan.Zero) && (m_msgServerEvent.Data != null))
 				{
-					var m_bufSvEvt = new FlatBuffers.ByteBuffer(m_msgSvEvt.Data);
-					m_serverEvent = AUT_WH.MajorDomoProtocol.ServerEvent.GetRootAsServerEvent(m_bufSvEvt, m_serverEvent);
+					var bufServerEvent = new FlatBuffers.ByteBuffer(m_msgServerEvent.Data);
+					m_serverEvent = AUT_WH.MajorDomoProtocol.ServerEvent.GetRootAsServerEvent(bufServerEvent, m_serverEvent);
 
 					if (!IsConnected()) return; // in case this packet comes too late
 
@@ -1102,60 +1109,65 @@ namespace SentienceLab.MajorDomo
 
 		private bool ProcessModifiedEntities()
 		{
-			// find client entities 
-			List<EntityData> modifiedEntities = EntityManager.GetModifiedEntities();
+			bool processed = false;
+
+			// find client entities
+			m_modifiedEntities.Clear();
+			EntityManager.GetModifiedClientEntities(ref m_modifiedEntities);
 
 			// send a packet regularly as heartbeat, even if empty
 			bool sendHeartbeat = (DateTime.Now - m_lastUpdateSent).TotalSeconds > (m_serverInformation.clientHeartbeatInterval / 1000.0);
 
 			// is there anything to send at all?
-			if (!sendHeartbeat && modifiedEntities.Count == 0) return false;
-
-			if (DebugUpdatePackages)
+			if (sendHeartbeat || m_modifiedEntities.Count > 0)
 			{
-				Debug.LogFormat("Sending modified entities:\n{0}",
-					EntityManager.EntityListAsString(modifiedEntities));
+				if (DebugUpdatePackages)
+				{
+					Debug.LogFormat("Sending modified entities:\n{0}",
+						EntityManager.EntityListAsString(m_modifiedEntities));
+				}
+
+				// prepare update packet
+				m_bufClientUpdate.Clear();
+				var listUpdates = new List<FlatBuffers.Offset<AUT_WH.MajorDomoProtocol.EntityUpdate>>();
+				foreach (var entity in m_modifiedEntities)
+				{
+					listUpdates.Add(entity.WriteEntityUpdate(m_bufClientUpdate));
+				}
+
+				// Debug.Log("Sending update for entities " + dbg);
+				var entityInfos = AUT_WH.MajorDomoProtocol.EntityUpdates.CreateUpdatesVector(m_bufClientUpdate, listUpdates.ToArray());
+				ulong timestamp = GetTimestamp();
+
+				var entityUpdates = AUT_WH.MajorDomoProtocol.EntityUpdates.CreateEntityUpdates(m_bufClientUpdate, timestamp, this.ClientUID, entityInfos);
+				m_bufClientUpdate.Finish(entityUpdates.Value);
+
+				// send update packet
+				byte[] buf = m_bufClientUpdate.SizedByteArray();
+				m_msgClientUpdate.InitGC(buf, buf.Length);
+				m_clientUpdateSocket.TrySend(ref m_msgClientUpdate, TimeSpan.Zero, false);
+				// remember last update time
+				m_lastUpdateSent = DateTime.Now;
+
+				foreach (var entity in m_modifiedEntities)
+				{
+					entity.InvokeOnModifiedHandlers();
+				}
+
+				EntityManager.ResetModifiedEntities(ref m_modifiedEntities);
+				processed = true;
 			}
-
-			// prepare update packet
-			m_bufUpdate.Clear();
-			var listUpdates = new List<FlatBuffers.Offset<AUT_WH.MajorDomoProtocol.EntityUpdate>>();
-			foreach (var entity in modifiedEntities)
-			{
-				listUpdates.Add(entity.WriteEntityUpdate(m_bufUpdate));
-			}
-
-			// Debug.Log("Sending update for entities " + dbg);
-			var entityInfos = AUT_WH.MajorDomoProtocol.EntityUpdates.CreateUpdatesVector(m_bufUpdate, listUpdates.ToArray());
-			ulong timestamp = GetTimestamp();
-
-			var entityUpdates = AUT_WH.MajorDomoProtocol.EntityUpdates.CreateEntityUpdates(m_bufUpdate, timestamp, this.ClientUID, entityInfos);
-			m_bufUpdate.Finish(entityUpdates.Value);
-		
-			// send update packet
-			byte[] buf = m_bufUpdate.SizedByteArray();
-			m_msgUpdate.InitGC(buf, buf.Length);
-			m_clientUpdateSocket.TrySend(ref m_msgUpdate, TimeSpan.Zero, false);
-			// remember last update time
-			m_lastUpdateSent = DateTime.Now;
-
-			foreach (var entity in modifiedEntities)
-			{
-				entity.InvokeOnModifiedHandlers();
-			}
-
-			EntityManager.ResetModifiedEntities();
-			return true;
+			return processed;
 		}
 
 
 		private void ServerUpdate_ReceiveReady(object sender, NetMQ.NetMQSocketEventArgs e)
 		{
-			m_msgSvUpd.InitEmpty();
-			if (e.Socket.TryReceive(ref m_msgSvUpd, TimeSpan.Zero) && (m_msgSvUpd.Data != null))
+			m_msgServerUpdate.InitEmpty();
+			if (e.Socket.TryReceive(ref m_msgServerUpdate, TimeSpan.Zero) && (m_msgServerUpdate.Data != null))
 			{
-				var m_bufSvUpd = new FlatBuffers.ByteBuffer(m_msgSvUpd.Data);
-				m_entityUpdates = AUT_WH.MajorDomoProtocol.EntityUpdates.GetRootAsEntityUpdates(m_bufSvUpd, m_entityUpdates);
+				var bufServerUpdate = new FlatBuffers.ByteBuffer(m_msgServerUpdate.Data);
+				m_entityUpdates = AUT_WH.MajorDomoProtocol.EntityUpdates.GetRootAsEntityUpdates(bufServerUpdate, m_entityUpdates);
 
 				if (!IsConnected()) return; // in case this packet comes too late
 
@@ -1212,20 +1224,23 @@ namespace SentienceLab.MajorDomo
 		private float    m_timeoutInterval;
 		private DateTime m_lastUpdateSent;
 
-		private FlatBuffers.FlatBufferBuilder  m_bufReq;
-		private NetMQ.Msg                      m_msgReq;
-		private FlatBuffers.FlatBufferBuilder  m_bufUpdate;
-		private NetMQ.Msg                      m_msgUpdate;
-		private FlatBuffers.ByteBuffer         m_bufClReq;
-		private NetMQ.Msg                      m_msgClReq;
-		private NetMQ.Msg                      m_msgSvEvt;
-		private NetMQ.Msg                      m_msgSvUpd;
+		private FlatBuffers.FlatBufferBuilder  m_bufClientRequest;
+		private NetMQ.Msg                      m_msgClientRequest;
+		private FlatBuffers.ByteBuffer         m_bufClientRequestReply;
+		private NetMQ.Msg                      m_msgClientRequestReply;
+
+		private FlatBuffers.FlatBufferBuilder  m_bufClientUpdate;
+		private NetMQ.Msg                      m_msgClientUpdate;
+
+		private NetMQ.Msg                      m_msgServerEvent;
+		private NetMQ.Msg                      m_msgServerUpdate;
 
 		private AUT_WH.MajorDomoProtocol.ServerReply   m_serverReply;
 		private AUT_WH.MajorDomoProtocol.EntityUpdates m_entityUpdates;
 		private AUT_WH.MajorDomoProtocol.ServerEvent   m_serverEvent;
 
-		private readonly List<EntityData> m_updatedEntities;
+		private List<EntityData> m_updatedEntities;
+		private List<EntityData> m_modifiedEntities;
 
 		private bool m_entityListRetrieved;
 	}

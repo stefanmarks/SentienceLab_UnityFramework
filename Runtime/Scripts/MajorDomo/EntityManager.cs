@@ -17,7 +17,6 @@ namespace SentienceLab.MajorDomo
 		{
 			m_entityUidMap     = new SortedList<uint, EntityData>();
 			m_clientEntityList = new List<EntityData>();
-			m_modifiedEntities = new List<EntityData>();
 			Reset();
 		}
 
@@ -34,7 +33,6 @@ namespace SentienceLab.MajorDomo
 			m_clientUID = ClientData.UID_UNASSIGNED;
 			m_entityUidMap.Clear();
 			m_clientEntityList.Clear();
-			m_modifiedEntities.Clear();
 			m_rebuildClientEntityList = true;
 		}
 
@@ -109,7 +107,7 @@ namespace SentienceLab.MajorDomo
 
 		public IReadOnlyList<EntityData> GetEntities()
 		{
-			return	new List<EntityData>(m_entityUidMap.Values).AsReadOnly();
+			return new List<EntityData>(m_entityUidMap.Values).AsReadOnly();
 		}
 
 
@@ -153,24 +151,21 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public List<EntityData> GetModifiedEntities()
+		public void GetModifiedClientEntities(ref List<EntityData> _modifiedEntities)
 		{
-			m_modifiedEntities.Clear();
 			foreach (var entity in GetClientEntities())
 			{
-				if (entity.IsModified()) m_modifiedEntities.Add(entity);
+				if (entity.IsModified()) _modifiedEntities.Add(entity);
 			}
-			return m_modifiedEntities;
 		}
 
 
-		public void ResetModifiedEntities()
+		public void ResetModifiedEntities(ref List<EntityData> _modifiedEntities)
 		{
-			foreach(var entity in m_modifiedEntities)
+			foreach(var entity in _modifiedEntities)
 			{
 				entity.ResetModified();
 			}
-			m_modifiedEntities.Clear();
 		}
 
 
@@ -216,6 +211,5 @@ namespace SentienceLab.MajorDomo
 		private SortedList<uint, EntityData> m_entityUidMap;
 		private readonly List<EntityData>    m_clientEntityList;
 		private bool                         m_rebuildClientEntityList;
-		private readonly List<EntityData>    m_modifiedEntities;
 	}
 }
