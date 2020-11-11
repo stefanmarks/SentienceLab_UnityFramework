@@ -889,7 +889,7 @@ namespace SentienceLab.MajorDomo
 			catch (Exception e)
 			{
 				Debug.LogWarningFormat(
-					"Exception while sending: {0}", 
+					"Exception while sending client request: {0}", 
 					e.Message);
 			}
 
