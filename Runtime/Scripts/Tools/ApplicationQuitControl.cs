@@ -8,14 +8,19 @@ using UnityEngine.InputSystem;
 
 public class ApplicationQuitControl: MonoBehaviour
 {
-	[Tooltip("action that quits the application (default: ESC)")]
-	public InputAction QuitAction = null;
+	[Tooltip("Action that quits the application (default: ESC)")]
+	public InputAction QuitAction;
 	
 	public void Start()
 	{
+		// default, if not otherwise stated: ESC key
 		if (QuitAction == null)
 		{
 			QuitAction = new InputAction(binding: "<Keyboard>/escape");
+		}
+		else if (QuitAction.bindings.Count == 0)
+		{
+			QuitAction.AddBinding("<Keyboard>/escape");
 		}
 
 		QuitAction.performed += delegate { Quit(); };
