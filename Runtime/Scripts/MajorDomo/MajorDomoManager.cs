@@ -10,7 +10,6 @@ using System.Net;
 using System.Threading;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
-using System.Diagnostics;
 
 namespace SentienceLab.MajorDomo
 {
@@ -371,10 +370,8 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public bool Process()
+		public void Process()
 		{
-			bool didProcess = false;
-
 			if (m_state == ManagerState.Connected && m_prevState == ManagerState.Connecting)
 			{
 				// client just connected: invoke event handlers
@@ -391,7 +388,7 @@ namespace SentienceLab.MajorDomo
 			if (m_client.IsConnected())
 			{
 				// process server updates and events here so entity updates are processed in the render loop
-				didProcess |= m_client.ProcessServerUpdates();
+				m_client.ProcessServerUpdates();
 			}
 
 			// relay events to handlers in render loop:
@@ -407,7 +404,6 @@ namespace SentienceLab.MajorDomo
 				// process newly registered client events
 				foreach (ClientData client in m_processingClients) OnClientRegistered?.Invoke(client);
 				m_processingClients.Clear();
-				didProcess = true;
 			}
 
 			// unregistered clients
@@ -422,7 +418,6 @@ namespace SentienceLab.MajorDomo
 				// process newly unregistered client events
 				foreach (ClientData client in m_processingClients) OnClientUnregistered?.Invoke(client);
 				m_processingClients.Clear();
-				didProcess = true;
 			}
 		
 			// publishing entities
@@ -437,7 +432,6 @@ namespace SentienceLab.MajorDomo
 				// process published entity events
 				OnEntitiesPublished?.Invoke(m_processingEntities);
 				m_processingEntities.Clear();
-				didProcess = true;
 			}
 
 			// revoking entities
@@ -452,7 +446,6 @@ namespace SentienceLab.MajorDomo
 				// process revoked entity events
 				OnEntitiesRevoked?.Invoke(m_processingEntities);
 				m_processingEntities.Clear();
-				didProcess = true;
 			}
 
 			lock (m_controlledEntities)
@@ -466,7 +459,6 @@ namespace SentienceLab.MajorDomo
 				// process control-changed entity events
 				OnEntityControlChanged?.Invoke(m_processingEntities);
 				m_processingEntities.Clear();
-				didProcess = true;
 			}
 
 			// broadcasts
@@ -484,7 +476,6 @@ namespace SentienceLab.MajorDomo
 					OnClientBroadcastReceived?.Invoke(broadcast);
 				}
 				m_processingBroadcasts.Clear();
-				didProcess = true;
 			}
 
 			lock (m_serverShutdown)
@@ -499,7 +490,6 @@ namespace SentienceLab.MajorDomo
 			}
 
 			m_prevState = m_state;
-			return didProcess;
 		}
 
 
@@ -519,13 +509,35 @@ namespace SentienceLab.MajorDomo
 		{
 			// just to be sure...
 			m_runThread = false;
-			m_workerThread?.Join();
-			m_workerThread = null;
+			if (m_workerThread != null)
+			{
+				m_workerThread.Join();
+				m_workerThread = null;
+			}
+
 			m_client = null;
 
 			MajorDomoClient.Terminate();
 		}
 
+
+		public void GetDiagnostics(ref MajorDomoClient.Diagnostics _refDiagnostics)
+		{
+			if (m_client != null)
+			{
+				m_client.GetDiagnostics(ref _refDiagnostics);
+			}
+		}
+		
+
+		public void ResetDiagnostics()
+		{
+			if (m_client != null)
+			{
+				m_client.ResetDiagnostics();
+			}
+		}
+		
 
 		protected void ClientRegisteredHandler(ClientData _client)
 		{

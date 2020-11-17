@@ -4,7 +4,6 @@
 // (C) Westfälische Hochschule, Gelsenkirchen, Germany
 #endregion Copyright Information
 
-using NetMQ;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -96,6 +95,8 @@ namespace SentienceLab.MajorDomo
 
 			m_updatedEntities  = new List<EntityData>();
 			m_modifiedEntities = new List<EntityData>();
+
+			ResetDiagnostics();
 
 			m_lastUpdateSent = DateTime.Now;
 
@@ -720,20 +721,16 @@ namespace SentienceLab.MajorDomo
 		/// Processes sending/handling of events and updates.
 		/// </summary>
 		/// <returns>/c true if at least one protocol packet was handled</returns>
-		public bool Process()
+		public void Process()
 		{
-			bool didProcess = false;
-			didProcess |= ProcessServerEvents();
-			didProcess |= ProcessClientUpdates();
-			didProcess |= ProcessServerUpdates();
-			return didProcess;
+			ProcessServerEvents();
+			ProcessClientUpdates();
+			ProcessServerUpdates();
 		}
 
 
-		public bool ProcessServerEvents()
+		public void ProcessServerEvents()
 		{
-			bool didProcess = false;
-
 			if ((m_serverEventSocket != null) && IsConnected())
 			{
 				// process as long as there are events (max 5 to avoid deadlock)
@@ -741,31 +738,23 @@ namespace SentienceLab.MajorDomo
 				while (maxEventsToProcess > 0 && m_serverEventSocket.Poll(TimeSpan.Zero))
 				{
 					maxEventsToProcess--;
-					didProcess = true;
 				}
 			}
-			return didProcess;
 		}
 
 
-		public bool ProcessClientUpdates()
+		public void ProcessClientUpdates()
 		{
-			bool didProcess = false;
-			
 			// are there entities that have been modified
 			if ((m_clientUpdateSocket != null) && IsConnected())
 			{
-				didProcess = ProcessModifiedEntities();
+				ProcessModifiedEntities();
 			}
-
-			return didProcess;
 		}
 
 
-		public bool ProcessServerUpdates()
+		public void ProcessServerUpdates()
 		{
-			bool didProcess = false;
-			
 			// process as long as there are updates
 			if ((m_serverUpdateSocket != null) && IsConnected())
 			{
@@ -774,10 +763,8 @@ namespace SentienceLab.MajorDomo
 				while (maxUpdatesToProcess > 0 && m_serverUpdateSocket.Poll(TimeSpan.Zero))
 				{
 					maxUpdatesToProcess--;
-					didProcess = true;
 				}
 			}
-			return didProcess;
 		}
 
 
@@ -845,6 +832,33 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		/// <summary>
+		/// Data structure for diagnosis
+		/// </summary>
+		public struct Diagnostics
+		{
+			public ulong NumberOfRequestsSent;
+			public ulong NumberOfEventsReceived;
+			public ulong NumberOfUpdatesSent;
+			public ulong NumberOfUpdatesReceived;
+		}
+
+
+		public void GetDiagnostics(ref Diagnostics _refDiagnostics)
+		{
+			_refDiagnostics = m_diagnostics;
+		}
+
+
+		public void ResetDiagnostics()
+		{
+			m_diagnostics.NumberOfRequestsSent    = 0;
+			m_diagnostics.NumberOfEventsReceived  = 0;
+			m_diagnostics.NumberOfUpdatesReceived = 0;
+			m_diagnostics.NumberOfUpdatesSent     = 0;
+		}
+
+
 		private bool ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest _requestType, int _requestOffset)
 		{
 			bool success = false;
@@ -859,6 +873,8 @@ namespace SentienceLab.MajorDomo
 
 				if (m_clientRequestSocket.TrySend(ref m_msgClientRequest, TimeSpan.Zero, false))
 				{
+					m_diagnostics.NumberOfRequestsSent++;
+
 					m_msgClientRequestReply.InitEmpty();
 					if (m_clientRequestSocket.TryReceive(ref m_msgClientRequestReply, TimeSpan.FromSeconds(m_timeoutInterval)) && (m_msgClientRequestReply.Data != null))
 					{
@@ -904,6 +920,8 @@ namespace SentienceLab.MajorDomo
 			{
 				if (e.Socket.TryReceive(ref m_msgServerEvent, TimeSpan.Zero) && (m_msgServerEvent.Data != null))
 				{
+					m_diagnostics.NumberOfEventsReceived++;
+
 					var bufServerEvent = new FlatBuffers.ByteBuffer(m_msgServerEvent.Data);
 					m_serverEvent = AUT_WH.MajorDomoProtocol.ServerEvent.GetRootAsServerEvent(bufServerEvent, m_serverEvent);
 
@@ -968,7 +986,7 @@ namespace SentienceLab.MajorDomo
 					}
 				}
 			}
-			catch (TerminatingException)
+			catch (NetMQ.TerminatingException)
 			{
 				// message system is already shutting down. ignore
 			}
@@ -1154,6 +1172,7 @@ namespace SentienceLab.MajorDomo
 					entity.InvokeOnModifiedHandlers();
 				}
 
+				m_diagnostics.NumberOfUpdatesSent++;
 				EntityManager.ResetModifiedEntities(ref m_modifiedEntities);
 				processed = true;
 			}
@@ -1241,6 +1260,8 @@ namespace SentienceLab.MajorDomo
 
 		private List<EntityData> m_updatedEntities;
 		private List<EntityData> m_modifiedEntities;
+
+		private Diagnostics      m_diagnostics;
 
 		private bool m_entityListRetrieved;
 	}
