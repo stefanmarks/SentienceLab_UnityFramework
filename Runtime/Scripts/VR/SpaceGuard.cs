@@ -6,7 +6,7 @@
 using SentienceLab.MoCap;
 using System.Collections.Generic;
 using UnityEngine;
-using Valve.VR;
+using UnityEngine.XR;
 
 namespace SentienceLab
 {
@@ -45,9 +45,10 @@ namespace SentienceLab
 		public Material floorMaterial = null;
 
 		[Tooltip("Floor offset along Y axis")]
-		public float floorOffsetY = 0.01f;
+		public float FloorOffsetY = 0.01f;
 
-		public float forceSize = 0;
+		[Tooltip("Default size of the room if no other information found (0: no boundary)")]
+		public float FallbackSize = 0;
 
 
 		/// <summary>
@@ -81,30 +82,37 @@ namespace SentienceLab
 
 		private void CreateSpaceGuardWalls()
 		{
-			switch (ConfigurationManager.GetConfiguration())
+			bool foundChaperoneBounds = false;
+
+#if UNITY_2019_3_OR_NEWER
+			// Unity 2019.3 > Check XR Input Subsystem for chaperone bounds
+
+			List<XRInputSubsystem> xrSubsystems = new List<XRInputSubsystem>();
+			SubsystemManager.GetInstances(xrSubsystems);
+
+			foreach (var subsystem in xrSubsystems)
 			{
-				case ConfigurationManager.Configuration.HTC_Vive:
-					CVRChaperone chaperone = OpenVR.Chaperone;
-					HmdQuad_t area = new HmdQuad_t();
-					chaperone.GetPlayAreaRect(ref area);
-					CreateWall(area.vCorners0.v0, area.vCorners0.v2, area.vCorners1.v0, area.vCorners1.v2, "Wall1");
-					CreateWall(area.vCorners1.v0, area.vCorners1.v2, area.vCorners2.v0, area.vCorners2.v2, "Wall2");
-					CreateWall(area.vCorners2.v0, area.vCorners2.v2, area.vCorners3.v0, area.vCorners3.v2, "Wall3");
-					CreateWall(area.vCorners3.v0, area.vCorners3.v2, area.vCorners0.v0, area.vCorners0.v2, "Wall4");
-					CreateFloor(area.vCorners0.v0, area.vCorners0.v2, area.vCorners2.v0, area.vCorners2.v2);
-					chaperone.ForceBoundsVisible(false);
-					break;
-
-				case ConfigurationManager.Configuration.MoCapRoom:
-					CreateCube(2);
-					break;
-
-				default:
-					if (forceSize > 0)
+				List<Vector3> boundaryPoints = new List<Vector3>();
+				if (!foundChaperoneBounds && subsystem.TryGetBoundaryPoints(boundaryPoints))
+				{
+					for (int idx = 0; idx < boundaryPoints.Count; idx++)
 					{
-						CreateCube(forceSize);
+						Vector3 p1 = boundaryPoints[idx];
+						Vector3 p2 = boundaryPoints[(idx + 1) % boundaryPoints.Count];
+						CreateWall(p1.x, p1.z, p2.x, p2.z, "Wall"+(idx+1));
 					}
-					break;
+					foundChaperoneBounds = true;
+					//CreateFloor(area.vCorners0.v0, area.vCorners0.v2, area.vCorners2.v0, area.vCorners2.v2);
+				}
+			}
+#endif // UNITY_2019_3_OR_NEWER
+
+			if (!foundChaperoneBounds)
+			{
+				if (FallbackSize > 0)
+				{
+					CreateCube(FallbackSize);
+				}
 			}
 		}
 
@@ -154,8 +162,8 @@ namespace SentienceLab
 			Destroy(quad.GetComponent<Collider>());  // no need for physics
 			Destroy(quad.GetComponent<Rigidbody>());
 
-			Vector3 corner1 = new Vector3(x1, floorOffsetY, z1);
-			Vector3 corner2 = new Vector3(x2, floorOffsetY, z2);
+			Vector3 corner1 = new Vector3(x1, FloorOffsetY, z1);
+			Vector3 corner2 = new Vector3(x2, FloorOffsetY, z2);
 			Vector3 floor = corner2 - corner1;
 			Vector3 centre = 0.5f * (corner2 + corner1);
 			quad.name = "Floor";

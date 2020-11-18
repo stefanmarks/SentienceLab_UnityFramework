@@ -3,7 +3,6 @@
 // (C) Sentience Lab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
 
@@ -86,24 +85,8 @@ namespace SentienceLab
 			if (!Application.isPlaying)
 				return;
 
-			bool isXR_SystemLoaded = false;
-			var xrDisplaySubsystems = new List<XRDisplaySubsystem>();
-			SubsystemManager.GetInstances(xrDisplaySubsystems);
-			foreach (var xrDisplay in xrDisplaySubsystems)
-			{
-				Debug.Log(xrDisplay.SubsystemDescriptor.id);
-				if (xrDisplay.running)
-				{
-					isXR_SystemLoaded = true;
-				}
-			}
-			if (isXR_SystemLoaded) return;
-
-			//foreach ( string s in VRSettings.supportedDevices )
-			//{
-			//	Debug.Log(s);
-			//}
-			//VRSettings.LoadDeviceByName(DisplayProfileName);
+			if (XRDevice.isPresent)
+				return;
 
 			// search for the display configuration stated in the parameter
 			config = DisplayManager.GetInstance().GetConfig(DisplayProfileName);
@@ -138,7 +121,6 @@ namespace SentienceLab
 				// Check presence of any VR display which would take care of the configuration automatically
 				if (XRDevice.isPresent)
 				{
-					Debug.Log("VR Display: " + XRDevice.model);
 					needsCameraConfigure = false;
 				}
 			}
