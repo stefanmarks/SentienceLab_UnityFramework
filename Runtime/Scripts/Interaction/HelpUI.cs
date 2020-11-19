@@ -29,44 +29,46 @@ public class HelpUI : MonoBehaviour
 
 	void Start()
 	{
-		canvas = GetComponentInChildren<Canvas>();
-		canvas.enabled = true;
-		time = deactivateTime;
-		isWithinTrigger = false;
+		m_Canvas              = GetComponentInChildren<Canvas>();
+		m_Canvas.enabled      = false;
+		m_time                = deactivateTime;
+		m_isWithinTrigger     = false;
+		m_hideActionPerformed = false;
 		foreach (var actionRef in hideInputActions)
 		{
-			if (actionRef != null) actionRef.action.Enable();
+			if (actionRef != null)
+			{
+				actionRef.action.performed += delegate { m_hideActionPerformed = true; };
+				actionRef.action.Enable();
+			}
 		}
 	}
 
 
 	void Update()
 	{
-		// fade out UI when specific actions are active
-		foreach (var actionRef in hideInputActions)
+		// hide UI when specific actions are active
+		if (m_hideActionPerformed)
 		{
-			if ((actionRef != null) && (actionRef.action.phase == InputActionPhase.Performed))
-			{
-				isWithinTrigger = false;
-				time = float.Epsilon;
-			}
+			m_isWithinTrigger = false;
+			m_time = float.Epsilon;
 		}
 
 		// check timing and show/hide UI accordingly
-		if (isWithinTrigger && (time < activateTime))
+		if (m_isWithinTrigger && (m_time < activateTime))
 		{
-			time += Time.deltaTime;
-			if (time >= activateTime)
+			m_time += Time.deltaTime;
+			if (m_time >= activateTime)
 			{
-				canvas.enabled = true;
+				m_Canvas.enabled = true;
 			}
 		}
-		else if (!isWithinTrigger && (time > 0))
+		else if (!m_isWithinTrigger && (m_time > 0))
 		{
-			time -= Time.deltaTime;
-			if (time < 0)
+			m_time -= Time.deltaTime;
+			if (m_time < 0)
 			{
-				canvas.enabled = false;
+				m_Canvas.enabled = false;
 			}
 		}
 	}
@@ -76,8 +78,8 @@ public class HelpUI : MonoBehaviour
 	{
 		if (other != null && other.CompareTag(triggerTag))
 		{
-			isWithinTrigger = true;
-			time = 0;
+			m_isWithinTrigger = true;
+			m_time = 0;
 		}
 	}
 
@@ -86,13 +88,15 @@ public class HelpUI : MonoBehaviour
 	{
 		if (other != null && other.CompareTag(triggerTag))
 		{
-			isWithinTrigger = false;
-			time = deactivateTime;
+			m_isWithinTrigger = false;
+			m_time = deactivateTime;
+			m_hideActionPerformed = false;
 		}
 	}
 
 
-	private Canvas   canvas;
-	private bool     isWithinTrigger;
-	private float    time;
+	private Canvas m_Canvas;
+	private bool   m_isWithinTrigger;
+	private float  m_time;
+	private bool   m_hideActionPerformed;
 }

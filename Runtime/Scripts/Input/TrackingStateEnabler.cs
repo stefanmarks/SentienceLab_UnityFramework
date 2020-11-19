@@ -66,7 +66,7 @@ namespace SentienceLab.Input
         {
             if (m_trackedStateAction != null)
             {
-                this.gameObject.SetActive(m_trackedStateAction.phase == InputActionPhase.Performed);
+                this.gameObject.SetActive(m_trackedStateAction.ReadValue<float>() > 0);
             }
         }
     }
