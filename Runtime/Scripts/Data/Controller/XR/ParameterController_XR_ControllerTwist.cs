@@ -56,7 +56,7 @@ namespace SentienceLab.Data
 
 		public void Update()
 		{
-			if (Action.action.ReadValue<bool>())
+			if (Action.action.phase == InputActionPhase.Performed)
 			{
 				Vector3 newRot = transform.rotation.eulerAngles;
 				// find delta rotation

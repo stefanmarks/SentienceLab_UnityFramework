@@ -110,7 +110,7 @@ namespace SentienceLab
 						hit = false;
 						foreach (string tag in tagList)
 						{
-							if (m_rayTarget.transform.tag.CompareTo(tag) == 0)
+							if (m_rayTarget.transform.CompareTag(tag))
 							{
 								hit = true;
 								break;

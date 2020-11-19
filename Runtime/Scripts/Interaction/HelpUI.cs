@@ -45,7 +45,7 @@ public class HelpUI : MonoBehaviour
 		// fade out UI when specific actions are active
 		foreach (var actionRef in hideInputActions)
 		{
-			if ((actionRef != null) && (actionRef.action.ReadValue<float>() > 0))
+			if ((actionRef != null) && (actionRef.action.phase == InputActionPhase.Performed))
 			{
 				isWithinTrigger = false;
 				time = float.Epsilon;
@@ -74,7 +74,7 @@ public class HelpUI : MonoBehaviour
 
 	void OnTriggerEnter(Collider other)
 	{
-		if (other != null && other.tag.Equals(triggerTag))
+		if (other != null && other.CompareTag(triggerTag))
 		{
 			isWithinTrigger = true;
 			time = 0;
@@ -84,7 +84,7 @@ public class HelpUI : MonoBehaviour
 
 	void OnTriggerExit(Collider other)
 	{
-		if (other != null && other.tag.Equals(triggerTag))
+		if (other != null && other.CompareTag(triggerTag))
 		{
 			isWithinTrigger = false;
 			time = deactivateTime;
