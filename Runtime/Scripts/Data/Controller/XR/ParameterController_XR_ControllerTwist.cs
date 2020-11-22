@@ -17,7 +17,7 @@ namespace SentienceLab.Data
 		public Parameter_Double Parameter;
 
 		[Tooltip("Input action that starts the twist")]
-		public InputActionReference Action;
+		public InputActionProperty Action;
 
 		[Tooltip("Curve for the change of the parameter in units/s based on the rotation angle")]
 		public AnimationCurve Curve = AnimationCurve.Constant(-180, 180, 1);

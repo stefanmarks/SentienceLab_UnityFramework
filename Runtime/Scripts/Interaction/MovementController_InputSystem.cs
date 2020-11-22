@@ -13,9 +13,9 @@ public class MovementController_InputSystem : MonoBehaviour
 {
 	[Header("Translation")]
 
-	public InputActionReference actionMoveX;
-	public InputActionReference actionMoveY;
-	public InputActionReference actionMoveZ;
+	public InputActionProperty actionMoveX;
+	public InputActionProperty actionMoveY;
+	public InputActionProperty actionMoveZ;
 
 	[Tooltip("Maximum speed for translation")]
 	public float TranslationSpeed = 1.0f;
@@ -26,8 +26,8 @@ public class MovementController_InputSystem : MonoBehaviour
 
 	[Header("Rotation")]
 	
-	public InputActionReference actionRotateX;
-	public InputActionReference actionRotateY;
+	public InputActionProperty actionRotateX;
+	public InputActionProperty actionRotateY;
 
 	[Tooltip("Maximum speed for rotation in degrees per second")]
 	public float RotationSpeed = 45.0f;

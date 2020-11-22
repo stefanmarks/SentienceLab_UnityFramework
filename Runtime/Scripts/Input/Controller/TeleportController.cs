@@ -20,7 +20,7 @@ namespace SentienceLab
 
 	public class TeleportController : MonoBehaviour
 	{
-		public InputActionReference TeleportAction;
+		public InputActionProperty  TeleportAction;
 		public string               groundTag      = "floor";
 		public Transform            cameraNode     = null;
 		public Transform            targetMarker   = null;

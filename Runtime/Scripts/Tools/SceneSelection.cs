@@ -10,11 +10,11 @@ using System.Collections.Generic;
 /// 
 public class SceneSelection : MonoBehaviour 
 {
-	[Tooltip("Action for tiggering the next scene")]
-	public InputActionReference NextSceneAction;
+	[Tooltip("Input action for tiggering the next scene")]
+	public InputActionProperty NextSceneAction;
 
-	[Tooltip("Action for tiggering the previous scene")]
-	public InputActionReference PreviousSceneAction;
+	[Tooltip("Input action for tiggering the previous scene")]
+	public InputActionProperty PreviousSceneAction;
 
 	[Tooltip("Time in seconds for the fade out and in")]
 	private float fadeTime = 1.0f;

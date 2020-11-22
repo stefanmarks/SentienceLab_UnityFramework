@@ -17,7 +17,7 @@ namespace SentienceLab
 	public class PhysicsManipulator : MonoBehaviour
 	{
 		[Tooltip("Input action for grabbing")]
-		public InputActionReference GrabAction;
+		public InputActionProperty GrabAction;
 
 		[Tooltip("Grab PID controller")]
 		public PID_Controller3D PID;

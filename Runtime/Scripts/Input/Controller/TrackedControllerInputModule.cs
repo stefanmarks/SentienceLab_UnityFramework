@@ -20,8 +20,8 @@ namespace SentienceLab
 		[System.Serializable]
 		public class ControllerInfo
 		{
-			public Transform            trackedObject;
-			public InputActionReference action;
+			public Transform           trackedObject;
+			public InputActionProperty action;
 		}
 
 		[Tooltip("Layers that this tracked controller reacts to")]

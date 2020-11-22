@@ -24,7 +24,7 @@ public class HelpUI : MonoBehaviour
 	public string triggerTag     = "help";
 
 	[Tooltip("List of input actions that hide the UI when performed")]
-	public List<InputActionReference> hideInputActions;
+	public List<InputActionProperty> hideInputActions;
 
 
 	void Start()

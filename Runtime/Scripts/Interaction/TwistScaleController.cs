@@ -15,8 +15,8 @@ namespace SentienceLab.Physics
 	[RequireComponent(typeof(PhysicsGrab))]
 	public class TwistScaleController : MonoBehaviour
 	{
-		[Tooltip("Name of the input that starts the twist scale")]
-		public InputActionReference TwistStartAction;
+		[Tooltip("Input action that starts the twist scale")]
+		public InputActionProperty TwistStartAction;
 
 		[Tooltip("Curve for the change of the scale in units/s based on the rotation angle")]
 		public AnimationCurve Curve = AnimationCurve.Constant(-180, 180, 1);

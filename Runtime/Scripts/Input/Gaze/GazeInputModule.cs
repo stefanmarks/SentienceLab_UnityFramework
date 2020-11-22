@@ -58,8 +58,8 @@ public class GazeInputModule : BaseInputModule
 	[Tooltip("Gaze time after which to trigger an object (0: No fuse mode)")]
 	public float defaultFuseTime = 0;
 
-	[Tooltip("Action for triggering the object gazed at")]
-	public InputActionReference TriggerAction;
+	[Tooltip("Input action for triggering the object gazed at")]
+	public InputActionProperty TriggerAction;
 
 	/// Time in seconds between the pointer down and up events sent by a trigger.
 	/// Allows time for the UI elements to make their state transitions.

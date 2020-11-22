@@ -19,11 +19,11 @@ namespace SentienceLab.Data
 		[Tooltip("The index of the value to change (e.g., 0: min, 1: max. Default: 0)")]
 		public int ValueIndex = 0;
 
-		[Tooltip("Action that increases this parameter")]
-		public InputActionReference IncreaseAction;
+		[Tooltip("Input action that increases this parameter")]
+		public InputActionProperty IncreaseAction;
 
-		[Tooltip("Action that decreases this parameter")]
-		public InputActionReference DecreaseAction;
+		[Tooltip("Input action that decreases this parameter")]
+		public InputActionProperty DecreaseAction;
 
 		[Tooltip("Factor to change the parameter by per step")]
 		public int Multiplier = 1;
