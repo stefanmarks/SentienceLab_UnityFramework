@@ -40,18 +40,18 @@ namespace SentienceLab.Physics
 		private void UpdateMaterials()
 		{
 			Material m = null;
-			if      (m_grab ) m = GrabMaterial;
-			else if (m_hover) m = HoverMaterial;
+			if      (m_grab ) { m = GrabMaterial;  }
+			else if (m_hover) { m = HoverMaterial; }
 
 			foreach (var r in Renderers)
 			{
 				if (m == null)
 				{
-					r.enabled = false;
+					r.gameObject.SetActive(false);
 				}
 				else
 				{
-					r.enabled = true;
+					r.gameObject.SetActive(true);
 					r.material = m;
 				}
 			}
