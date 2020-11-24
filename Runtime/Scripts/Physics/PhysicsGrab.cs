@@ -80,7 +80,7 @@ namespace SentienceLab.Physics
 			if (irb != null)
 			{
 				irb.InvokeHoverStart(this.gameObject);
-				m_candidate == irb;
+				m_candidate = irb;
 			}
 		}
 
