@@ -18,56 +18,60 @@ namespace SentienceLab.Input
             get { return m_trackedStateAction; }
             set
             {
-                UnbindTrackedState();
+                UnbindActions();
                 m_trackedStateAction = value;
-                BindTrackedState();
+                BindActions();
             }
         }
 
-        bool m_trackedStateBound = false;
+        private bool m_actionsBound = false;
+        private bool m_trackedState = false;
 
 
-        void BindTrackedState()
+        public void Start()
         {
-            if (!m_trackedStateBound && m_trackedStateAction != null)
+            InputSystem.onAfterUpdate += UpdateCallback;
+            BindActions();
+        }
+
+
+        public void OnDestroy()
+        {
+            UnbindActions();
+            InputSystem.onAfterUpdate -= UpdateCallback;
+        }
+
+
+        protected void BindActions()
+        {
+            if (!m_actionsBound && m_trackedStateAction != null)
             {
                 m_trackedStateAction.Rename($"{gameObject.name} - TSE - Tracked State");
-                m_trackedStateAction.performed += OnTrackedStateUpdate;
-                m_trackedStateBound = true;
+                m_actionsBound = true;
                 m_trackedStateAction.Enable();
             }
         }
 
-        void UnbindTrackedState()
+        protected void UnbindActions()
         {
-            if (m_trackedStateAction != null && m_trackedStateBound)
+            if (m_trackedStateAction != null && m_actionsBound)
             {
                 m_trackedStateAction.Disable();
-                m_trackedStateAction.performed -= OnTrackedStateUpdate;
-                m_trackedStateBound = false;
+                m_actionsBound = false;
             }
         }
 
 
-        void OnTrackedStateUpdate(InputAction.CallbackContext context)
+        protected void UpdateCallback()
         {
-            Debug.Assert(m_trackedStateBound);
-            this.gameObject.SetActive(context.ReadValueAsButton());
+            m_trackedState = m_trackedStateAction.ReadValue<float>() > 0;
+            OnUpdate();
         }
 
 
-        protected void OnEnable()
+        protected virtual void OnUpdate()
         {
-            BindTrackedState();
-        }
-
-
-        public void Update()
-        {
-            if (m_trackedStateAction != null)
-            {
-                this.gameObject.SetActive(m_trackedStateAction.ReadValue<float>() > 0);
-            }
+            this.gameObject.SetActive(m_trackedState);
         }
     }
 }
