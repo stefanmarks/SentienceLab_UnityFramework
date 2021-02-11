@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Touchpad button composite
 - Transform limits for pos/rot/scale
 - TrackingModeOriginSetup script
-- Oculus Quest 2 controller models
+- Oculus Quest 2 controller models and prefabs
+- Input signifier scripts
 
 ### Removed
 
