@@ -35,7 +35,7 @@ namespace SentienceLab.MoCap
 			if (Action != null)
 			{
 				Action.action.performed += OnActionPerformed;
-				Action.action.performed += OnActionCanceled;
+				Action.action.canceled  += OnActionCanceled;
 				Action.action.Enable();
 			}
 		}
