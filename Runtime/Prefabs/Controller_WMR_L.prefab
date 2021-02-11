@@ -684,7 +684,7 @@ GameObject:
   - component: {fileID: 4937432693549691786}
   - component: {fileID: 4980558400494741016}
   m_Layer: 0
-  m_Name: WMR_Controller_L
+  m_Name: Controller_WMR_L
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

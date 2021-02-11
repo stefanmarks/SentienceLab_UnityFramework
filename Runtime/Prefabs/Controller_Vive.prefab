@@ -2886,6 +2886,39 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &6904736332484703728
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2486149047812387694}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 510f50aed0c1d9d48944c025cc431ad0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Action:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Action
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 04abd365-cf6a-42e6-b250-8017d1251252
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: afc06f06-69fc-471c-a6e7-ae592c648e25
+        m_Path: <ViveWand>/trigger
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Action
+        m_Flags: 0
+    m_Reference: {fileID: 0}
+  Axis: {x: 1, y: 0, z: 0}
+  Angle: -10
 --- !u!1001 &2486149047812486602
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2966,6 +2999,12 @@ PrefabInstance:
 --- !u!4 &2486149047812878156 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 400006, guid: 07eb9f2dbe719df49a5293ae4cfec32e,
+    type: 3}
+  m_PrefabInstance: {fileID: 2486149047812486602}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2486149047812387694 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100004, guid: 07eb9f2dbe719df49a5293ae4cfec32e,
     type: 3}
   m_PrefabInstance: {fileID: 2486149047812486602}
   m_PrefabAsset: {fileID: 0}

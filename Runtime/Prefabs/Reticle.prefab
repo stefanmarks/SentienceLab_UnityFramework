@@ -60,6 +60,7 @@ MonoBehaviour:
   m_Material: {fileID: 2100000, guid: 44f15e222a3f94d469f85cb4a596c63c, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 0.627451}
   m_RaycastTarget: 0
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -133,6 +134,7 @@ MonoBehaviour:
   m_Material: {fileID: 2100000, guid: 44f15e222a3f94d469f85cb4a596c63c, type: 2}
   m_Color: {r: 1, g: 0, b: 0, a: 0.503}
   m_RaycastTarget: 0
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -316,6 +318,7 @@ MonoBehaviour:
   m_Material: {fileID: 2100000, guid: 44f15e222a3f94d469f85cb4a596c63c, type: 2}
   m_Color: {r: 1, g: 0, b: 0, a: 0.627451}
   m_RaycastTarget: 0
+  m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
