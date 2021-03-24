@@ -231,21 +231,26 @@ namespace SentienceLab
 
 
 		/// <summary>
-		/// Sets the current target of the ray.
+		/// Sets an override target of the ray.
 		/// </summary>
 		/// 
-		public void OverrideRayTarget(Vector3 pos)
+		public void OverrideRayTarget(Vector3 position)
 		{
-			if (pos.Equals(Vector3.zero))
-			{
-				m_overrideTarget = false;
-			}
-			else
-			{
-				m_overrideTarget = true;
-				m_overridePoint  = pos;
-			}
+			m_overrideTarget = true;
+			m_overridePoint  = position;
 		}
+
+
+		/// <summary>
+		/// Resets the override target of the ray.
+		/// </summary>
+		/// 
+		public void ResetOverrideRayTarget()
+		{
+			m_overrideTarget = false;
+			m_overridePoint  = Vector3.zero;
+		}
+		
 
 		private bool              m_rayEnabled;
 		private LineRenderer      m_line;
