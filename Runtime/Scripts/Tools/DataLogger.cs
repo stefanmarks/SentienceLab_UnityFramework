@@ -71,6 +71,10 @@ namespace SentienceLab
 					string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
 					LogFilename = LogFilename.Replace("{TIMESTAMP}", timestamp);
 
+#if !UNITY_EDITOR
+					LogFilename = Application.persistentDataPath + "/" + LogFilename;
+#endif
+
 					// open logfile and append
 					m_writer = new StreamWriter(LogFilename, true);
 					Log("start", DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss"));
