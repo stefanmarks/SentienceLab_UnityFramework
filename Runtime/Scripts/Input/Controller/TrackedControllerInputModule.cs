@@ -149,7 +149,7 @@ namespace SentienceLab
 		{
 			if (ctrl.ray != null)
 			{
-				ctrl.ray.OverrideRayTarget(Vector3.zero);
+				ctrl.ray.ResetOverrideRayTarget();
 			}
 
 			if (ctrl.eventData.pointerCurrentRaycast.gameObject != null)
@@ -189,7 +189,7 @@ namespace SentienceLab
 				//			Cursors[index].gameObject.SetActive(false);
 				if (ctrl.ray)
 				{
-					ctrl.ray.OverrideRayTarget(Vector3.zero);
+					ctrl.ray.ResetOverrideRayTarget();
 				}
 			}
 		}
