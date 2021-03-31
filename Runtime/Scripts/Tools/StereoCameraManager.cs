@@ -16,7 +16,7 @@ namespace SentienceLab
 	/// </summary>
 	/// 
 
-	[AddComponentMenu("VR/Stereo Camera Manager")]
+	[AddComponentMenu("SentienceLab/Tools/Stereo Camera Manager")]
 
 	public class StereoCameraManager : MonoBehaviour
 	{

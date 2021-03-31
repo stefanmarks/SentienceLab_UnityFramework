@@ -14,7 +14,7 @@ namespace SentienceLab
 	/// Component to buffer Actions created in threads and invoke them in the main thread.
 	/// </summary>
 	/// 
-	[AddComponentMenu("Sentience Lab/Tools/Main Thread Task Dispatcher")]
+	[AddComponentMenu("SentienceLab/Tools/Main Thread Task Dispatcher")]
 	public class MainThreadTaskDispatcher : MonoBehaviour
 	{
 		public static MainThreadTaskDispatcher Instance

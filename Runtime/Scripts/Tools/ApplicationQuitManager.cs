@@ -8,7 +8,7 @@ using UnityEngine.InputSystem;
 
 namespace SentienceLab
 {
-	[AddComponentMenu("Sentience Lab/Tools/Application Quit Manager")]
+	[AddComponentMenu("SentienceLab/Tools/Application Quit Manager")]
 	public class ApplicationQuitManager : MonoBehaviour
 	{
 		[Tooltip("Action that quits the application (default: ESC)")]

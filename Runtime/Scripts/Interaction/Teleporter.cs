@@ -14,7 +14,7 @@ namespace SentienceLab
 	/// Class for executing a teleport.
 	/// </summary>
 
-	[AddComponentMenu("Locomotion/Teleporter")]
+	[AddComponentMenu("SentienceLab/Interaction/Locomotion/Teleporter")]
 	[DisallowMultipleComponent]
 
 	public class Teleporter : MonoBehaviour

@@ -14,7 +14,7 @@ namespace SentienceLab
 		void Log(string _event, params object[] _data);
 	}
 
-	[AddComponentMenu("Sentience Lab/Tools/Data Logger")]
+	[AddComponentMenu("SentienceLab/Tools/Data Logger")]
 	public class DataLogger : MonoBehaviour, IDataLogger
 	{
 		

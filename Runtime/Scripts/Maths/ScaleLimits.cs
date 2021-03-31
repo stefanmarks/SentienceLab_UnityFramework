@@ -12,7 +12,7 @@ namespace SentienceLab
 	/// A component that enforces that the scale of a game object 
 	/// stays within certain limits.
 	/// </summary>
-	[AddComponentMenu("Constraints/Scale Limits")]
+	[AddComponentMenu("SentienceLab/Constraints/Scale Limits")]
 	
 	public class ScaleLimits : MonoBehaviour
 	{

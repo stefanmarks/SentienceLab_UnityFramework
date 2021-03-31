@@ -6,9 +6,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SentienceLab.Physics
+namespace SentienceLab
 {
-	[AddComponentMenu("Physics/Interactivity Signifier")]
+	/// <summary>
+	/// Component for changing the appearance of an object on hover/select.
+	/// </summary>
+	/// 
+	[AddComponentMenu("SentienceLab/Interaction/Interactivity Signifier")]
 	[RequireComponent(typeof(InteractiveRigidbody))]
 	public class InteractivitySignifier : MonoBehaviour
 	{

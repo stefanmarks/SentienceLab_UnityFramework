@@ -20,8 +20,7 @@
 //   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //   THE SOFTWARE.
 
-using SentienceLab.Input;
-using System;
+using SentienceLab;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -45,7 +44,7 @@ using UnityEngine.XR;
 /// GazeInputModule emits the following events: _Enter_, _Exit_, _Down_, _Up_, _Click_, _Select_,
 /// _Deselect_, and _UpdateSelected_.  Scroll, move, and submit/cancel events are not emitted.
 
-[AddComponentMenu("Input/Gaze/Gaze Input Module")]
+[AddComponentMenu("Event/Gaze Input Module")]
 
 public class GazeInputModule : BaseInputModule
 {

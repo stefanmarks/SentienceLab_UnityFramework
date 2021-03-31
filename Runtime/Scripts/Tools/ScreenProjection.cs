@@ -19,7 +19,7 @@ namespace SentienceLab
 	[ExecuteInEditMode]
 	[DisallowMultipleComponent]
 	[RequireComponent(typeof(Camera))]
-	[AddComponentMenu("VR/Screen Projection")]
+	[AddComponentMenu("SentienceLab/Tools/Screen Projection")]
 
 	public class ScreenProjection : MonoBehaviour
 	{

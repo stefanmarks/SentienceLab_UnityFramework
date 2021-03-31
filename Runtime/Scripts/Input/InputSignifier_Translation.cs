@@ -14,7 +14,7 @@ namespace SentienceLab
 	/// (e.g., moving a trigger button by the press amount)
 	/// </summary>
 	///
-	[AddComponentMenu("Sentience Lab/Input/Input Signifier - Translation")]
+	[AddComponentMenu("SentienceLab/Input/Input Signifier - Translation")]
 	public class InputSignifier_Translation : MonoBehaviour
 	{
 		[Tooltip("The action that triggers the translation")]

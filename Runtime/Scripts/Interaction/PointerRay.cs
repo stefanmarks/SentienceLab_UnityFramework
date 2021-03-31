@@ -13,7 +13,7 @@ namespace SentienceLab
 	/// This component can be queried as to what it is pointing at.
 	/// </summary>
 	///
-	[AddComponentMenu("Sentience Lab/Pointer Ray")]
+	[AddComponentMenu("SentienceLab/Interaction/Pointer Ray")]
 	[RequireComponent(typeof(LineRenderer))]
 	[RequireComponent(typeof(Parameter_Boolean))]
 

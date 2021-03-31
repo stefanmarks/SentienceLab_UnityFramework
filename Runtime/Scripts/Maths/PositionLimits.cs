@@ -12,7 +12,7 @@ namespace SentienceLab
 	/// A component that enforces that the position of a game object/rigidbody 
 	/// stays within certain limits.
 	/// </summary>
-	[AddComponentMenu("Constraints/Position Limits")]
+	[AddComponentMenu("SentienceLab/Constraints/Position Limits")]
 	
 	public class PositionLimits : MonoBehaviour
 	{

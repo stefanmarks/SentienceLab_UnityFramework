@@ -6,12 +6,12 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace SentienceLab.Physics
+namespace SentienceLab
 {
 	/// <summary>
 	/// Enables the user to scale an object by grabbing it and twisting the controllers.
 	/// </summary>
-	[AddComponentMenu("Physics/Twist Scale Controller")]
+	[AddComponentMenu("SentienceLab/Interaction/XR/Twist Scale Controller")]
 	[RequireComponent(typeof(PhysicsGrab))]
 	public class TwistScaleController : MonoBehaviour
 	{

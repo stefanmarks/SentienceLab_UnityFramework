@@ -6,9 +6,9 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace SentienceLab.Physics
+namespace SentienceLab
 {
-	[AddComponentMenu("Physics/Interactive Rigidbody")]
+	[AddComponentMenu("SentienceLab/Interaction/Interactive Rigidbody")]
 	[RequireComponent(typeof(Rigidbody))]
 	public class InteractiveRigidbody : MonoBehaviour
 	{

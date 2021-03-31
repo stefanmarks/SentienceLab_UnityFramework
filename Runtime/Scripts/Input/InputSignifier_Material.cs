@@ -8,14 +8,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace SentienceLab.MoCap
+namespace SentienceLab
 {
 	/// <summary>
 	/// Signifies an input control by changing the material
 	/// </summary>
 	///
 	[RequireComponent(typeof(Renderer))]
-	[AddComponentMenu("Sentience Lab/Input/Input Signifier - Material")]
+	[AddComponentMenu("SentienceLab/Input/Input Signifier - Material")]
 	public class InputSignifier_Material : MonoBehaviour
 	{
 		[Tooltip("The action that triggers the material change")]

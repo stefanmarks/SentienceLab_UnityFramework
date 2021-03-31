@@ -13,7 +13,7 @@ namespace SentienceLab
 	/// Script for globally changing the tracking space reference (e.g., floor, head)
 	/// </summary>
 	///
-	[AddComponentMenu("XR/Tracking Origin Mode Setup")]
+	[AddComponentMenu("SentienceLab/XR/Tracking Origin Mode Setup")]
 	public class TrackingOriginModeSetup : MonoBehaviour
 	{
 		public TrackingOriginModeFlags TrackingOriginMode = TrackingOriginModeFlags.Floor;

@@ -14,7 +14,7 @@ namespace SentienceLab
 	/// (e.g., rotating a trigger button by the press amount)
 	/// </summary>
 	///
-	[AddComponentMenu("Sentience Lab/Input/Input Signifier - Rotation")]
+	[AddComponentMenu("SentienceLab/Input/Input Signifier - Rotation")]
 	public class InputSignifier_Rotation : MonoBehaviour
 	{
 		[Tooltip("The action that triggers the rotation")]

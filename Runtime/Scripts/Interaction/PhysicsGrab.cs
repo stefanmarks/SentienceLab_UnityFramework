@@ -6,9 +6,9 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace SentienceLab.Physics
+namespace SentienceLab
 {
-	[AddComponentMenu("Physics/Controller Grab")]
+	[AddComponentMenu("SentienceLab/Interaction/Controller Grab")]
 	[RequireComponent(typeof(Collider))]
 	public class PhysicsGrab : MonoBehaviour
 	{

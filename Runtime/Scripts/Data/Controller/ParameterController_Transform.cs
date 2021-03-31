@@ -7,13 +7,13 @@ using UnityEngine;
 
 namespace SentienceLab.Data
 {
-	[AddComponentMenu("Parameter/Controller/Transform Parameter Manager")]
+	[AddComponentMenu("Parameter/Controller/Transform Parameter Controller")]
 
 	/// <summary>
 	/// Keeps a transform and three parameters (pos/rot/scale) in sync bidirectionally.
 	/// </summary>
 	/// 
-	public class TransformParameterManager : MonoBehaviour
+	public class ParameterController_Transform : MonoBehaviour
 	{
 		[ContextMenuItem("Copy transform limits to parameter limits", "CopyLimitsToParameters_Position")]
 		[ContextMenuItem("Copy parameter limits to transform limits", "CopyLimitsFromParameters_Position")]

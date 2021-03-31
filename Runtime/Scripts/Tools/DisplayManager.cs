@@ -16,7 +16,7 @@ namespace SentienceLab
 	///
 
 	[DisallowMultipleComponent]
-	[AddComponentMenu("VR/Display Manager")]
+	[AddComponentMenu("SentienceLab/Tools/Display Manager")]
 
 	public class DisplayManager : MonoBehaviour
 	{

@@ -3,9 +3,7 @@
 // (C) Sentience Lab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
-using System;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
 
 namespace SentienceLab
@@ -15,7 +13,7 @@ namespace SentienceLab
 	/// This component does NOT use the event system.
 	/// </summary>
 
-	[AddComponentMenu("Locomotion/Teleport Controller")]
+	[AddComponentMenu("SentienceLab/Interaction/Locomotion/Teleport Controller")]
 	[DisallowMultipleComponent]
 
 	public class TeleportController : MonoBehaviour
