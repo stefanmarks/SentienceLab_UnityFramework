@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.XR;
 
 namespace SentienceLab
 {
@@ -43,7 +44,7 @@ namespace SentienceLab
 			if (activate && !activated)
 			{
 				// XR device should be present to have tracked controllers
-				activate = UnityEngine.XR.XRDevice.isPresent;
+				activate = XRSettings.isDeviceActive;
 			}
 			activate |= ForceModuleActive;
 			return activate;

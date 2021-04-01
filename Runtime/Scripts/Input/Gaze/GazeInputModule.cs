@@ -76,7 +76,7 @@ public class GazeInputModule : BaseInputModule
 	{
 		bool activeState = base.ShouldActivateModule();
 
-		activeState = activeState && (XRDevice.isPresent || !vrModeOnly);
+		activeState = activeState && (XRSettings.isDeviceActive || !vrModeOnly);
 
 		if (activeState != isActive)
 		{
