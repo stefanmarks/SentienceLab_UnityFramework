@@ -14,7 +14,7 @@ namespace SentienceLab
 		void Log(string _event, params object[] _data);
 	}
 
-
+	[AddComponentMenu("SentienceLab/Tools/Data Logger")]
 	public class DataLogger : MonoBehaviour, IDataLogger
 	{
 		
@@ -70,6 +70,10 @@ namespace SentienceLab
 					// if required, build timestamped filename
 					string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
 					LogFilename = LogFilename.Replace("{TIMESTAMP}", timestamp);
+
+#if !UNITY_EDITOR
+					LogFilename = Application.persistentDataPath + "/" + LogFilename;
+#endif
 
 					// open logfile and append
 					m_writer = new StreamWriter(LogFilename, true);

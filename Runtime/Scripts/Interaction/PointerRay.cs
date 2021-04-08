@@ -13,7 +13,7 @@ namespace SentienceLab
 	/// This component can be queried as to what it is pointing at.
 	/// </summary>
 	///
-
+	[AddComponentMenu("SentienceLab/Interaction/Pointer Ray")]
 	[RequireComponent(typeof(LineRenderer))]
 	[RequireComponent(typeof(Parameter_Boolean))]
 
@@ -93,16 +93,16 @@ namespace SentienceLab
 				// construct ray
 				Vector3 forward = (rayDirection == null) ? Vector3.forward : rayDirection.Value;
 				forward = transform.TransformDirection(forward); // relative forward to "world forward"
-				Ray ray = new Ray(transform.position, forward);
-				Vector3 end = ray.origin + ray.direction * rayRange;
-				m_line.SetPosition(0, ray.origin);
-				Debug.DrawLine(ray.origin, end, Color.red);
+				m_ray = new Ray(transform.position, forward);
+				Vector3 end = m_ray.origin + m_ray.direction * rayRange;
+				m_line.SetPosition(0, m_ray.origin);
+				Debug.DrawLine(m_ray.origin, end, Color.red);
 
 				bool hit;
 				if (!m_overrideTarget)
 				{
 					// do raycast
-					hit = UnityEngine.Physics.Raycast(ray, out m_rayTarget, rayRange);
+					hit = UnityEngine.Physics.Raycast(m_ray, out m_rayTarget, rayRange);
 
 					// test tags
 					if (hit && (tagList.Length > 0))
@@ -110,7 +110,7 @@ namespace SentienceLab
 						hit = false;
 						foreach (string tag in tagList)
 						{
-							if (m_rayTarget.transform.tag.CompareTo(tag) == 0)
+							if (m_rayTarget.transform.CompareTag(tag))
 							{
 								hit = true;
 								break;
@@ -119,15 +119,15 @@ namespace SentienceLab
 						if (!hit)
 						{
 							// tag test negative > reset raycast structure
-							UnityEngine.Physics.Raycast(ray, out m_rayTarget, 0);
+							UnityEngine.Physics.Raycast(m_ray, out m_rayTarget, 0);
 						}
 					}
 
-					// are there collides to check for inside-collisions?
+					// are there colliders to check for inside-collisions?
 					if (checkInsideColliders.Length > 0)
 					{
-						// checking inside collides: reverse ray
-						Ray reverse = new Ray(ray.origin + ray.direction * rayRange, -ray.direction);
+						// checking inside colliders: reverse ray
+						Ray reverse = new Ray(m_ray.origin + m_ray.direction * rayRange, -m_ray.direction);
 						float minDistance = hit ? m_rayTarget.distance : rayRange;
 						foreach (Collider c in checkInsideColliders)
 						{
@@ -146,7 +146,7 @@ namespace SentienceLab
 				}
 				else
 				{
-					UnityEngine.Physics.Raycast(ray, out m_rayTarget, 0); // reset structure
+					UnityEngine.Physics.Raycast(m_ray, out m_rayTarget, 0); // reset structure
 					m_rayTarget.point = m_overridePoint;        // override point
 					hit = true;
 				}
@@ -198,6 +198,17 @@ namespace SentienceLab
 
 
 		/// <summary>
+		/// Returns the current ray.
+		/// </summary>
+		/// <returns>the current ray</returns>
+		/// 
+		public Ray GetRay()
+		{
+			return m_ray;
+		}
+
+
+		/// <summary>
 		/// Returns the current target of the ray.
 		/// </summary>
 		/// <returns>the last raycastHit result</returns>
@@ -220,24 +231,30 @@ namespace SentienceLab
 
 
 		/// <summary>
-		/// Sets the current target of the ray.
+		/// Sets an override target of the ray.
 		/// </summary>
 		/// 
-		public void OverrideRayTarget(Vector3 pos)
+		public void OverrideRayTarget(Vector3 position)
 		{
-			if (pos.Equals(Vector3.zero))
-			{
-				m_overrideTarget = false;
-			}
-			else
-			{
-				m_overrideTarget = true;
-				m_overridePoint  = pos;
-			}
+			m_overrideTarget = true;
+			m_overridePoint  = position;
 		}
+
+
+		/// <summary>
+		/// Resets the override target of the ray.
+		/// </summary>
+		/// 
+		public void ResetOverrideRayTarget()
+		{
+			m_overrideTarget = false;
+			m_overridePoint  = Vector3.zero;
+		}
+		
 
 		private bool              m_rayEnabled;
 		private LineRenderer      m_line;
+		private Ray               m_ray;
 		private RaycastHit        m_rayTarget;
 		private bool              m_overrideTarget;
 		private Vector3           m_overridePoint;

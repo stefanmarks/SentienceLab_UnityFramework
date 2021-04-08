@@ -16,7 +16,7 @@ namespace SentienceLab
 	/// </summary>
 	/// 
 
-	[AddComponentMenu("VR/Stereo Camera Manager")]
+	[AddComponentMenu("SentienceLab/Tools/Stereo Camera Manager")]
 
 	public class StereoCameraManager : MonoBehaviour
 	{
@@ -85,9 +85,6 @@ namespace SentienceLab
 			if (!Application.isPlaying)
 				return;
 
-			if (XRDevice.isPresent)
-				return;
-
 			// search for the display configuration stated in the parameter
 			config = DisplayManager.GetInstance().GetConfig(DisplayProfileName);
 			if (config is ScreenConfig)
@@ -116,15 +113,6 @@ namespace SentienceLab
 
 		private void UpdateCameras()
 		{
-			if (needsCameraConfigure)
-			{
-				// Check presence of any VR display which would take care of the configuration automatically
-				if (XRDevice.isPresent)
-				{
-					needsCameraConfigure = false;
-				}
-			}
-
 			if (needsCameraConfigure)
 			{
 				// Is there at least one camera component in the children?

@@ -18,7 +18,7 @@ namespace SentienceLab
 	/// </summary>
 	/// 
 
-	[AddComponentMenu("VR/Redirected Walking")]
+	[AddComponentMenu("SentienceLab/Interaction/XR/Redirected Walking")]
 	public class RedirectedWalking : MonoBehaviour
 	{
 		[Tooltip("The node that represents the user's head")]

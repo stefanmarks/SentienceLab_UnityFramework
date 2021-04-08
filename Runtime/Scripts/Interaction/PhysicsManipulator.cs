@@ -14,10 +14,11 @@ namespace SentienceLab
 	/// If a sound component is attached, this will be played in loop mode.
 	/// </summary>
 	///
+	[AddComponentMenu("SentienceLab/Interaction/Physics Manipulator")]
 	public class PhysicsManipulator : MonoBehaviour
 	{
 		[Tooltip("Input action for grabbing")]
-		public InputActionReference GrabAction;
+		public InputActionProperty GrabAction;
 
 		[Tooltip("Grab PID controller")]
 		public PID_Controller3D PID;

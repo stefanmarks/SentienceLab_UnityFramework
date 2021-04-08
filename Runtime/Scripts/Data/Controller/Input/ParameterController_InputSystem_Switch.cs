@@ -17,8 +17,8 @@ namespace SentienceLab.Data
 		[TypeConstraint(typeof(IParameterAsBoolean))]
 		public ParameterBase Parameter;
 
-		[Tooltip("Name of the input that controls this parameter")]
-		public InputActionReference Action;
+		[Tooltip("Input action that controls this parameter")]
+		public InputActionProperty Action;
 
 		public enum eMode
 		{

@@ -46,8 +46,8 @@ namespace SentienceLab.MoCap
 		[ContextMenuItem("Save configuration to config file", "SaveConfiguration")]
 		public Configuration configuration;
 
-		[Tooltip("Action for pausing/running the client")]
-		public InputActionReference PauseAction;
+		[Tooltip("Input action for pausing/running the client")]
+		public InputActionProperty PauseAction;
 
 
 		private readonly byte[] clientAppVersion = new byte[] { 1, 4, 5, 0 };

@@ -17,8 +17,7 @@
 
 using UnityEngine;
 
-[AddComponentMenu("Input/Gaze/CircularReticle")]
-
+[AddComponentMenu("SentienceLab/Interaction/Gaze/Circular Reticle")]
 [RequireComponent(typeof(Renderer))]
 
 public class CircularReticle : MonoBehaviour, IGazePointer

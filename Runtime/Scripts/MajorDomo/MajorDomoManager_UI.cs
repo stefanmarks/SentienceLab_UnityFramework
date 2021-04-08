@@ -8,9 +8,13 @@ using UnityEngine;
 
 namespace SentienceLab.MajorDomo
 {
+	/// <summary>
+	/// Helper component for a connect/disconnect button UI
+	/// </summary>
+	/// 
 	[DisallowMultipleComponent]
-	[AddComponentMenu("MajorDomo/Manager GUI")]
-	public class MajorDomoManager_GUI : MonoBehaviour
+	[AddComponentMenu("MajorDomo/MajorDomo Manager UI")]
+	public class MajorDomoManager_UI : MonoBehaviour
 	{
 		[Tooltip("Where to put the connect/disconnect button")]
 		public Rect ConnectButtonDimensions = new Rect(10, 10, 100, 30);

@@ -20,8 +20,7 @@
 //   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //   THE SOFTWARE.
 
-using SentienceLab.Input;
-using System;
+using SentienceLab;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -45,7 +44,7 @@ using UnityEngine.XR;
 /// GazeInputModule emits the following events: _Enter_, _Exit_, _Down_, _Up_, _Click_, _Select_,
 /// _Deselect_, and _UpdateSelected_.  Scroll, move, and submit/cancel events are not emitted.
 
-[AddComponentMenu("Input/Gaze/Gaze Input Module")]
+[AddComponentMenu("Event/Gaze Input Module")]
 
 public class GazeInputModule : BaseInputModule
 {
@@ -58,8 +57,8 @@ public class GazeInputModule : BaseInputModule
 	[Tooltip("Gaze time after which to trigger an object (0: No fuse mode)")]
 	public float defaultFuseTime = 0;
 
-	[Tooltip("Action for triggering the object gazed at")]
-	public InputActionReference TriggerAction;
+	[Tooltip("Input action for triggering the object gazed at")]
+	public InputActionProperty TriggerAction;
 
 	/// Time in seconds between the pointer down and up events sent by a trigger.
 	/// Allows time for the UI elements to make their state transitions.
@@ -77,7 +76,7 @@ public class GazeInputModule : BaseInputModule
 	{
 		bool activeState = base.ShouldActivateModule();
 
-		activeState = activeState && (XRDevice.isPresent || !vrModeOnly);
+		activeState = activeState && (XRSettings.isDeviceActive || !vrModeOnly);
 
 		if (activeState != isActive)
 		{

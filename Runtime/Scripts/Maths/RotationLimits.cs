@@ -12,7 +12,7 @@ namespace SentienceLab
 	/// A component that enforces that the rotation of a game object/rigidbody 
 	/// stays within certain limits.
 	/// </summary>
-	[AddComponentMenu("Constraints/Rotation Limits")]
+	[AddComponentMenu("SentienceLab/Constraints/Rotation Limits")]
 	
 	public class RotationLimits : MonoBehaviour
 	{

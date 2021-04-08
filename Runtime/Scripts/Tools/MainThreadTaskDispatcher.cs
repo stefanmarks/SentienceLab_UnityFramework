@@ -5,11 +5,16 @@
 #endregion Copyright Information
 
 using UnityEngine;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 
 namespace SentienceLab
 {
+	/// <summary>
+	/// Component to buffer Actions created in threads and invoke them in the main thread.
+	/// </summary>
+	/// 
+	[AddComponentMenu("SentienceLab/Tools/Main Thread Task Dispatcher")]
 	public class MainThreadTaskDispatcher : MonoBehaviour
 	{
 		public static MainThreadTaskDispatcher Instance

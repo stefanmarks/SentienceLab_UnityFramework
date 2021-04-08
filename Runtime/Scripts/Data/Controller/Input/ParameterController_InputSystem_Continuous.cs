@@ -20,8 +20,8 @@ namespace SentienceLab.Data
 		[Tooltip("The index of the value to change (e.g., 0: min, 1: max. Default: 0)")]
 		public int ValueIndex = 0;
 
-		[Tooltip("Name of the input that controls this parameter")]
-		public InputActionReference Action;
+		[Tooltip("Input action that controls this parameter")]
+		public InputActionProperty Action;
 
 		[Tooltip("Factor to change the parameter by per second")]
 		public float Multiplier = 1.0f;

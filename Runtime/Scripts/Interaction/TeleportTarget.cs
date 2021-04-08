@@ -13,7 +13,7 @@ namespace SentienceLab
 	/// This component uses the event system.
 	/// </summary>
 
-	[AddComponentMenu("Locomotion/Teleport Target")]
+	[AddComponentMenu("SentienceLab/Interaction/Locomotion/Teleport Target")]
 	[DisallowMultipleComponent]
 
 	public class TeleportTarget : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler

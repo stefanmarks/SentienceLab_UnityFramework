@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.XR;
 
 namespace SentienceLab
 {
@@ -20,8 +21,8 @@ namespace SentienceLab
 		[System.Serializable]
 		public class ControllerInfo
 		{
-			public Transform            trackedObject;
-			public InputActionReference action;
+			public Transform           trackedObject;
+			public InputActionProperty action;
 		}
 
 		[Tooltip("Layers that this tracked controller reacts to")]
@@ -43,7 +44,7 @@ namespace SentienceLab
 			if (activate && !activated)
 			{
 				// XR device should be present to have tracked controllers
-				activate = UnityEngine.XR.XRDevice.isPresent;
+				activate = XRSettings.isDeviceActive;
 			}
 			activate |= ForceModuleActive;
 			return activate;
@@ -149,7 +150,7 @@ namespace SentienceLab
 		{
 			if (ctrl.ray != null)
 			{
-				ctrl.ray.OverrideRayTarget(Vector3.zero);
+				ctrl.ray.ResetOverrideRayTarget();
 			}
 
 			if (ctrl.eventData.pointerCurrentRaycast.gameObject != null)
@@ -189,7 +190,7 @@ namespace SentienceLab
 				//			Cursors[index].gameObject.SetActive(false);
 				if (ctrl.ray)
 				{
-					ctrl.ray.OverrideRayTarget(Vector3.zero);
+					ctrl.ray.ResetOverrideRayTarget();
 				}
 			}
 		}

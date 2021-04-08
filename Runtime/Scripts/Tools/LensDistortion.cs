@@ -18,7 +18,7 @@ namespace SentienceLab
 	[DisallowMultipleComponent]
 	[RequireComponent(typeof(Camera))]
 
-	[AddComponentMenu("VR/Lens Distortion")]
+	[AddComponentMenu("SentienceLab/Tools/Lens Distortion")]
 
 	public class LensDistortion : MonoBehaviour
 	{

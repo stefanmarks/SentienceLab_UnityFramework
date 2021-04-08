@@ -6,14 +6,14 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace SentienceLab.Physics
+namespace SentienceLab
 {
-	[AddComponentMenu("Physics/Controller Grab")]
+	[AddComponentMenu("SentienceLab/Interaction/Controller Grab")]
 	[RequireComponent(typeof(Collider))]
 	public class PhysicsGrab : MonoBehaviour
 	{
 		[Tooltip("Input action for grabbing")]
-		public InputActionReference GrabAction;
+		public InputActionProperty GrabAction;
 
 		[Tooltip("Grab PID controller")]
 		public PID_Controller3D PID;
@@ -41,7 +41,7 @@ namespace SentienceLab.Physics
 
 		private void OnGrabStart(InputAction.CallbackContext obj)
 		{
-			m_activeBody = m_candidate != null ? m_candidate : DefaultRigidBody;
+			m_activeBody = (m_candidate != null) ? m_candidate : DefaultRigidBody;
 			if (m_activeBody != null)
 			{
 				m_activeBody.InvokeGrabStart(this.gameObject);
@@ -76,20 +76,25 @@ namespace SentienceLab.Physics
 
 		public void OnTriggerEnter(Collider other)
 		{
-			m_candidate = other.GetComponentInParent<InteractiveRigidbody>();
-			if (m_candidate != null)
+			InteractiveRigidbody irb = other.GetComponentInParent<InteractiveRigidbody>();
+			if (irb != null)
 			{
-				m_candidate.InvokeHoverStart(this.gameObject);
+				irb.InvokeHoverStart(this.gameObject);
+				m_candidate = irb;
 			}
 		}
 
 
 		public void OnTriggerExit(Collider other)
 		{
-			if (m_candidate != null)
+			InteractiveRigidbody irb = other.GetComponentInParent<InteractiveRigidbody>();
+			if (irb != null)
 			{
-				m_candidate.InvokeHoverEnd(this.gameObject);
-				m_candidate = null;
+				irb.InvokeHoverEnd(this.gameObject);
+				if (irb == m_candidate)
+				{
+					m_candidate = null;
+				}
 			}
 		}
 
