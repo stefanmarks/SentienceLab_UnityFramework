@@ -1,78 +1,35 @@
 fileFormatVersion: 2
-guid: 4c067907d2d823f47be888f90c01974a
-timeCreated: 1457911822
-licenseType: Free
+guid: 7cf257f58f3d99741a544f6e65c04946
 ModelImporter:
-  serializedVersion: 19
-  fileIDToRecycleName:
-    100000: FireButton
-    100002: HatSwitch
-    100004: //RootNode
-    100006: SwitchBase
-    100008: SwitchTR
-    100010: Tip
-    100012: Handle
-    100014: SwitchBL
-    100016: SwitchBR
-    100018: SwitchThumb
-    100020: SwitchTL
-    400000: FireButton
-    400002: HatSwitch
-    400004: //RootNode
-    400006: SwitchBase
-    400008: SwitchTR
-    400010: Tip
-    400012: Handle
-    400014: SwitchBL
-    400016: SwitchBR
-    400018: SwitchThumb
-    400020: SwitchTL
-    2300000: FireButton
-    2300002: HatSwitch
-    2300004: //RootNode
-    2300006: SwitchTR
-    2300008: Handle
-    2300010: SwitchBL
-    2300012: SwitchBR
-    2300014: SwitchThumb
-    2300016: SwitchTL
-    3300000: FireButton
-    3300002: HatSwitch
-    3300004: //RootNode
-    3300006: SwitchTR
-    3300008: Handle
-    3300010: SwitchBL
-    3300012: SwitchBR
-    3300014: SwitchThumb
-    3300016: SwitchTL
-    4300000: Handle
-    4300002: FireButton
-    4300004: SwitchTR
-    4300006: HatSwitch
-    4300008: SwitchThumb
-    4300010: SwitchTL
-    4300012: SwitchBL
-    4300014: SwitchBR
+  serializedVersion: 19301
+  internalIDToNameTable: []
+  externalObjects: {}
   materials:
-    importMaterials: 0
-    materialName: 1
+    materialImportMode: 0
+    materialName: 0
     materialSearch: 1
+    materialLocation: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
     resampleCurves: 1
     optimizeGameObjects: 0
     motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
     animationCompression: 1
     animationRotationError: 0.5
     animationPositionError: 0.5
     animationScaleError: 0.5
     animationWrapMode: 0
     extraExposedTransformPaths: []
+    extraUserProperties: []
     clipAnimations: []
     isReadable: 0
   meshes:
@@ -80,13 +37,24 @@ ModelImporter:
     globalScale: 1
     meshCompression: 0
     addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 0
+    importVisibility: 0
     importBlendShapes: 0
+    importCameras: 0
+    importLights: 0
+    fileIdsGeneration: 2
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMeshForGPU: 1
     keepQuads: 0
-    weldVertices: 1
+    weldVertices: 0
+    preserveHierarchy: 1
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
+    indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
@@ -96,10 +64,14 @@ ModelImporter:
     normalSmoothAngle: 60
     normalImportMode: 0
     tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
   importAnimation: 0
-  copyAvatar: 0
   humanDescription:
-    serializedVersion: 2
+    serializedVersion: 3
     human: []
     skeleton: []
     armTwist: 0.5
@@ -109,14 +81,16 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
+    globalScale: 1
     rootMotionBoneName: 
-    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
     hasTranslationDoF: 0
     hasExtraRoot: 0
-    skeletonHasParents: 0
+    skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 0
   humanoidOversampling: 1
+  avatarSetup: 0
   additionalBone: 0
   userData: 
   assetBundleName: 
