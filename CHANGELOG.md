@@ -10,12 +10,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Removed
 
-- Removed XR/OpenVR MoCap Modules
-- Deprecated XR functions in ConfigurationManager
 
 ### Changed
 
-- Removing SentienceLab InputHandler system, now only supporting Unity's Input System
+- Removing SentienceLab InputHandler system, now only supporting Unity's new Input System
 
 
 ## [1.4] - 2020-06-02
@@ -23,15 +21,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 - Touchpad button composite
+- Transform limits for pos/rot/scale
+- TrackingModeOriginSetup script
+- Oculus Quest 2 controller models and prefabs
+- Input signifier scripts
 
 ### Removed
 
-- Removed XR/OpenVR MoCap Modules
-- Deprecated XR functions in ConfigurationManager
+- XR/OpenVR MoCap Modules
+- ConfigurationManager, StartPosition
 - Default Inputs JSON file
 
 ### Changed
 
+- Restructure of folders and component menu items
 - Deprecating SentienceLab InputHandler system, preparing for switch to Input System
 - Ray controlled by parameter instead of input action
 
