@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- Restructure of folders and component menu items
 - Deprecating SentienceLab InputHandler system, preparing for switch to Input System
 - Ray controlled by parameter instead of input action
 

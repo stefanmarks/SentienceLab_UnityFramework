@@ -26,9 +26,9 @@ namespace SentienceLab
 		public void Start()
 		{
 			// get current scene number and maximum scene index
-			sceneIndex = SceneManager.GetActiveScene().buildIndex;
+			sceneIndex        = SceneManager.GetActiveScene().buildIndex;
 			currentSceneIndex = sceneIndex;
-			maxSceneIndex = SceneManager.sceneCountInBuildSettings - 1;
+			maxSceneIndex     = SceneManager.sceneCountInBuildSettings - 1;
 
 			// fade in
 			fadeLevel = 1;
@@ -117,8 +117,8 @@ namespace SentienceLab
 
 
 		private float fadeLevel;
-		private int sceneIndex;
-		private int maxSceneIndex, currentSceneIndex;
+		private int   sceneIndex;
+		private int   maxSceneIndex, currentSceneIndex;
 		private List<ScreenFade> faders;
 	}
 }
