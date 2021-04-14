@@ -8,12 +8,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [1.5] - 2020-10-21
 
-### Removed
+### Added
 
 
 ### Changed
 
+- Added offset nodes between TrackedPose drivers and the XR controller models
+- Adapted TrackedPose and input signifier actions to OpenXR plugin names
+
+### Removed
+
 - Removing SentienceLab InputHandler system, now only supporting Unity's new Input System
+
 
 
 ## [1.4] - 2020-06-02
@@ -26,17 +32,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Oculus Quest 2 controller models and prefabs
 - Input signifier scripts
 
-### Removed
-
-- XR/OpenVR MoCap Modules
-- ConfigurationManager, StartPosition
-- Default Inputs JSON file
-
 ### Changed
 
 - Restructure of folders and component menu items
 - Deprecating SentienceLab InputHandler system, preparing for switch to Input System
 - Ray controlled by parameter instead of input action
+
+### Removed
+
+- XR/OpenVR MoCap Modules
+- ConfigurationManager, StartPosition
+- Default Inputs JSON file
 
 
 ## [1.3] - 2020-01-23
