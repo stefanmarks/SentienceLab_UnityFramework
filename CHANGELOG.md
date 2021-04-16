@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Added offset nodes between TrackedPose drivers and the XR controller models
 - Adapted TrackedPose and input signifier actions to OpenXR plugin names
+- Added template string to SynchronisedGameObject
 
 ### Removed
 
