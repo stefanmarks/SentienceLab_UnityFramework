@@ -21,6 +21,9 @@ namespace SentienceLab.MajorDomo
 				 "The string \"{GAMEOBJECT}\" will be automatically replaced by the game object's name.")]
 		public string EntityName = GAMEOBJECT_AUTO_NAME;
 
+		[Tooltip("Name of the entity template (default: empty).")]
+		public string TemplateName = "";
+
 		[Tooltip("Synchronisation mode for the entity.\n" 
 			+ "Client: object is controlled by the client.\n" 
 			+ "Server: object is controlled by the server/another client\n"
@@ -439,6 +442,11 @@ namespace SentienceLab.MajorDomo
 				_entity.AddValue_Boolean(EntityValue.ENABLED, gameObject.activeSelf);
 			}
 
+			if (TemplateName.Length > 0)
+			{
+				_entity.AddValue_String(EntityValue.TEMPLATE, this.TemplateName);
+			}
+
 			foreach (var cmp in SynchronisedComponents)
 			{
 				cmp.CreateEntityVariables(_entity);
@@ -450,6 +458,8 @@ namespace SentienceLab.MajorDomo
 		{
 			m_valEnabled = CanDisableGameObject ? m_entity.GetValue_Boolean(EntityValue.ENABLED) : null;
 
+			m_valTemplateName = m_entity.GetValue_String(EntityValue.TEMPLATE);
+
 			foreach (var cmp in SynchronisedComponents)
 			{
 				cmp.FindEntityVariables(m_entity);
@@ -459,7 +469,8 @@ namespace SentienceLab.MajorDomo
 
 		protected void DestroyEntityVariables()
 		{
-			m_valEnabled = null;
+			m_valEnabled      = null;
+			m_valTemplateName = null;
 
 			foreach (var cmp in SynchronisedComponents)
 			{
@@ -506,6 +517,11 @@ namespace SentienceLab.MajorDomo
 			{
 				m_valEnabled.Modify(gameObject.activeSelf);
 			}
+			// synchronise template name
+			if (m_valTemplateName != null)
+			{
+				m_valTemplateName.Modify(this.TemplateName);
+			}
 			// Synchronise components
 			foreach (var cmp in SynchronisedComponents)
 			{
@@ -542,5 +558,6 @@ namespace SentienceLab.MajorDomo
 
 		private EntityData          m_entity;
 		private EntityValue_Boolean m_valEnabled;
+		private EntityValue_String  m_valTemplateName;
 	}
 }
