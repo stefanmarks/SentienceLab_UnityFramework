@@ -1,7 +1,7 @@
 {
   "name": "nz.ac.aut.sentiencelab",
   "displayName": "Sentience Lab Unity Framework",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "unity": "2019.4",
   "description": "A framework for multiuser XR development",
   "keywords": [
@@ -13,7 +13,7 @@
   "dependencies": {
     "com.unity.inputsystem": "1.0.2",
     "com.unity.ugui": "1.0.0",
-    "com.unity.xr.management": "4.0.1"
+    "com.unity.xr.management": "4.0.5"
   },
   "type": "library"
 }
