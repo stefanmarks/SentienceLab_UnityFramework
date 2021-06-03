@@ -57,13 +57,8 @@ namespace SentienceLab.MajorDomo
 
 		public MajorDomoClient()
 		{
-			if (!m_NetMQ_Initialised)
-			{
-				// Necessary to force .NET implementation of network functions
-				// Client will most likely hang without this line!!!!!
-				AsyncIO.ForceDotNet.Force();
-				m_NetMQ_Initialised = true;
-			}
+			/// register with NetMQ manager to properly initialise NetMQ
+			NetMQ.Manager.Register(this);
 			
 			m_serverInformation = new ServerInformation();
 
@@ -99,32 +94,13 @@ namespace SentienceLab.MajorDomo
 			ResetDiagnostics();
 
 			m_lastUpdateSent = DateTime.Now;
-
-			m_localClientCount++;
 		}
 
 
 		~MajorDomoClient()
 		{
 			// one client less. are we done and have to clean up the NetMQ context?
-			if (m_localClientCount > 0)
-			{
-				m_localClientCount--;
-			}
-			else
-			{
-				Terminate();
-			}
-		}
-
-
-		public static void Terminate()
-		{
-			if (m_NetMQ_Initialised)
-			{
-				NetMQ.NetMQConfig.Cleanup(false);
-				m_NetMQ_Initialised = false;
-			}
+			NetMQ.Manager.Unregister(this);
 		}
 
 
@@ -1227,9 +1203,7 @@ namespace SentienceLab.MajorDomo
 			}
 		}
 
-		private static int  m_localClientCount  = 0;
-		private static bool m_NetMQ_Initialised = false;
-
+		
 		private readonly DateTime   m_startTime;
 		private          ClientData m_client;
 

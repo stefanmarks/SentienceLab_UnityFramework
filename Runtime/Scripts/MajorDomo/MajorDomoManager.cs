@@ -515,9 +515,8 @@ namespace SentienceLab.MajorDomo
 				m_workerThread = null;
 			}
 
+			// allow cleanup of client instance
 			m_client = null;
-
-			MajorDomoClient.Terminate();
 		}
 
 
