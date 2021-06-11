@@ -359,10 +359,18 @@ namespace SentienceLab.MajorDomo
 					// adjust flags from entity
 					Persistent = m_entity.IsPersistent();
 
-					// client+server and NOT shared doesn't work 
-					if (SynchronisationMode == ESynchronisationMode.Shared && !m_entity.AllowsSharedControl())
+					// mode sanity checks
+					if ((SynchronisationMode == ESynchronisationMode.Shared) && !m_entity.AllowsSharedControl())
 					{
+						// "Local shared" but NOT shared on server doesn't work 
 						Debug.LogWarningFormat("'{0}' mode on non-shared entity '{1}' not possible. Switching to '{2}' only.",
+							SynchronisationMode, m_entity.ToString(true, true), ESynchronisationMode.Server);
+						SynchronisationMode = ESynchronisationMode.Server;
+					}
+					else if ((SynchronisationMode == ESynchronisationMode.Client) && IsControlledByServer && !m_entity.AllowsSharedControl())
+					{
+						// "Local client" but under server control and NOT shared doesn't work 
+						Debug.LogWarningFormat("'{0}' mode on non-shared server entity '{1}' not possible. Switching to '{2}' only.",
 							SynchronisationMode, m_entity.ToString(true, true), ESynchronisationMode.Server);
 						SynchronisationMode = ESynchronisationMode.Server;
 					}
