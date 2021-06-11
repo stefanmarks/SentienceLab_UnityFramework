@@ -277,45 +277,48 @@ namespace SentienceLab.MajorDomo
 				{ 
 					m_oldPosition = pos; // don't start with a "jump"
 				}
-				// calculate or get velocity
-				Vector3 vel;
-				if (m_rigidbody != null)
+
+				if (m_valVelocityPos != null)
 				{
-					if (m_rigidbody.IsSleeping())
+					// calculate or get velocity
+					Vector3 vel = Vector3.zero;
+					if (m_rigidbody != null)
 					{
-						vel = Vector3.zero;
+						if (!m_rigidbody.IsSleeping())
+						{
+							vel = m_rigidbody.velocity;
+						}
 					}
-					else
-					{ 
-						vel = m_rigidbody.velocity; 
-					}
-				}
-				else
-				{
-					if (deltaT > 0)
+					else if (deltaT > 0)
 					{
 						vel = (pos - m_oldPosition) / deltaT;
 					}
-					else
+
+					// cut off very low values
+					if (vel.magnitude < VECTOR_ZERO_EPSILON)
 					{
 						vel = Vector3.zero;
 					}
+
+					// make relative to reference transform
+					if (ReferenceTransform != null)
+					{
+						vel = ReferenceTransform.InverseTransformDirection(vel);
+					}
+					// modify entity
+					m_valVelocityPos.Modify(vel);
 				}
-				// cut off very low values
-				if (vel.magnitude < VECTOR_ZERO_EPSILON)
-				{
-					vel = Vector3.zero;
-				}
-				m_oldPosition = pos;
-				// make relative to reference tansform (if given)
+
+				// make relative to reference transform
 				if (ReferenceTransform != null)
 				{
 					pos = ReferenceTransform.InverseTransformPoint(pos);
-					vel = ReferenceTransform.InverseTransformDirection(vel);
 				}
 				// send updated values
 				m_valPosition.Modify(pos);
-				if (m_valVelocityPos != null) m_valVelocityPos.Modify(vel);
+
+				// keep position value for next round
+				m_oldPosition = pos;
 			}
 
 			if (m_valRotation != null)
@@ -325,38 +328,51 @@ namespace SentienceLab.MajorDomo
 				{
 					m_oldRotation = rot; // don't start with a "jump"
 				}
-				// caluclate or get velocity
-				Vector3 vel;
-				if (m_rigidbody != null)
+
+				if (m_valVelocityRot != null)
 				{
-					if (m_rigidbody.IsSleeping())
+					// calculate or get velocity
+					Vector3 vel = Vector3.zero;
+					if (m_rigidbody != null) 
 					{
-						vel = Vector3.zero;
+						if (!m_rigidbody.IsSleeping())
+						{
+							vel = m_rigidbody.angularVelocity;
+						}
 					}
 					else
 					{
-						vel = m_rigidbody.angularVelocity;
+						vel = CalculateAngularVelocity(rot, m_oldRotation, deltaT);
 					}
+
+					// cut off very low values
+					if (vel.magnitude < VECTOR_ZERO_EPSILON)
+					{
+						vel = Vector3.zero;
+					}
+
+					// make relative to reference transform
+					if (ReferenceTransform != null)
+					{
+						rot = Quaternion.Inverse(ReferenceTransform.rotation) * rot;
+						vel = Quaternion.Inverse(ReferenceTransform.rotation) * vel;
+					}
+
+					// send updated values
+					m_valVelocityRot.Modify(vel);
 				}
-				else
-				{
-					vel = CalculateAngularVelocity(rot, m_oldRotation, deltaT);
-				}
-				// cut off very low values
-				if (vel.magnitude < VECTOR_ZERO_EPSILON)
-				{
-					vel = Vector3.zero;
-				}
-				m_oldRotation = rot;
-				// make relative to reference transform (if given)
+
+				// make relative to reference transform
 				if (ReferenceTransform != null) 
 				{ 
 					rot = Quaternion.Inverse(ReferenceTransform.rotation) * rot;
-					vel = Quaternion.Inverse(ReferenceTransform.rotation) * vel;
 				}
+
 				// send updated values
 				m_valRotation.Modify(rot);
-				if (m_valVelocityRot != null) m_valVelocityRot.Modify(vel);
+
+				// keep rotation value for next round
+				m_oldRotation = rot;
 			}
 
 			if (m_valScale != null)
