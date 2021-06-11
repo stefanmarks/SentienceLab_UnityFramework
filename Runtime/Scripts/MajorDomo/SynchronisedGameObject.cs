@@ -127,6 +127,8 @@ namespace SentienceLab.MajorDomo
 					MajorDomoManager.Instance.gameObject.AddComponent<MainThreadTaskDispatcher>();
 				}
 			}
+			m_registered    = false;
+			m_firstTimeSync = true;
 		}
 
 
@@ -149,8 +151,9 @@ namespace SentienceLab.MajorDomo
 		{
 			if (!m_registered)
 			{
-				m_registered = true; 
-				
+				m_registered    = true;
+				m_firstTimeSync = true;
+
 				m_entity = null;
 				m_controlChangeCooldown = 0;
 				m_oldControlledByClient = IsControlledByClient;
@@ -322,9 +325,8 @@ namespace SentienceLab.MajorDomo
 					}
 				}
 
-				m_entity        = null;
-				m_registered    = false;
-				m_firstTimeSync = true;
+				m_entity     = null;
+				m_registered = false;
 			}
 		}
 
@@ -550,8 +552,8 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		private bool m_registered    = false;
-		private bool m_firstTimeSync = true;
+		private bool m_registered;
+		private bool m_firstTimeSync;
 
 		private bool m_oldControlledByClient;
 		private int  m_controlChangeCooldown = 0;
