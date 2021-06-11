@@ -6,8 +6,6 @@
 
 using UnityEngine;
 using System.Collections.Generic;
-using System.Data;
-using System.Linq;
 
 namespace SentienceLab.MajorDomo
 {
@@ -26,6 +24,9 @@ namespace SentienceLab.MajorDomo
 
 		[Tooltip("Naming pattern for spawned templates ({0} is replaced with the entity name)")]
 		public string NamingPattern = "{0}";
+
+		[Tooltip("Transform that all instantiated templates' transforms are based on\n(None: World coordinate system)")]
+		public Transform ReferenceTransform = null;
 
 
 		public void Awake()
@@ -67,16 +68,24 @@ namespace SentienceLab.MajorDomo
 						Debug.LogFormat("Spawning template '{0}' as '{1}'", name, newName);
 						GameObject go = Instantiate(t.Template, this.transform);
 						go.name = newName;
-						SynchronisedGameObject[] sgo = go.GetComponentsInChildren<SynchronisedGameObject>();
-						foreach (var s in sgo)
+						SynchronisedGameObject[] syncGameObjects = go.GetComponentsInChildren<SynchronisedGameObject>();
+						foreach (var syncGameObject in syncGameObjects)
 						{
 							// make sure name template does not affect the entity name
-							if (s.EntityName.Equals(SynchronisedGameObject.GAMEOBJECT_AUTO_NAME))
+							if (syncGameObject.EntityName.Equals(SynchronisedGameObject.GAMEOBJECT_AUTO_NAME))
 							{
-								s.EntityName = _entity.Name;
+								syncGameObject.EntityName = _entity.Name;
 							}
 						}
+						
 						m_spawnedTemplates[_entity.Name] = go;
+
+						// adjust reference transform
+						SynchronisedTransform[] syncTransforms = go.GetComponentsInChildren<SynchronisedTransform>();
+						foreach (var syncTransform in syncTransforms)
+						{
+							syncTransform.ReferenceTransform = ReferenceTransform;
+						}
 					}
 				}
 			}
