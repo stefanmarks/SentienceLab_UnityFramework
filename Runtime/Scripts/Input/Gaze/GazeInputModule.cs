@@ -260,8 +260,12 @@ public class GazeInputModule : BaseInputModule
 	{
 		if (gazePointer == null) return;
 
-		eventCamera = pointerData.enterEventCamera ?? eventCamera; // Get the camera
-
+		// Get the camera
+		if (pointerData.enterEventCamera != null)
+		{
+			eventCamera = pointerData.enterEventCamera;
+		}
+		
 		GameObject gazeObject = GetCurrentGameObject(); // Get the gaze target
 		Vector3 intersectionPosition = GetIntersectionPosition();
 		bool isInteractive = (pointerData.pointerPress != null) ||
@@ -378,9 +382,15 @@ public class GazeInputModule : BaseInputModule
 		// Send pointer down event.
 		pointerData.pressPosition       = pointerData.position;
 		pointerData.pointerPressRaycast = pointerData.pointerCurrentRaycast;
-		pointerData.pointerPress =
-				ExecuteEvents.ExecuteHierarchy(go, pointerData, ExecuteEvents.pointerDownHandler)
-				?? ExecuteEvents.GetEventHandler<IPointerClickHandler>(go);
+		var result = ExecuteEvents.ExecuteHierarchy(go, pointerData, ExecuteEvents.pointerDownHandler);
+		if (result != null)
+		{
+			pointerData.pointerPress = result;
+		}
+		else
+		{
+			ExecuteEvents.GetEventHandler<IPointerClickHandler>(go);
+		}
 
 		// Save the drag handler as well
 		pointerData.pointerDrag = ExecuteEvents.GetEventHandler<IDragHandler>(go);
@@ -457,7 +467,10 @@ public class GazeInputModule : BaseInputModule
 		GameObject currentGameObject = GetCurrentGameObject();
 		if (currentGameObject)
 		{
-			eventCamera = pointerData.enterEventCamera ?? eventCamera;
+			if (pointerData.enterEventCamera != null)
+			{
+				eventCamera = pointerData.enterEventCamera;
+			}
 			gazePointer.OnGazeExit(eventCamera, currentGameObject);
 		}
 

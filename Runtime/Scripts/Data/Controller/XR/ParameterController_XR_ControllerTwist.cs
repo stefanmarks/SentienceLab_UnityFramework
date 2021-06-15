@@ -75,7 +75,10 @@ namespace SentienceLab.Data
 					Curve.keys[0].time,
 					Curve.keys[Curve.length - 1].time);
 				// actually change parameter
-				Parameter?.ChangeValue(Time.deltaTime * Curve.Evaluate(m_rotation) * changeFactor, 0);
+				if (Parameter != null)
+				{
+					Parameter.ChangeValue(Time.deltaTime * Curve.Evaluate(m_rotation) * changeFactor, 0);
+				}
 				m_lastRotation = newRot;
 			}
 		}
