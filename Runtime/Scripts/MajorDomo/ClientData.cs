@@ -12,7 +12,8 @@ namespace SentienceLab.MajorDomo
 	/// 
 	public class ClientData
 	{
-		public string Name;
+		public string ClientName;
+		public string UserName;
 		public uint   ClientUID;
 
 
@@ -20,21 +21,23 @@ namespace SentienceLab.MajorDomo
 		public static readonly uint UID_SERVER     = 1;
 
 
-		public ClientData(string _name, uint _uid)
+		public ClientData(string _clientName, string _userName, uint _uid)
 		{
-			Name = _name;
-			ClientUID = _uid;
+			ClientName = _clientName;
+			UserName   = _userName;
+			ClientUID  = _uid;
 		}
 
 		public ClientData(AUT_WH.MajorDomoProtocol.ClientInformation _information)
 		{
-			Name = _information.Name;
-			ClientUID = _information.Uid;
+			ClientName = _information.ClientName;
+			UserName   = _information.UserName;
+			ClientUID  = _information.Uid;
 		}
 
 		override public string ToString() 
 		{ 
-			return Name + ":" + ClientUID;
+			return "'" + ClientName + "' (user='" + UserName + "', cUID=" + ClientUID + ")";
 		}
 	}
 }

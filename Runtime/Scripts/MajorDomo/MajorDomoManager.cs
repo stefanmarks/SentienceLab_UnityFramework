@@ -17,17 +17,34 @@ namespace SentienceLab.MajorDomo
 	[AddComponentMenu("MajorDomo/MajorDomo Manager")]
 	public class MajorDomoManager : MonoBehaviour
 	{
-		[Tooltip("Name of the client to register with the server.\n" +
-			"Special strings:\n" +
-			"  {IPv4}   : IPv4 Address of the client\n" +
-			"  {IPv6}   : IPv6 Address of the client\n" +
-			"  {HOST}   : Hostname of the client\n" +
-			"  {MACHINE}: Machine name of the client\n" +
-			"  {USER}   : User name\n" +
-			"  {SCENE}  : Scene name"
-		)]
+		public const string REPLACEMENT_STRING_IPv4       = "{IPv4}";
+		public const string REPLACEMENT_STRING_IPv6       = "{IPv6}";
+		public const string REPLACEMENT_STRING_HOST       = "{HOST}";
+		public const string REPLACEMENT_STRING_MACHINE    = "{MACHINE}";
+		public const string REPLACEMENT_STRING_USER       = "{USER}";
+		public const string REPLACEMENT_STRING_SCENE      = "{SCENE}";
+		public const string REPLACEMENT_STRING_GAMEOBJECT = "{GAMEOBJECT}";
 
-		public string ClientName = "{SCENE}_{HOST}";
+		public const string DEFAULT_CLIENT_NAME = REPLACEMENT_STRING_SCENE + "_" + REPLACEMENT_STRING_HOST;
+		public const string DEFAULT_USER_NAME   = REPLACEMENT_STRING_USER;
+
+		public const string REPLACEMENT_TOOLTIP =
+			"Special strings:\n" +
+			" - " + REPLACEMENT_STRING_IPv4       + ": IPv4 Address of the client\n" +
+			" - " + REPLACEMENT_STRING_IPv6       + ": IPv6 Address of the client\n" +
+			" - " + REPLACEMENT_STRING_HOST       + ": Hostname of the client\n" +
+			" - " + REPLACEMENT_STRING_MACHINE    + ": Machine name of the client\n" +
+			" - " + REPLACEMENT_STRING_USER       + ": User name\n" +
+			" - " + REPLACEMENT_STRING_SCENE      + ": Scene name\n" +
+			" - " + REPLACEMENT_STRING_GAMEOBJECT + ": GameObject name";
+
+
+		[Tooltip("Name of the client to register with the server.\n(Default: " + DEFAULT_CLIENT_NAME  + ")\n" + REPLACEMENT_TOOLTIP)]
+		public string ClientName = DEFAULT_CLIENT_NAME;
+
+		[Tooltip("Name of the user to register with the server.\n(Default: " + DEFAULT_USER_NAME + ")\n" + REPLACEMENT_TOOLTIP)]
+		public string UserName = DEFAULT_USER_NAME;
+
 
 		[System.Serializable]
 		public class Configuration : ConfigFileBase
@@ -179,20 +196,24 @@ namespace SentienceLab.MajorDomo
 			m_workerThread = new Thread(WorkerThread);
 			m_workerThread.Start();
 
-			ReplaceSpecialApplicationNameParts();
+			if (ClientName.Length == 0) { ClientName = DEFAULT_CLIENT_NAME; }
+			ClientName = ReplaceSpecialNameParts(ClientName,   this.gameObject);
+
+			if (UserName.Length == 0) { UserName = DEFAULT_USER_NAME; }
+			UserName = ReplaceSpecialNameParts(UserName, this.gameObject);
 
 			if (configuration.AutoConnectDelay > 0) StartCoroutine(AutoConnectAsync());
 		}
 
 
-		private void ReplaceSpecialApplicationNameParts()
+		public static string ReplaceSpecialNameParts(string _name, GameObject _gameObject)
 		{
-			string n = ClientName;
-
-			if (n.Contains("{IPv") || n.Contains("{HOST}"))
+			if (_name.Contains(REPLACEMENT_STRING_IPv4) ||
+				_name.Contains(REPLACEMENT_STRING_IPv6) ||
+				_name.Contains(REPLACEMENT_STRING_HOST) )
 			{
 				string host = Dns.GetHostName();
-				n = n.Replace("{HOST}", host);
+				_name = _name.Replace(REPLACEMENT_STRING_HOST, host);
 
 				IPAddress[] addresses = Dns.GetHostAddresses(host);
 				string ipv4 = "";
@@ -212,26 +233,31 @@ namespace SentienceLab.MajorDomo
 						ipv6 = addr.ToString();
 					}
 				}
-				n = n.Replace("{IPv4}", ipv4);
-				n = n.Replace("{IPv6}", ipv6);
+				_name = _name.Replace(REPLACEMENT_STRING_IPv4, ipv4);
+				_name = _name.Replace(REPLACEMENT_STRING_IPv6, ipv6);
 			}
 
-			if (n.Contains("{USER}"))
+			if (_name.Contains(REPLACEMENT_STRING_USER))
 			{
-				n = n.Replace("{USER}", System.Environment.UserName);
+				_name = _name.Replace(REPLACEMENT_STRING_USER, System.Environment.UserName);
 			}
 
-			if (n.Contains("{MACHINE}"))
+			if (_name.Contains(REPLACEMENT_STRING_MACHINE))
 			{
-				n = n.Replace("{MACHINE}", System.Environment.MachineName);
+				_name = _name.Replace(REPLACEMENT_STRING_MACHINE, System.Environment.MachineName);
 			}
 
-			if (n.Contains("{SCENE}"))
+			if (_name.Contains(REPLACEMENT_STRING_SCENE))
 			{
-				n = n.Replace("{SCENE}", SceneManager.GetActiveScene().name);
+				_name = _name.Replace(REPLACEMENT_STRING_SCENE, SceneManager.GetActiveScene().name);
 			}
 			
-			ClientName = n;
+			if (_name.Contains(REPLACEMENT_STRING_GAMEOBJECT))
+			{
+				_name = _name.Replace(REPLACEMENT_STRING_GAMEOBJECT, _gameObject.name);
+			}
+
+			return _name;
 		}
 
 
@@ -273,7 +299,7 @@ namespace SentienceLab.MajorDomo
 							ushort port    = configuration.Servers[configIdx].port;
 							float  timeout = configuration.Servers[configIdx].connectionTimeout;
 
-							m_client.Connect(ClientName, address, port, timeout);
+							m_client.Connect(ClientName, UserName, address, port, timeout);
 						}
 
 						if (m_client.IsConnected())

@@ -24,15 +24,15 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public void AddClient(ClientData client)
+		public void AddClient(ClientData _client)
 		{
-			if (!m_clientUidMap.ContainsKey(client.ClientUID))
+			if (!m_clientUidMap.ContainsKey(_client.ClientUID))
 			{
-				m_clientUidMap[client.ClientUID] = client;
+				m_clientUidMap[_client.ClientUID] = _client;
 			}
 			else
 			{
-				Debug.LogWarning("Trying to add client with UID=" + client.ClientUID + " again");
+				Debug.LogWarning("Trying to add client with UID=" + _client.ClientUID + " again");
 			}
 		}
 
@@ -45,12 +45,12 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public ClientData GetClientByName(string name)
+		public ClientData GetClientByName(string _clientName)
 		{
 			ClientData entity = null;
 			foreach (ClientData e in m_clientUidMap.Values)
 			{
-				if ( e.Name == name)
+				if ( e.ClientName == _clientName)
 				{
 					entity = e;
 					break;
@@ -60,27 +60,27 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public void RemoveClient(ClientData client)
+		public void RemoveClient(ClientData _client)
 		{
-			if (m_clientUidMap.ContainsKey(client.ClientUID))
+			if (m_clientUidMap.ContainsKey(_client.ClientUID))
 			{
-				m_clientUidMap.Remove(client.ClientUID);
+				m_clientUidMap.Remove(_client.ClientUID);
 			}
 			else
 			{
-				Debug.LogWarning("Trying to remove unknown client with UID=" + client.ClientUID);
+				Debug.LogWarning("Trying to remove unknown client with UID=" + _client.ClientUID);
 			}
 		}
 
 
-		public static string ClientListAsString(IReadOnlyList<ClientData> _list)
+		public static string ClientListAsString(IReadOnlyList<ClientData> _clientList)
 		{
 			StringBuilder sb = new StringBuilder();
 			int idx = 1;
-			foreach (var e in _list)
+			foreach (var client in _clientList)
 			{
 				if (idx > 1) sb.Append('\n');
-				sb.Append(idx).Append(":\t").Append(e.ToString());
+				sb.Append(idx).Append(":\t").Append(client.ToString());
 				idx++;
 			}
 			return sb.ToString();

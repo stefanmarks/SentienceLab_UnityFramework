@@ -72,7 +72,7 @@ namespace SentienceLab.MajorDomo
 						foreach (var syncGameObject in syncGameObjects)
 						{
 							// make sure name template does not affect the entity name
-							if (syncGameObject.EntityName.Equals(SynchronisedGameObject.GAMEOBJECT_AUTO_NAME))
+							if (syncGameObject.EntityName.Equals(SynchronisedGameObject.DEFAULT_ENTITY_NAME))
 							{
 								syncGameObject.EntityName = _entity.Name;
 							}

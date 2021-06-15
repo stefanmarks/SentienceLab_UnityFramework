@@ -13,7 +13,7 @@ public enum EProtocolVersion : sbyte
 {
   MAJOR = 0,
   REVISION = 1,
-  MINOR = 6,
+  MINOR = 7,
 };
 
 /// Types of entity values
@@ -259,31 +259,42 @@ public struct ClientInformation : IFlatbufferObject
   public void __init(int _i, ByteBuffer _bb) { __p = new Table(_i, _bb); }
   public ClientInformation __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
-  public string Name { get { int o = __p.__offset(4); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+  public string ClientName { get { int o = __p.__offset(4); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
 #if ENABLE_SPAN_T
-  public Span<byte> GetNameBytes() { return __p.__vector_as_span<byte>(4, 1); }
+  public Span<byte> GetClientNameBytes() { return __p.__vector_as_span<byte>(4, 1); }
 #else
-  public ArraySegment<byte>? GetNameBytes() { return __p.__vector_as_arraysegment(4); }
+  public ArraySegment<byte>? GetClientNameBytes() { return __p.__vector_as_arraysegment(4); }
 #endif
-  public byte[] GetNameArray() { return __p.__vector_as_array<byte>(4); }
-  public uint Uid { get { int o = __p.__offset(6); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
-  public bool MutateUid(uint uid) { int o = __p.__offset(6); if (o != 0) { __p.bb.PutUint(o + __p.bb_pos, uid); return true; } else { return false; } }
+  public byte[] GetClientNameArray() { return __p.__vector_as_array<byte>(4); }
+  public string UserName { get { int o = __p.__offset(6); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetUserNameBytes() { return __p.__vector_as_span<byte>(6, 1); }
+#else
+  public ArraySegment<byte>? GetUserNameBytes() { return __p.__vector_as_arraysegment(6); }
+#endif
+  public byte[] GetUserNameArray() { return __p.__vector_as_array<byte>(6); }
+  public uint Uid { get { int o = __p.__offset(8); return o != 0 ? __p.bb.GetUint(o + __p.bb_pos) : (uint)0; } }
+  public bool MutateUid(uint uid) { int o = __p.__offset(8); if (o != 0) { __p.bb.PutUint(o + __p.bb_pos, uid); return true; } else { return false; } }
 
   public static Offset<AUT_WH.MajorDomoProtocol.ClientInformation> CreateClientInformation(FlatBufferBuilder builder,
-      StringOffset nameOffset = default(StringOffset),
+      StringOffset clientNameOffset = default(StringOffset),
+      StringOffset userNameOffset = default(StringOffset),
       uint uid = 0) {
-    builder.StartTable(2);
+    builder.StartTable(3);
     ClientInformation.AddUid(builder, uid);
-    ClientInformation.AddName(builder, nameOffset);
+    ClientInformation.AddUserName(builder, userNameOffset);
+    ClientInformation.AddClientName(builder, clientNameOffset);
     return ClientInformation.EndClientInformation(builder);
   }
 
-  public static void StartClientInformation(FlatBufferBuilder builder) { builder.StartTable(2); }
-  public static void AddName(FlatBufferBuilder builder, StringOffset nameOffset) { builder.AddOffset(0, nameOffset.Value, 0); }
-  public static void AddUid(FlatBufferBuilder builder, uint uid) { builder.AddUint(1, uid, 0); }
+  public static void StartClientInformation(FlatBufferBuilder builder) { builder.StartTable(3); }
+  public static void AddClientName(FlatBufferBuilder builder, StringOffset clientNameOffset) { builder.AddOffset(0, clientNameOffset.Value, 0); }
+  public static void AddUserName(FlatBufferBuilder builder, StringOffset userNameOffset) { builder.AddOffset(1, userNameOffset.Value, 0); }
+  public static void AddUid(FlatBufferBuilder builder, uint uid) { builder.AddUint(2, uid, 0); }
   public static Offset<AUT_WH.MajorDomoProtocol.ClientInformation> EndClientInformation(FlatBufferBuilder builder) {
     int o = builder.EndTable();
-    builder.Required(o, 4);  // name
+    builder.Required(o, 4);  // clientName
+    builder.Required(o, 6);  // userName
     return new Offset<AUT_WH.MajorDomoProtocol.ClientInformation>(o);
   }
 };
@@ -468,18 +479,27 @@ public struct ClReq_ClientConnect : IFlatbufferObject
   public ArraySegment<byte>? GetClientNameBytes() { return __p.__vector_as_arraysegment(4); }
 #endif
   public byte[] GetClientNameArray() { return __p.__vector_as_array<byte>(4); }
-  public AUT_WH.MajorDomoProtocol.Version? ClientVersion { get { int o = __p.__offset(6); return o != 0 ? (AUT_WH.MajorDomoProtocol.Version?)(new AUT_WH.MajorDomoProtocol.Version()).__assign(o + __p.bb_pos, __p.bb) : null; } }
-  public AUT_WH.MajorDomoProtocol.Version? ClientProtocol { get { int o = __p.__offset(8); return o != 0 ? (AUT_WH.MajorDomoProtocol.Version?)(new AUT_WH.MajorDomoProtocol.Version()).__assign(o + __p.bb_pos, __p.bb) : null; } }
+  public string UserName { get { int o = __p.__offset(6); return o != 0 ? __p.__string(o + __p.bb_pos) : null; } }
+#if ENABLE_SPAN_T
+  public Span<byte> GetUserNameBytes() { return __p.__vector_as_span<byte>(6, 1); }
+#else
+  public ArraySegment<byte>? GetUserNameBytes() { return __p.__vector_as_arraysegment(6); }
+#endif
+  public byte[] GetUserNameArray() { return __p.__vector_as_array<byte>(6); }
+  public AUT_WH.MajorDomoProtocol.Version? ClientVersion { get { int o = __p.__offset(8); return o != 0 ? (AUT_WH.MajorDomoProtocol.Version?)(new AUT_WH.MajorDomoProtocol.Version()).__assign(o + __p.bb_pos, __p.bb) : null; } }
+  public AUT_WH.MajorDomoProtocol.Version? ClientProtocol { get { int o = __p.__offset(10); return o != 0 ? (AUT_WH.MajorDomoProtocol.Version?)(new AUT_WH.MajorDomoProtocol.Version()).__assign(o + __p.bb_pos, __p.bb) : null; } }
 
-  public static void StartClReq_ClientConnect(FlatBufferBuilder builder) { builder.StartTable(3); }
+  public static void StartClReq_ClientConnect(FlatBufferBuilder builder) { builder.StartTable(4); }
   public static void AddClientName(FlatBufferBuilder builder, StringOffset clientNameOffset) { builder.AddOffset(0, clientNameOffset.Value, 0); }
-  public static void AddClientVersion(FlatBufferBuilder builder, Offset<AUT_WH.MajorDomoProtocol.Version> clientVersionOffset) { builder.AddStruct(1, clientVersionOffset.Value, 0); }
-  public static void AddClientProtocol(FlatBufferBuilder builder, Offset<AUT_WH.MajorDomoProtocol.Version> clientProtocolOffset) { builder.AddStruct(2, clientProtocolOffset.Value, 0); }
+  public static void AddUserName(FlatBufferBuilder builder, StringOffset userNameOffset) { builder.AddOffset(1, userNameOffset.Value, 0); }
+  public static void AddClientVersion(FlatBufferBuilder builder, Offset<AUT_WH.MajorDomoProtocol.Version> clientVersionOffset) { builder.AddStruct(2, clientVersionOffset.Value, 0); }
+  public static void AddClientProtocol(FlatBufferBuilder builder, Offset<AUT_WH.MajorDomoProtocol.Version> clientProtocolOffset) { builder.AddStruct(3, clientProtocolOffset.Value, 0); }
   public static Offset<AUT_WH.MajorDomoProtocol.ClReq_ClientConnect> EndClReq_ClientConnect(FlatBufferBuilder builder) {
     int o = builder.EndTable();
     builder.Required(o, 4);  // clientName
-    builder.Required(o, 6);  // clientVersion
-    builder.Required(o, 8);  // clientProtocol
+    builder.Required(o, 6);  // userName
+    builder.Required(o, 8);  // clientVersion
+    builder.Required(o, 10);  // clientProtocol
     return new Offset<AUT_WH.MajorDomoProtocol.ClReq_ClientConnect>(o);
   }
 };

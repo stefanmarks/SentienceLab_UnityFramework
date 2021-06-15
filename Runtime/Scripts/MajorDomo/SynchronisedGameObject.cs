@@ -5,7 +5,6 @@
 #endregion Copyright Information
 
 using UnityEngine;
-using UnityEngine.Serialization;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -14,12 +13,12 @@ namespace SentienceLab.MajorDomo
 	[AddComponentMenu("MajorDomo/Synchronised GameObject")]
 	public class SynchronisedGameObject : MonoBehaviour
 	{
-		public static readonly string GAMEOBJECT_AUTO_NAME = "{GAMEOBJECT}";
+		public static string DEFAULT_ENTITY_NAME = MajorDomoManager.REPLACEMENT_STRING_GAMEOBJECT;
 
 		[Tooltip("Name of the entity to register with the server.\n" +
 				 "Leave empty to use this game object's name.\n" +
-				 "The string \"{GAMEOBJECT}\" will be automatically replaced by the game object's name.")]
-		public string EntityName = GAMEOBJECT_AUTO_NAME;
+				 MajorDomoManager.REPLACEMENT_TOOLTIP)]
+		public string EntityName = DEFAULT_ENTITY_NAME;
 
 		[Tooltip("Name of the entity template (default: empty).")]
 		public string TemplateName = "";
@@ -439,8 +438,8 @@ namespace SentienceLab.MajorDomo
 
 		private void CheckEntityNameReplacements()
 		{
-			// replace template string
-			EntityName = EntityName.Replace(GAMEOBJECT_AUTO_NAME, this.gameObject.name);
+			// replace template strings
+			EntityName = MajorDomoManager.ReplaceSpecialNameParts(EntityName, this.gameObject);
 		}
 
 

@@ -17,7 +17,7 @@ namespace SentienceLab.MajorDomo
 	public class MajorDomoClient
 	{
 		// Client version number
-		public readonly VersionNumber CLIENT_VERSION = new VersionNumber(0, 6, 1);
+		public readonly VersionNumber CLIENT_VERSION = new VersionNumber(1, 2, 0);
 
 		// Protocol version number
 		public readonly VersionNumber PROTOCOL_VERSION = new VersionNumber(
@@ -104,7 +104,7 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public bool Connect(string _applicationName, string _serverAddress, ushort _serverPort, float _timeout)
+		public bool Connect(string _applicationName, string _userName, string _serverAddress, ushort _serverPort, float _timeout)
 		{
 			bool success = false;
 
@@ -112,8 +112,8 @@ namespace SentienceLab.MajorDomo
 			{
 				string address = "tcp://" + _serverAddress + ":" + _serverPort;
 				Debug.LogFormat(
-					"'{0}' trying to connect to MajorDomo server at '{1}'...", 
-					_applicationName, address);
+					"Client '{0}' with user '{1}' trying to connect to MajorDomo server at '{2}'...", 
+					_applicationName, _userName, address);
 				try
 				{
 					m_clientRequestSocket = new NetMQ.Sockets.RequestSocket();
@@ -137,8 +137,10 @@ namespace SentienceLab.MajorDomo
 				// build request
 				m_bufClientRequest.Clear();
 				var offsetApplicationName = m_bufClientRequest.CreateString(_applicationName);
+				var offsetUserName        = m_bufClientRequest.CreateString(_userName);
 				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.StartClReq_ClientConnect(m_bufClientRequest);
 				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddClientName(m_bufClientRequest, offsetApplicationName);
+				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddUserName(m_bufClientRequest, offsetUserName);
 				var offsetClientVersion = CLIENT_VERSION.ToFlatbuffer(m_bufClientRequest);
 				AUT_WH.MajorDomoProtocol.ClReq_ClientConnect.AddClientVersion(m_bufClientRequest, offsetClientVersion);
 				var offsetProtocolVersion = PROTOCOL_VERSION.ToFlatbuffer(m_bufClientRequest);
@@ -152,15 +154,16 @@ namespace SentienceLab.MajorDomo
 						var ack = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_ClientConnect>().Value;
 						m_serverInformation = new ServerInformation(ack.ServerInformation.Value, _serverAddress, _serverPort);
 						Debug.LogFormat(
-							"'{0}' connected to MajorDomo server '{1}' v{2} (protocol v{3}, server time {4}) with Client UID {5}",
-							_applicationName, 
+							"Client '{0}' with user '{1}' connected to MajorDomo server '{2}' v{3} (protocol v{4}, server time {5}) with Client UID {6}",
+							_applicationName,
+							_userName,
 							m_serverInformation.name,
 							m_serverInformation.serverVersion.ToString(),
 							m_serverInformation.protocolVersion.ToString(),
 							m_serverReply.Timestamp,
 							ack.ClientUID);
 
-						m_client = new ClientData(_applicationName, ack.ClientUID);
+						m_client = new ClientData(_applicationName, _userName, ack.ClientUID);
 						
 						// TODO: Catch any exceptions happening during the following three connections
 

@@ -193,14 +193,14 @@ namespace SentienceLab.MajorDomo
 		}
 
 
-		public static string EntityListAsString(IReadOnlyList<EntityData> _list)
+		public static string EntityListAsString(IReadOnlyList<EntityData> _entityList)
 		{
 			StringBuilder sb = new StringBuilder();
 			int idx = 1;
-			foreach(var e in _list)
+			foreach(var entity in _entityList)
 			{
 				if (idx > 1) sb.Append('\n');
-				sb.Append(idx).Append(":\t").Append(e.ToString(true, true));
+				sb.Append(idx).Append(":\t").Append(entity.ToString(true, true));
 				idx++;
 			}
 			return sb.ToString();
