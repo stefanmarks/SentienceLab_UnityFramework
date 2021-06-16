@@ -14,9 +14,6 @@ namespace SentienceLab.MajorDomo
 		[Tooltip("Which components of this game object's transform are to be synchronised")]
 		public ETransformComponents TransformComponents = ETransformComponents.TranslationRotation;
 
-		[Tooltip("Transform that this object's transform is based on\n(None: World coordinate system)")]
-		public Transform ReferenceTransform = null;
-
 		[Tooltip("How is the translation/rotation interpolated")]
 		public ETransformInterpolation InterpolationMode = ETransformInterpolation.None;
 
@@ -151,23 +148,15 @@ namespace SentienceLab.MajorDomo
 			if (m_valPosition != null && m_valVelocityPos == null) // set position without interpolation
 			{
 				Vector3 pos = m_valPosition.Value;
-				if (ReferenceTransform != null)
-				{
-					pos = ReferenceTransform.TransformPoint(pos);
-				}
-				transform.position = pos;
-				m_oldPosition = pos; // avoid triggering IsModified immediately after this
+				transform.localPosition = pos;
+				m_oldPosition           = pos; // avoid triggering IsModified immediately after this
 			}
 
 			if (m_valRotation != null && m_valVelocityRot == null) // set rotation without interpolation
 			{
 				Quaternion rot = m_valRotation.Value;
-				if (ReferenceTransform != null)
-				{
-					rot = ReferenceTransform.rotation * rot;
-				}
-				transform.rotation = rot;
-				m_oldRotation = rot; // avoid triggering IsModified immediately after this
+				transform.localRotation = rot;
+				m_oldRotation           = rot; // avoid triggering IsModified immediately after this
 			}
 
 			if (m_valScale != null)
@@ -196,28 +185,18 @@ namespace SentienceLab.MajorDomo
 				{
 					Vector3 pos = m_valPosition.Value;
 					Vector3 vel = m_valVelocityPos.Value;
-					if (ReferenceTransform != null)
-					{
-						pos = ReferenceTransform.TransformPoint(pos);
-						vel = ReferenceTransform.TransformDirection(vel);
-					}
 					pos += vel * deltaT;
-					transform.position = pos;
-					m_oldPosition = pos;
+					transform.localPosition = pos;
+					m_oldPosition           = pos;
 				}
 
 				if (m_valRotation != null && m_valVelocityRot != null) // set rotation with interpolation
 				{
 					Quaternion rot = m_valRotation.Value;
 					Vector3    vel = m_valVelocityRot.Value;
-					if (ReferenceTransform != null)
-					{
-						rot = ReferenceTransform.rotation * rot;
-						vel = ReferenceTransform.rotation * vel;
-					}
 					rot = IntegrateAngularVelocity(rot, vel, deltaT);
-					transform.rotation = rot;
-					m_oldRotation = rot;
+					transform.localRotation = rot;
+					m_oldRotation           = rot;
 				}
 			}
 		}
@@ -229,7 +208,7 @@ namespace SentienceLab.MajorDomo
 			{
 				if (DoTrans())
 				{
-					if ((m_oldPosition - this.transform.position).magnitude > MovementThreshold)
+					if ((m_oldPosition - transform.localPosition).magnitude > MovementThreshold)
 					{
 						m_modified = true;
 					}
@@ -243,7 +222,7 @@ namespace SentienceLab.MajorDomo
 				}	
 				if (DoRot())
 				{
-					float angle = Quaternion.Angle(this.transform.rotation, m_oldRotation);
+					float angle = Quaternion.Angle(transform.localRotation, m_oldRotation);
 					if (angle > RotationThreshold)
 					{
 						m_modified = true;
@@ -258,7 +237,7 @@ namespace SentienceLab.MajorDomo
 				}
 				if (DoScale())
 				{
-					if ((m_oldScale - this.transform.localScale).sqrMagnitude > 0)
+					if ((m_oldScale - transform.localScale).sqrMagnitude > 0)
 					{
 						m_modified = true;
 					}
@@ -275,7 +254,7 @@ namespace SentienceLab.MajorDomo
 			
 			if (m_valPosition != null)
 			{
-				Vector3 pos = transform.position;
+				Vector3 pos = transform.localPosition;
 				if (_firstTime) 
 				{ 
 					m_oldPosition = pos; // don't start with a "jump"
@@ -290,6 +269,7 @@ namespace SentienceLab.MajorDomo
 						if (!m_rigidbody.IsSleeping())
 						{
 							vel = m_rigidbody.velocity;
+							vel = transform.InverseTransformVector(vel); // make local velocity
 						}
 					}
 					else if (deltaT > 0)
@@ -303,11 +283,6 @@ namespace SentienceLab.MajorDomo
 						vel = Vector3.zero;
 					}
 
-					// make relative to reference transform
-					if (ReferenceTransform != null)
-					{
-						vel = ReferenceTransform.InverseTransformDirection(vel);
-					}
 					// modify entity
 					m_valVelocityPos.Modify(vel);
 				}
@@ -315,18 +290,13 @@ namespace SentienceLab.MajorDomo
 				// keep position value for next round
 				m_oldPosition = pos;
 
-				// make relative to reference transform
-				if (ReferenceTransform != null)
-				{
-					pos = ReferenceTransform.InverseTransformPoint(pos);
-				}
 				// send updated values
 				m_valPosition.Modify(pos);
 			}
 
 			if (m_valRotation != null)
 			{
-				Quaternion rot = transform.rotation;
+				Quaternion rot = transform.localRotation;
 				if (_firstTime)
 				{
 					m_oldRotation = rot; // don't start with a "jump"
@@ -341,6 +311,7 @@ namespace SentienceLab.MajorDomo
 						if (!m_rigidbody.IsSleeping())
 						{
 							vel = m_rigidbody.angularVelocity;
+							vel = Quaternion.Inverse(transform.rotation) * vel; // make local velocity
 						}
 					}
 					else
@@ -354,25 +325,12 @@ namespace SentienceLab.MajorDomo
 						vel = Vector3.zero;
 					}
 
-					// make relative to reference transform
-					if (ReferenceTransform != null)
-					{
-						rot = Quaternion.Inverse(ReferenceTransform.rotation) * rot;
-						vel = Quaternion.Inverse(ReferenceTransform.rotation) * vel;
-					}
-
 					// send updated values
 					m_valVelocityRot.Modify(vel);
 				}
 
 				// keep rotation value for next round
 				m_oldRotation = rot;
-
-				// make relative to reference transform
-				if (ReferenceTransform != null) 
-				{ 
-					rot = Quaternion.Inverse(ReferenceTransform.rotation) * rot;
-				}
 
 				// send updated values
 				m_valRotation.Modify(rot);
