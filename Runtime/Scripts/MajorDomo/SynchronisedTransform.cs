@@ -156,6 +156,7 @@ namespace SentienceLab.MajorDomo
 					pos = ReferenceTransform.TransformPoint(pos);
 				}
 				transform.position = pos;
+				m_oldPosition = pos; // avoid triggering IsModified immediately after this
 			}
 
 			if (m_valRotation != null && m_valVelocityRot == null) // set rotation without interpolation
@@ -166,6 +167,7 @@ namespace SentienceLab.MajorDomo
 					rot = ReferenceTransform.rotation * rot;
 				}
 				transform.rotation = rot;
+				m_oldRotation = rot; // avoid triggering IsModified immediately after this
 			}
 
 			if (m_valScale != null)
@@ -175,12 +177,13 @@ namespace SentienceLab.MajorDomo
 				// Since there is no absolute "global" scale, let's just use localScale for now
 				// if (ReferenceTransform != null) { ReferenceTransform.lossyScale.Scale(scl); }
 				transform.localScale = scl;
+				m_oldScale = scl; // avoid triggering IsModified immediately after this
 			}
 		}
 
 
 		/// <summary>
-		/// Fuidly animate the game object in case interpolation mode is not "None"
+		/// Fluidly animate the game object in case interpolation mode is not "None"
 		/// </summary>
 		/// 
 		public override void OnUpdate(bool _controlledByServer)
@@ -200,6 +203,7 @@ namespace SentienceLab.MajorDomo
 					}
 					pos += vel * deltaT;
 					transform.position = pos;
+					m_oldPosition = pos;
 				}
 
 				if (m_valRotation != null && m_valVelocityRot != null) // set rotation with interpolation
@@ -213,6 +217,7 @@ namespace SentienceLab.MajorDomo
 					}
 					rot = IntegrateAngularVelocity(rot, vel, deltaT);
 					transform.rotation = rot;
+					m_oldRotation = rot;
 				}
 			}
 		}
@@ -231,8 +236,7 @@ namespace SentienceLab.MajorDomo
 				}
 				if (DoTransVel())
 				{
-					// non-zero velocity forces update
-					if ((m_valVelocityPos != null) && (m_valVelocityPos.Value.magnitude > 0))
+					if ((m_rigidbody != null) && !m_rigidbody.IsSleeping() && m_rigidbody.velocity.magnitude > 0)
 					{
 						m_modified = true;
 					}
@@ -247,8 +251,7 @@ namespace SentienceLab.MajorDomo
 				}
 				if (DoRotVel())
 				{
-					// non-zero velocity forces update
-					if ((m_valVelocityRot != null) && (m_valVelocityRot.Value.magnitude > 0))
+					if ((m_rigidbody != null) && !m_rigidbody.IsSleeping() && m_rigidbody.angularVelocity.magnitude > 0)
 					{
 						m_modified = true;
 					}
