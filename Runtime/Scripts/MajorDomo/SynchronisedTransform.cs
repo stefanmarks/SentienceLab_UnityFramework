@@ -312,6 +312,9 @@ namespace SentienceLab.MajorDomo
 					m_valVelocityPos.Modify(vel);
 				}
 
+				// keep position value for next round
+				m_oldPosition = pos;
+
 				// make relative to reference transform
 				if (ReferenceTransform != null)
 				{
@@ -319,9 +322,6 @@ namespace SentienceLab.MajorDomo
 				}
 				// send updated values
 				m_valPosition.Modify(pos);
-
-				// keep position value for next round
-				m_oldPosition = pos;
 			}
 
 			if (m_valRotation != null)
@@ -365,6 +365,9 @@ namespace SentienceLab.MajorDomo
 					m_valVelocityRot.Modify(vel);
 				}
 
+				// keep rotation value for next round
+				m_oldRotation = rot;
+
 				// make relative to reference transform
 				if (ReferenceTransform != null) 
 				{ 
@@ -373,9 +376,6 @@ namespace SentienceLab.MajorDomo
 
 				// send updated values
 				m_valRotation.Modify(rot);
-
-				// keep rotation value for next round
-				m_oldRotation = rot;
 			}
 
 			if (m_valScale != null)
