@@ -25,9 +25,6 @@ namespace SentienceLab.MajorDomo
 		[Tooltip("Naming pattern for spawned templates ({0} is replaced with the entity name)")]
 		public string NamingPattern = "{0}";
 
-		[Tooltip("Transform that all instantiated templates' transforms are based on\n(None: World coordinate system)")]
-		public Transform ReferenceTransform = null;
-
 
 		public void Awake()
 		{
@@ -79,13 +76,6 @@ namespace SentienceLab.MajorDomo
 						}
 						
 						m_spawnedTemplates[_entity.Name] = go;
-
-						// adjust reference transform
-						SynchronisedTransform[] syncTransforms = go.GetComponentsInChildren<SynchronisedTransform>();
-						foreach (var syncTransform in syncTransforms)
-						{
-							syncTransform.ReferenceTransform = ReferenceTransform;
-						}
 					}
 				}
 			}
