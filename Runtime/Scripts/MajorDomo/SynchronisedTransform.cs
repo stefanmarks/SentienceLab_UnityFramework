@@ -166,11 +166,9 @@ namespace SentienceLab.MajorDomo
 			if (m_valScale != null)
 			{
 				Vector3 scl = m_valScale.Value;
-				// TODO: Consider global scale?
-				// Since there is no absolute "global" scale, let's just use localScale for now
-				// if (ReferenceTransform != null) { ReferenceTransform.lossyScale.Scale(scl); }
 				transform.localScale = scl;
-				m_oldScale = scl; // avoid triggering IsModified immediately after this
+				// avoid triggering IsModified immediately after this
+				m_oldScale = scl;
 			}
 		}
 
@@ -229,7 +227,8 @@ namespace SentienceLab.MajorDomo
 					}
 					else if (m_oldVelocityPos.sqrMagnitude > 0)
 					{
-						m_modified = true; // movement causes modification
+						// previous movement causes modification to make sure we also capture standstill
+						m_modified = true; 
 					}
 				}	
 				if (DoRot())
@@ -248,6 +247,7 @@ namespace SentienceLab.MajorDomo
 					}
 					else if (m_oldVelocityRot.sqrMagnitude > 0)
 					{
+						// previous movement causes modification to make sure we also capture standstill
 						m_modified = true;
 					}
 				}
@@ -299,17 +299,14 @@ namespace SentienceLab.MajorDomo
 						vel = Vector3.zero;
 					}
 
-					// modify entity
+					// modify entity and remember for next round
 					m_valVelocityPos.Modify(vel);
-
 					m_oldVelocityPos = vel;
 				}
 
-				// keep position value for next round
-				m_oldPosition = pos;
-
-				// send updated values
+				// send updated values and remember for next round
 				m_valPosition.Modify(pos);
+				m_oldPosition = pos;
 			}
 
 			if (m_valRotation != null)
@@ -343,25 +340,20 @@ namespace SentienceLab.MajorDomo
 						vel = Vector3.zero;
 					}
 
-					// send updated values
+					// send updated values and remember for next round
 					m_valVelocityRot.Modify(vel);
-
-					// remember for later
 					m_oldVelocityRot = vel;
 				}
 
-				// keep rotation value for next round
-				m_oldRotation = rot;
-
-				// send updated values
+				// send updated values and remember for next round
 				m_valRotation.Modify(rot);
+				m_oldRotation = rot;
 			}
 
 			if (m_valScale != null)
 			{
-				// TODO: Consider global scale?
 				Vector3 scl = transform.localScale;
-				// if (ReferenceTransform != null) { ...??? }
+				// send updated values and remember for next round
 				m_valScale.Modify(scl);
 				m_oldScale = scl;
 			}
