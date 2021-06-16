@@ -841,53 +841,55 @@ namespace SentienceLab.MajorDomo
 		private bool ProcessClientRequest(AUT_WH.MajorDomoProtocol.UClientRequest _requestType, int _requestOffset)
 		{
 			bool success = false;
-			try
+			lock (m_clientRequestSocket)
 			{
-				// prepare message to send
-				var clientRequest = AUT_WH.MajorDomoProtocol.ClientRequest.CreateClientRequest(m_bufClientRequest, GetTimestamp(), _requestType, _requestOffset);
-				m_bufClientRequest.Finish(clientRequest.Value);
-
-				byte[] buf = m_bufClientRequest.SizedByteArray();
-				m_msgClientRequest.InitGC(buf, buf.Length);
-
-				if (m_clientRequestSocket.TrySend(ref m_msgClientRequest, TimeSpan.Zero, false))
+				try
 				{
-					m_diagnostics.NumberOfRequestsSent++;
+					// prepare message to send
+					var clientRequest = AUT_WH.MajorDomoProtocol.ClientRequest.CreateClientRequest(m_bufClientRequest, GetTimestamp(), _requestType, _requestOffset);
+					m_bufClientRequest.Finish(clientRequest.Value);
 
-					m_msgClientRequestReply.InitEmpty();
-					if (m_clientRequestSocket.TryReceive(ref m_msgClientRequestReply, TimeSpan.FromSeconds(m_timeoutInterval)) && (m_msgClientRequestReply.Data != null))
+					byte[] buf = m_bufClientRequest.SizedByteArray();
+					m_msgClientRequest.InitGC(buf, buf.Length);
+
+					if (m_clientRequestSocket.TrySend(ref m_msgClientRequest, TimeSpan.Zero, false))
 					{
-						m_bufClientRequestReply = new FlatBuffers.ByteBuffer(m_msgClientRequestReply.Data);
-						m_serverReply = AUT_WH.MajorDomoProtocol.ServerReply.GetRootAsServerReply(m_bufClientRequestReply, m_serverReply);
-						if (m_serverReply.RepType == AUT_WH.MajorDomoProtocol.UServerReply.SvRep_Error)
+						m_diagnostics.NumberOfRequestsSent++;
+
+						m_msgClientRequestReply.InitEmpty();
+						if (m_clientRequestSocket.TryReceive(ref m_msgClientRequestReply, TimeSpan.FromSeconds(m_timeoutInterval)) && (m_msgClientRequestReply.Data != null))
 						{
-							var error = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_Error>().Value;
-							Debug.LogWarningFormat(
-								"MajorDomo server signalled error: {0}",
-								error.Message);
+							m_bufClientRequestReply = new FlatBuffers.ByteBuffer(m_msgClientRequestReply.Data);
+							m_serverReply = AUT_WH.MajorDomoProtocol.ServerReply.GetRootAsServerReply(m_bufClientRequestReply, m_serverReply);
+							if (m_serverReply.RepType == AUT_WH.MajorDomoProtocol.UServerReply.SvRep_Error)
+							{
+								var error = m_serverReply.Rep<AUT_WH.MajorDomoProtocol.SvRep_Error>().Value;
+								Debug.LogWarningFormat(
+									"MajorDomo server signalled error: {0}",
+									error.Message);
+							}
+							else
+							{
+								success = true;
+							}
 						}
 						else
 						{
-							success = true;
+							Debug.LogWarning("Timeout while waiting for server reply");
 						}
 					}
 					else
 					{
-						Debug.LogWarning("Timeout while waiting for server reply");
+						Debug.LogWarning("Could not send client request");
 					}
 				}
-				else
+				catch (Exception e)
 				{
-					Debug.LogWarning("Could not send client request");
+					Debug.LogWarningFormat(
+						"Exception while sending client request: {0}",
+						e.Message);
 				}
 			}
-			catch (Exception e)
-			{
-				Debug.LogWarningFormat(
-					"Exception while sending client request: {0}", 
-					e.Message);
-			}
-
 			return success;
 		}
 
