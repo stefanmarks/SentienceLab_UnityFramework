@@ -406,6 +406,8 @@ namespace SentienceLab.MajorDomo
 
 					Debug.LogFormat("'{0}' synchronised with entity '{1}'",
 						gameObject.name, m_entity.ToString(true, true));
+
+					OnSynchronisationStart?.Invoke(this);
 				}
 				else
 				{
@@ -431,8 +433,6 @@ namespace SentienceLab.MajorDomo
 						}
 					}
 				}
-
-				OnSynchronisationStart?.Invoke(this);
 			}
 			else if (m_entity.State == EntityData.EntityState.Revoked)
 			{
