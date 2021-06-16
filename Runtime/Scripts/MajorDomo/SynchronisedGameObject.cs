@@ -10,6 +10,11 @@ using System.Collections.Generic;
 
 namespace SentienceLab.MajorDomo
 {
+	/// <summary>
+	/// Component to register a game object with the MajorDomo server and 
+	/// - depending on the additional synchronised components - enable synchronisation of aspects such as transform and/or parameters.
+	/// </summary>
+	/// 
 	[AddComponentMenu("MajorDomo/Synchronised GameObject")]
 	public class SynchronisedGameObject : MonoBehaviour
 	{
@@ -42,6 +47,11 @@ namespace SentienceLab.MajorDomo
 		// number of frames to wait after another client has taken over control before trying to take control back
 		const int CONTROL_COOLDOWN_COUNT = 10;
 
+		public delegate void SynchronisationStart(SynchronisedGameObject _gameObject);
+		public event SynchronisationStart OnSynchronisationStart;
+
+		public delegate void SynchronisationEnd(SynchronisedGameObject _gameObject);
+		public event SynchronisationEnd OnSynchronisationEnd;
 
 
 		/// <summary>
@@ -260,6 +270,18 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		public EntityData GetEntity()
+		{
+			return m_entity;
+		}
+
+
+		public ClientData GetClient()
+		{
+			return MajorDomoManager.Instance.GetClientOfEntity(m_entity);
+		}
+
+
 		private void EntityUpdated(EntityData _)
 		{
 			// this might have been called from a networking thread,
@@ -409,6 +431,8 @@ namespace SentienceLab.MajorDomo
 						}
 					}
 				}
+
+				OnSynchronisationStart?.Invoke(this);
 			}
 			else if (m_entity.State == EntityData.EntityState.Revoked)
 			{
@@ -416,6 +440,8 @@ namespace SentienceLab.MajorDomo
 
 				Debug.LogFormat("'{0}' lost synchronisation with entity '{1}'",
 					gameObject.name, m_entity.ToString(true, false));
+
+				OnSynchronisationEnd?.Invoke(this);
 
 				DestroyEntityVariables();
 

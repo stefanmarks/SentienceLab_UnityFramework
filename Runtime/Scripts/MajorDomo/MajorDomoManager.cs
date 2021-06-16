@@ -77,7 +77,9 @@ namespace SentienceLab.MajorDomo
 		public Configuration configuration = new Configuration();
 
 
-		// Singleton accessor
+		/// <summary>
+		/// Singleton accessor of the manager
+		/// </summary>
 		public static MajorDomoManager Instance
 		{
 			get
@@ -149,6 +151,11 @@ namespace SentienceLab.MajorDomo
 			return m_client.ServerInformation();
 		}
 
+		public ClientData GetClientOfEntity(EntityData _entity)
+		{
+			return m_client?.ClientManager.GetClientByUID(_entity.ClientUID);
+		}
+
 		public uint ClientUID { get { return (m_client != null) ? m_client.ClientUID : ClientData.UID_UNASSIGNED; } private set { } }
 
 		public void Awake()
@@ -197,7 +204,7 @@ namespace SentienceLab.MajorDomo
 			m_workerThread.Start();
 
 			if (ClientName.Length == 0) { ClientName = DEFAULT_CLIENT_NAME; }
-			ClientName = ReplaceSpecialNameParts(ClientName,   this.gameObject);
+			ClientName = ReplaceSpecialNameParts(ClientName, this.gameObject);
 
 			if (UserName.Length == 0) { UserName = DEFAULT_USER_NAME; }
 			UserName = ReplaceSpecialNameParts(UserName, this.gameObject);
@@ -208,6 +215,7 @@ namespace SentienceLab.MajorDomo
 
 		public static string ReplaceSpecialNameParts(string _name, GameObject _gameObject)
 		{
+			// IP addresses and/or hostname
 			if (_name.Contains(REPLACEMENT_STRING_IPv4) ||
 				_name.Contains(REPLACEMENT_STRING_IPv6) ||
 				_name.Contains(REPLACEMENT_STRING_HOST) )
@@ -237,21 +245,25 @@ namespace SentienceLab.MajorDomo
 				_name = _name.Replace(REPLACEMENT_STRING_IPv6, ipv6);
 			}
 
+			// username
 			if (_name.Contains(REPLACEMENT_STRING_USER))
 			{
 				_name = _name.Replace(REPLACEMENT_STRING_USER, System.Environment.UserName);
 			}
 
+			// machine name
 			if (_name.Contains(REPLACEMENT_STRING_MACHINE))
 			{
 				_name = _name.Replace(REPLACEMENT_STRING_MACHINE, System.Environment.MachineName);
 			}
 
+			// scene name
 			if (_name.Contains(REPLACEMENT_STRING_SCENE))
 			{
 				_name = _name.Replace(REPLACEMENT_STRING_SCENE, SceneManager.GetActiveScene().name);
 			}
 			
+			// game object name
 			if (_name.Contains(REPLACEMENT_STRING_GAMEOBJECT))
 			{
 				_name = _name.Replace(REPLACEMENT_STRING_GAMEOBJECT, _gameObject.name);
@@ -533,6 +545,10 @@ namespace SentienceLab.MajorDomo
 
 		public void OnApplicationQuit()
 		{
+			// should have happened by now, but just to be sure
+			Disconnect();
+			Update();
+
 			// just to be sure...
 			m_runThread = false;
 			if (m_workerThread != null)
