@@ -149,14 +149,18 @@ namespace SentienceLab.MajorDomo
 			{
 				Vector3 pos = m_valPosition.Value;
 				transform.localPosition = pos;
-				m_oldPosition           = pos; // avoid triggering IsModified immediately after this
+				// avoid triggering IsModified immediately after this
+				m_oldPosition    = pos;
+				m_oldVelocityPos = Vector3.zero;
 			}
 
 			if (m_valRotation != null && m_valVelocityRot == null) // set rotation without interpolation
 			{
 				Quaternion rot = m_valRotation.Value;
 				transform.localRotation = rot;
-				m_oldRotation           = rot; // avoid triggering IsModified immediately after this
+				// avoid triggering IsModified immediately after this
+				m_oldRotation    = rot;
+				m_oldVelocityRot = Vector3.zero;
 			}
 
 			if (m_valScale != null)
@@ -187,7 +191,9 @@ namespace SentienceLab.MajorDomo
 					Vector3 vel = m_valVelocityPos.Value;
 					pos += vel * deltaT;
 					transform.localPosition = pos;
-					m_oldPosition           = pos;
+					// avoid triggering IsModified immediately after this
+					m_oldPosition    = pos;
+					m_oldVelocityPos = Vector3.zero;
 				}
 
 				if (m_valRotation != null && m_valVelocityRot != null) // set rotation with interpolation
@@ -196,7 +202,9 @@ namespace SentienceLab.MajorDomo
 					Vector3    vel = m_valVelocityRot.Value;
 					rot = IntegrateAngularVelocity(rot, vel, deltaT);
 					transform.localRotation = rot;
-					m_oldRotation           = rot;
+					// avoid triggering IsModified immediately after this
+					m_oldRotation    = rot;
+					m_oldVelocityRot = Vector3.zero;
 				}
 			}
 		}
@@ -215,9 +223,13 @@ namespace SentienceLab.MajorDomo
 				}
 				if (DoTransVel())
 				{
-					if ((m_rigidbody != null) && !m_rigidbody.IsSleeping() && m_rigidbody.velocity.magnitude > 0)
+					if ((m_rigidbody != null) && !m_rigidbody.IsSleeping() && m_rigidbody.velocity.sqrMagnitude > 0)
 					{
 						m_modified = true;
+					}
+					else if (m_oldVelocityPos.sqrMagnitude > 0)
+					{
+						m_modified = true; // movement causes modification
 					}
 				}	
 				if (DoRot())
@@ -230,7 +242,11 @@ namespace SentienceLab.MajorDomo
 				}
 				if (DoRotVel())
 				{
-					if ((m_rigidbody != null) && !m_rigidbody.IsSleeping() && m_rigidbody.angularVelocity.magnitude > 0)
+					if ((m_rigidbody != null) && !m_rigidbody.IsSleeping() && m_rigidbody.angularVelocity.sqrMagnitude > 0)
+					{
+						m_modified = true;
+					}
+					else if (m_oldVelocityRot.sqrMagnitude > 0)
 					{
 						m_modified = true;
 					}
@@ -285,6 +301,8 @@ namespace SentienceLab.MajorDomo
 
 					// modify entity
 					m_valVelocityPos.Modify(vel);
+
+					m_oldVelocityPos = vel;
 				}
 
 				// keep position value for next round
@@ -327,6 +345,9 @@ namespace SentienceLab.MajorDomo
 
 					// send updated values
 					m_valVelocityRot.Modify(vel);
+
+					// remember for later
+					m_oldVelocityRot = vel;
 				}
 
 				// keep rotation value for next round
@@ -427,7 +448,9 @@ namespace SentienceLab.MajorDomo
 
 		private Rigidbody  m_rigidbody;
 		private Vector3    m_oldPosition;
+		private Vector3    m_oldVelocityPos;
 		private Quaternion m_oldRotation;
+		private Vector3    m_oldVelocityRot;
 		private Vector3    m_oldScale;
 		private int        m_lastUpdateFrame;
 		private bool       m_modified;
