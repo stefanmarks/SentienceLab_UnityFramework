@@ -175,15 +175,20 @@ namespace SentienceLab.MajorDomo
 				CheckEntityNameReplacements();
 
 				// no submodules given explicitely: search for them
-				if ((SynchronisedComponents == null) || (SynchronisedComponents.Count == 0))
+				if (SynchronisedComponents == null)
 				{
+					SynchronisedComponents = new List<AbstractSynchronisedComponent>();
+				}
+				if (SynchronisedComponents.Count == 0)
+				{
+					
 					SynchronisedComponents.AddRange(GetComponents<AbstractSynchronisedComponent>());
 				}
 
 				// initialise subcomponents
 				foreach(var component in SynchronisedComponents)
 				{
-					component.Initialise();
+					if (component != null) component.Initialise();
 				}
 
 				//Debug.LogFormat("Registering entity '{0}' with MajorDomo client.", EntityName);
@@ -256,7 +261,7 @@ namespace SentienceLab.MajorDomo
 
 			foreach (var component in SynchronisedComponents)
 			{
-				component.OnUpdate(IsControlledByServer);
+				if (component != null) component.OnUpdate(IsControlledByServer);
 			}
 		}
 
@@ -265,7 +270,7 @@ namespace SentienceLab.MajorDomo
 		{
 			foreach (var component in SynchronisedComponents)
 			{
-				component.OnFixedUpdate(IsControlledByServer);
+				if (component != null) component.OnFixedUpdate(IsControlledByServer);
 			}
 		}
 
@@ -482,9 +487,9 @@ namespace SentienceLab.MajorDomo
 				_entity.AddValue_String(EntityValue.TEMPLATE, this.TemplateName);
 			}
 
-			foreach (var cmp in SynchronisedComponents)
+			foreach (var component in SynchronisedComponents)
 			{
-				cmp.CreateEntityVariables(_entity);
+				if (component != null) component.CreateEntityVariables(_entity);
 			}
 		}
 
@@ -495,9 +500,9 @@ namespace SentienceLab.MajorDomo
 
 			m_valTemplateName = m_entity.GetValue_String(EntityValue.TEMPLATE);
 
-			foreach (var cmp in SynchronisedComponents)
+			foreach (var component in SynchronisedComponents)
 			{
-				cmp.FindEntityVariables(m_entity);
+				if (component != null) component.FindEntityVariables(m_entity);
 			}
 		}
 
@@ -507,9 +512,9 @@ namespace SentienceLab.MajorDomo
 			m_valEnabled      = null;
 			m_valTemplateName = null;
 
-			foreach (var cmp in SynchronisedComponents)
+			foreach (var component in SynchronisedComponents)
 			{
-				cmp.DestroyEntityVariables();
+				if (component != null) component.DestroyEntityVariables();
 			}
 		}
 
@@ -526,9 +531,9 @@ namespace SentienceLab.MajorDomo
 				gameObject.SetActive(true);
 			}
 			// synchronise components
-			foreach (var cmp in SynchronisedComponents)
+			foreach (var component in SynchronisedComponents)
 			{
-				cmp.SynchroniseFromEntity(m_firstTimeSync);
+				if (component != null) component.SynchroniseFromEntity(m_firstTimeSync);
 			}
 
 			m_firstTimeSync = false;
@@ -537,9 +542,9 @@ namespace SentienceLab.MajorDomo
 
 		protected bool IsModified()
 		{
-			foreach (var cmp in SynchronisedComponents)
+			foreach (var component in SynchronisedComponents)
 			{
-				if (cmp.IsModified()) return true;
+				if ((component != null) && component.IsModified()) return true;
 			}
 			return false;
 		}
@@ -558,9 +563,9 @@ namespace SentienceLab.MajorDomo
 				m_valTemplateName.Modify(this.TemplateName);
 			}
 			// Synchronise components
-			foreach (var cmp in SynchronisedComponents)
+			foreach (var component in SynchronisedComponents)
 			{
-				cmp.SynchroniseToEntity(m_firstTimeSync);
+				if (component != null) component.SynchroniseToEntity(m_firstTimeSync);
 			}
 
 			m_firstTimeSync = false;
@@ -569,9 +574,9 @@ namespace SentienceLab.MajorDomo
 
 		protected void ResetModified()
 		{
-			foreach (var cmp in SynchronisedComponents)
+			foreach (var component in SynchronisedComponents)
 			{
-				cmp.ResetModified();
+				if (component != null) component.ResetModified();
 			}
 		}
 
