@@ -23,6 +23,10 @@ namespace SentienceLab.MajorDomo
 		[Tooltip("How much rotation (degrees) can happen before synchronisation is requested")]
 		public float RotationThreshold = 0.1f;
 
+		[Tooltip("Offset transform (empty: no offset)")]
+		public Transform Offset;
+
+
 		// vector magnitude threshold for treating it as zero
 		private float VECTOR_ZERO_EPSILON = 0.00001f; 
 
@@ -50,6 +54,13 @@ namespace SentienceLab.MajorDomo
 		public override void Initialise()
 		{
 			m_rigidbody = GetComponent<Rigidbody>();
+			m_posOffset = Vector3.zero;
+			m_rotOffset = Quaternion.identity;
+			if (Offset != null)
+			{
+				m_posOffset = transform.InverseTransformPoint(Offset.TransformPoint(Vector3.zero));
+				m_rotOffset = Offset.rotation * transform.rotation;
+			}
 		}
 
 
@@ -148,6 +159,7 @@ namespace SentienceLab.MajorDomo
 			if (m_valPosition != null && m_valVelocityPos == null) // set position without interpolation
 			{
 				Vector3 pos = m_valPosition.Value;
+				pos -= m_posOffset;
 				transform.localPosition = pos;
 				// avoid triggering IsModified immediately after this
 				m_oldPosition    = pos;
@@ -157,6 +169,7 @@ namespace SentienceLab.MajorDomo
 			if (m_valRotation != null && m_valVelocityRot == null) // set rotation without interpolation
 			{
 				Quaternion rot = m_valRotation.Value;
+				rot = m_rotOffset * rot;
 				transform.localRotation = rot;
 				// avoid triggering IsModified immediately after this
 				m_oldRotation    = rot;
@@ -188,6 +201,7 @@ namespace SentienceLab.MajorDomo
 					Vector3 pos = m_valPosition.Value;
 					Vector3 vel = m_valVelocityPos.Value;
 					pos += vel * deltaT;
+					pos -= m_posOffset;
 					transform.localPosition = pos;
 					// avoid triggering IsModified immediately after this
 					m_oldPosition    = pos;
@@ -199,6 +213,7 @@ namespace SentienceLab.MajorDomo
 					Quaternion rot = m_valRotation.Value;
 					Vector3    vel = m_valVelocityRot.Value;
 					rot = IntegrateAngularVelocity(rot, vel, deltaT);
+					rot = m_rotOffset * rot;
 					transform.localRotation = rot;
 					// avoid triggering IsModified immediately after this
 					m_oldRotation    = rot;
@@ -305,7 +320,7 @@ namespace SentienceLab.MajorDomo
 				}
 
 				// send updated values and remember for next round
-				m_valPosition.Modify(pos);
+				m_valPosition.Modify(pos + m_posOffset);
 				m_oldPosition = pos;
 			}
 
@@ -346,7 +361,7 @@ namespace SentienceLab.MajorDomo
 				}
 
 				// send updated values and remember for next round
-				m_valRotation.Modify(rot);
+				m_valRotation.Modify(rot * m_rotOffset);
 				m_oldRotation = rot;
 			}
 
@@ -439,6 +454,9 @@ namespace SentienceLab.MajorDomo
 		private EntityValue_Vector3D   m_valScale;
 
 		private Rigidbody  m_rigidbody;
+		private Vector3    m_posOffset;
+		private Quaternion m_rotOffset;
+
 		private Vector3    m_oldPosition;
 		private Vector3    m_oldVelocityPos;
 		private Quaternion m_oldRotation;
