@@ -100,7 +100,7 @@ namespace SentienceLab.MajorDomo
 				if (m_entity == null) return false;
 				if (MajorDomoManager.Instance == null) return false;
 				if (!MajorDomoManager.Instance.IsConnected()) return false;
-				return m_entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID);
+				return m_entity.IsControlledByThisClient();
 			}
 			private set { }
 		}
@@ -113,7 +113,7 @@ namespace SentienceLab.MajorDomo
 				if (m_entity == null) return false;
 				if (MajorDomoManager.Instance == null) return false;
 				if (!MajorDomoManager.Instance.IsConnected()) return false;
-				return !m_entity.IsControlledByClient(MajorDomoManager.Instance.ClientUID);
+				return !m_entity.IsControlledByThisClient();
 			}
 			private set { }
 		}

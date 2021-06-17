@@ -46,37 +46,44 @@ namespace SentienceLab.MajorDomo
 
 		private void OnEntitiesPublished(List<EntityData> _entities)
 		{
-			foreach (var e in _entities) m_publishedEntities.Enqueue(e);
+			// enqueue to be handled in Update()
+			foreach (var e in _entities) 
+			{
+				m_publishedEntities.Enqueue(e);
+			}
 		}
 
 
 		protected void CheckPublishedEntity(EntityData _entity)
 		{
+			// only instantiate externally controlled entities
+			if (!_entity.IsControlledByThisClient()) return; 
+			
+			// must have the "template" value
 			var templateName = _entity.GetValue_String("template");
-			if (templateName != null)
+			if (templateName == null) return;
+
+			Debug.LogFormat("Published entity '{0}' with template '{1}'", _entity.Name, templateName.Value);
+			foreach (var t in Templates)
 			{
-				Debug.LogFormat("Published entity '{0}' with template '{1}'", _entity.Name, templateName.Value);
-				foreach (var t in Templates)
+				string name = t.Name;
+				if (name.Equals(templateName.Value))
 				{
-					string name = t.Name;
-					if (name.Equals(templateName.Value))
+					string newName = string.Format(NamingPattern, _entity.Name);
+					Debug.LogFormat("Spawning template '{0}' as '{1}'", name, newName);
+					GameObject go = Instantiate(t.Template, this.transform);
+					go.name = newName;
+					SynchronisedGameObject[] syncGameObjects = go.GetComponentsInChildren<SynchronisedGameObject>();
+					foreach (var syncGameObject in syncGameObjects)
 					{
-						string newName = string.Format(NamingPattern, _entity.Name);
-						Debug.LogFormat("Spawning template '{0}' as '{1}'", name, newName);
-						GameObject go = Instantiate(t.Template, this.transform);
-						go.name = newName;
-						SynchronisedGameObject[] syncGameObjects = go.GetComponentsInChildren<SynchronisedGameObject>();
-						foreach (var syncGameObject in syncGameObjects)
+						// make sure name template does not affect the entity name
+						if (syncGameObject.EntityName.Equals(SynchronisedGameObject.DEFAULT_ENTITY_NAME))
 						{
-							// make sure name template does not affect the entity name
-							if (syncGameObject.EntityName.Equals(SynchronisedGameObject.DEFAULT_ENTITY_NAME))
-							{
-								syncGameObject.EntityName = _entity.Name;
-							}
+							syncGameObject.EntityName = _entity.Name;
 						}
-						
-						m_spawnedTemplates[_entity.Name] = go;
 					}
+						
+					m_spawnedTemplates[_entity.Name] = go;
 				}
 			}
 		}
@@ -84,7 +91,11 @@ namespace SentienceLab.MajorDomo
 
 		private void OnEntitiesRevoked(List<EntityData> _entities)
 		{
-			foreach (var e in _entities) m_revokedEntities.Enqueue(e);
+			// enqueue to be handled in Update()
+			foreach (var e in _entities) 
+			{
+				m_revokedEntities.Enqueue(e);
+			}
 		}
 
 
@@ -103,9 +114,14 @@ namespace SentienceLab.MajorDomo
 		public void Update()
 		{
 			// check entities one by one to avoid spawn "bottlenecks"
-			if (m_publishedEntities.Count > 0) CheckPublishedEntity(m_publishedEntities.Dequeue());
-			if (m_revokedEntities.Count   > 0) CheckRevokedEntity(  m_revokedEntities.Dequeue()  );
-
+			if (m_publishedEntities.Count > 0) 
+			{
+				CheckPublishedEntity(m_publishedEntities.Dequeue());
+			}
+			if (m_revokedEntities.Count   > 0) 
+			{
+				CheckRevokedEntity(m_revokedEntities.Dequeue());
+			}
 		}
 
 

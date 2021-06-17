@@ -106,6 +106,12 @@ namespace SentienceLab.MajorDomo
 		}
 
 
+		public bool IsControlledByThisClient()
+		{
+			return IsControlledByClient(MajorDomoManager.Instance.ClientUID);
+		}
+
+
 		public void SetClientUID(uint _clientUID)
 		{
 			ClientUID = _clientUID;
