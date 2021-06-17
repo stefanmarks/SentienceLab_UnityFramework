@@ -57,7 +57,7 @@ namespace SentienceLab.MajorDomo
 		protected void CheckPublishedEntity(EntityData _entity)
 		{
 			// only instantiate externally controlled entities
-			if (!_entity.IsControlledByThisClient()) return; 
+			if (_entity.IsControlledByThisClient()) return; 
 			
 			// must have the "template" value
 			var templateName = _entity.GetValue_String("template");
