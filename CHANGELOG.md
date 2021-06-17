@@ -10,17 +10,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-
 ### Changed
 
+- MajorDomo protocol 0.7.1
 - Added offset nodes between TrackedPose drivers and the XR controller models
 - Adapted TrackedPose and input signifier actions to OpenXR plugin names
 - Added template string to SynchronisedGameObject
+- Generic HMD model simplified
 
 ### Removed
 
 - Removing SentienceLab InputHandler system, now only supporting Unity's new Input System
-
+- Legacy resources for Oculus Rift DK1 + MoCap VR
 
 
 ## [1.4] - 2020-06-02
