@@ -17,11 +17,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Adapted TrackedPose and input signifier actions to OpenXR plugin names
 - Added template string to SynchronisedGameObject
 - Generic HMD model simplified
+- "UI_AlwaysOnTop" material renamed to "GUI Text"
 
 ### Removed
 
 - Removing SentienceLab InputHandler system, now only supporting Unity's new Input System
 - Legacy resources for Oculus Rift DK1 + MoCap VR
+- Shader for Always on top UI text
 
 
 ## [1.4] - 2020-06-02
