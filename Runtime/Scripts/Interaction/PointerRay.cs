@@ -15,8 +15,6 @@ namespace SentienceLab
 	///
 	[AddComponentMenu("SentienceLab/Interaction/Pointer Ray")]
 	[RequireComponent(typeof(LineRenderer))]
-	[RequireComponent(typeof(Parameter_Boolean))]
-
 	public class PointerRay : MonoBehaviour
 	{
 		[Tooltip("Parameter that activates the ray\n(None: ray is permanently enabled)")]
