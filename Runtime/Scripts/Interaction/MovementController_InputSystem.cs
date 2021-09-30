@@ -3,8 +3,8 @@
 // (C) Sentience Lab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
-using UnityEngine.InputSystem;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace SentienceLab
 {
@@ -48,7 +48,7 @@ namespace SentienceLab
 		private const float SMOOTHING_FACTOR_MAX   = 0.9f;
 
 
-		void Start()
+		public void Start()
 		{
 			m_vecTranslate = Vector3.zero;
 			m_vecRotate = Vector3.zero;
@@ -66,7 +66,7 @@ namespace SentienceLab
 		}
 
 
-		void Update() 
+		public void Update() 
 		{
 			// Rotation
 			Vector3 vecR = Vector3.zero;
@@ -91,13 +91,11 @@ namespace SentienceLab
 			// Translation
 			// translate forward (Z)
 			Vector3 v = RotationBasisNode.forward;
-			if (TranslationIgnoresPitch) { v.y = 0; }
-			v.Normalize();
+			if (TranslationIgnoresPitch) { v.y = 0; v.Normalize(); }
 			transform.Translate(v * m_vecTranslate.z * TranslationSpeed * Time.deltaTime, Space.World);
-		
+
 			// translate upwards (Y)
-			v = RotationBasisNode.up; 
-			v.Normalize();
+			v = TranslationIgnoresPitch ? Vector3.up : RotationBasisNode.up;
 			transform.Translate(v * m_vecTranslate.y * TranslationSpeed * Time.deltaTime, Space.World);
 		
 			// translate sideways (X)
