@@ -18,8 +18,9 @@ namespace SentienceLab
 	{
 		public UnityEvent ColliderEnter;
 		public UnityEvent ColliderExit;
-		
+
 		[Tooltip("GameObject tags to react to. If empty, react to any object")]
+		[TagSelector]
 		public string[] TagNames;
 
 

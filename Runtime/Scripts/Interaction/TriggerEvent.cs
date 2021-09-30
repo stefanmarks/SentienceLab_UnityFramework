@@ -20,7 +20,8 @@ namespace SentienceLab
 		public UnityEvent TriggerExit;
 
 		[Tooltip("GameObject tags to react to. If empty, react to any object")]
-		public string[] TagNames;
+		[TagSelector]
+		public string[] TagNames = { };
 
 
 		public void Start()

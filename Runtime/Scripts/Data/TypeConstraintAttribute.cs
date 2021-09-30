@@ -10,16 +10,16 @@ using UnityEngine;
 
 public class TypeConstraintAttribute : PropertyAttribute
  {
-     private System.Type type;
+	 private System.Type type;
  
-     public TypeConstraintAttribute(System.Type _type)
-     {
-         type = _type;
-     }
+	 public TypeConstraintAttribute(System.Type _type)
+	 {
+		 type = _type;
+	 }
  
-     public System.Type Type
-     {
-         get { return type; }
-     }
+	 public System.Type Type
+	 {
+		 get { return type; }
+	 }
  }
  
