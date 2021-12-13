@@ -1,6 +1,6 @@
 #region Copyright Information
-// Sentience Lab VR Framework
-// (C) Sentience Lab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
+// SentienceLab Unity Framework
+// (C) SentienceLab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
 // Attribute to make selection of tags easier.

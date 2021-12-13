@@ -1,7 +1,6 @@
 ﻿#region Copyright Information
-// Sentience Lab MajorDomo Framework
-// (C) Sentience Lab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand
-// (C) Westfälische Hochschule, Gelsenkirchen, Germany
+// SentienceLab Unity Framework
+// (C) SentienceLab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand
 #endregion Copyright Information
 
 using UnityEngine;
