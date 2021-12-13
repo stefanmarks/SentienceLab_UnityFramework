@@ -1,5 +1,6 @@
 {
     "name": "Unity.SentienceLab",
+    "rootNamespace": "",
     "references": [
         "GUID:75469ad4d38634e559750d17036d5f7c"
     ],
@@ -10,11 +11,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [
-        {
-            "name": "com.unity.inputsystem",
-            "expression": "",
-            "define": "SENTIENCELAB_ENABLE_INPUTSYSTEM"
-        }
-    ]
+    "versionDefines": [],
+    "noEngineReferences": false
 }
