@@ -105,7 +105,7 @@ namespace SentienceLab
 			{
 				// no ray component > do a basic raycast here
 				Ray tempRay = new Ray(transform.position, transform.forward);
-				UnityEngine.Physics.Raycast(tempRay, out hit);
+				Physics.Raycast(tempRay, out hit);
 			}
 
 			if ((hit.distance > 0) && (hit.transform != null) && hit.transform.gameObject.CompareTag(groundTag))
@@ -117,7 +117,7 @@ namespace SentienceLab
 						// here we go: hide marker...
 						targetMarker.gameObject.SetActive(false);
 						// ...and activate teleport
-						m_teleporter.Activate(cameraNode.transform.position, hit.point);
+						m_teleporter.TeleportPosition(hit.point);
 					}
 					m_doTeleport = false;
 				}
