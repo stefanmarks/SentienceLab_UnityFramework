@@ -1,104 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &9023217886702934128
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 846463314477312435}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a2b2b98dfec58b641b89f1b06cca8429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Action:
-    m_UseReference: 0
-    m_Action:
-      m_Name: Action
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: 5e2dbe80-e59a-43d2-99d7-22c1726bfac2
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings:
-      - m_Name: 
-        m_Id: 99c1bd73-0b3f-4888-9299-ed07c35ce303
-        m_Path: <OculusTouchController>{LeftHand}/secondaryButton
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
-        m_Action: Action
-        m_Flags: 0
-    m_Reference: {fileID: 0}
-  Axis: {x: 0, y: -0.002, z: 0}
---- !u!114 &9023217886702934143
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 846463314477312435}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7dd6fe1208495f546a632af7853462ed, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Action:
-    m_UseReference: 0
-    m_Action:
-      m_Name: Action
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: cdf37924-654e-4f91-b10a-a356697e8601
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings:
-      - m_Name: 
-        m_Id: 4fd1b170-8770-4091-956d-55ac981f0d84
-        m_Path: <OculusTouchController>{LeftHand}/secondaryTouched
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
-        m_Action: Action
-        m_Flags: 0
-    m_Reference: {fileID: 0}
-  SignifierMaterials:
-  - {fileID: 2100000, guid: 0a85cbe0a94a6a5459166a5e19c7dc8c, type: 2}
-  - {fileID: 2100000, guid: c13830383dee33940bdc1a21a55cd719, type: 2}
---- !u!114 &9023217886702934136
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1585512081754594181}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 510f50aed0c1d9d48944c025cc431ad0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Action:
-    m_UseReference: 0
-    m_Action:
-      m_Name: Action
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: 27a28c37-f206-4da1-b148-7cd6a2559c06
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings:
-      - m_Name: 
-        m_Id: cbac8bee-0a2b-4518-a5b2-653f02519b9e
-        m_Path: <OculusTouchController>{LeftHand}/trigger
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
-        m_Action: Action
-        m_Flags: 0
-    m_Reference: {fileID: 0}
-  Axis: {x: 1, y: 0, z: 0}
-  Angle: 10
 --- !u!1 &1771306706844779307
 GameObject:
   m_ObjectHideFlags: 0
@@ -180,72 +81,6 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: ButtonX
---- !u!114 &9023217886702934141
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3539924440546547869}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7dd6fe1208495f546a632af7853462ed, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Action:
-    m_UseReference: 0
-    m_Action:
-      m_Name: Action
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: cdf37924-654e-4f91-b10a-a356697e8601
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings:
-      - m_Name: 
-        m_Id: 4fd1b170-8770-4091-956d-55ac981f0d84
-        m_Path: <OculusTouchController>{LeftHand}/primaryTouched
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
-        m_Action: Action
-        m_Flags: 0
-    m_Reference: {fileID: 0}
-  SignifierMaterials:
-  - {fileID: 2100000, guid: 0a85cbe0a94a6a5459166a5e19c7dc8c, type: 2}
-  - {fileID: 2100000, guid: c13830383dee33940bdc1a21a55cd719, type: 2}
---- !u!114 &9023217886702934142
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3539924440546547869}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a2b2b98dfec58b641b89f1b06cca8429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Action:
-    m_UseReference: 0
-    m_Action:
-      m_Name: Action
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: 5e2dbe80-e59a-43d2-99d7-22c1726bfac2
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings:
-      - m_Name: 
-        m_Id: 99c1bd73-0b3f-4888-9299-ed07c35ce303
-        m_Path: <OculusTouchController>{LeftHand}/primaryButton
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
-        m_Action: Action
-        m_Flags: 0
-    m_Reference: {fileID: 0}
-  Axis: {x: 0, y: -0.002, z: 0}
 --- !u!1 &4823181932117948833
 GameObject:
   m_ObjectHideFlags: 0
@@ -419,8 +254,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8041570008832785687}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: 0.5, y: 0, z: 0, w: 0.8660254}
+  m_LocalPosition: {x: 0, y: -0.02, z: 0.05}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 8841218770905890718}
@@ -428,40 +263,7 @@ Transform:
   - {fileID: 8690592220757056605}
   m_Father: {fileID: 8690592220116683355}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &9023217886702934140
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8051623341267855046}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 510f50aed0c1d9d48944c025cc431ad0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Action:
-    m_UseReference: 0
-    m_Action:
-      m_Name: Action
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: 27a28c37-f206-4da1-b148-7cd6a2559c06
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings:
-      - m_Name: 
-        m_Id: cbac8bee-0a2b-4518-a5b2-653f02519b9e
-        m_Path: <OculusTouchController>{LeftHand}/grip
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
-        m_Action: Action
-        m_Flags: 0
-    m_Reference: {fileID: 0}
-  Axis: {x: 0, y: 1, z: 0}
-  Angle: 10
+  m_LocalEulerAnglesHint: {x: 60, y: 0, z: 0}
 --- !u!1 &8687478329718141831
 GameObject:
   m_ObjectHideFlags: 0
@@ -2123,6 +1925,12 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 9023217886702934133}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &846463314477312435 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -682342372546121274, guid: 7cf257f58f3d99741a544f6e65c04946,
+    type: 3}
+  m_PrefabInstance: {fileID: 9023217886702934133}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &3539924440546547869 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -3740030198496558872, guid: 7cf257f58f3d99741a544f6e65c04946,
@@ -2135,15 +1943,207 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 9023217886702934133}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &846463314477312435 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: -682342372546121274, guid: 7cf257f58f3d99741a544f6e65c04946,
-    type: 3}
-  m_PrefabInstance: {fileID: 9023217886702934133}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8841218770905890718 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 7cf257f58f3d99741a544f6e65c04946,
     type: 3}
   m_PrefabInstance: {fileID: 9023217886702934133}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &9023217886702934128
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 846463314477312435}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2b2b98dfec58b641b89f1b06cca8429, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Action:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Action
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 5e2dbe80-e59a-43d2-99d7-22c1726bfac2
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: 99c1bd73-0b3f-4888-9299-ed07c35ce303
+        m_Path: <OculusTouchController>{LeftHand}/secondaryButton
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Action
+        m_Flags: 0
+    m_Reference: {fileID: 0}
+  Axis: {x: 0, y: -0.002, z: 0}
+--- !u!114 &9023217886702934143
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 846463314477312435}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dd6fe1208495f546a632af7853462ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Action:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Action
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: cdf37924-654e-4f91-b10a-a356697e8601
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: 4fd1b170-8770-4091-956d-55ac981f0d84
+        m_Path: <OculusTouchController>{LeftHand}/secondaryTouched
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Action
+        m_Flags: 0
+    m_Reference: {fileID: 0}
+  SignifierMaterials:
+  - {fileID: 2100000, guid: 0a85cbe0a94a6a5459166a5e19c7dc8c, type: 2}
+  - {fileID: 2100000, guid: c13830383dee33940bdc1a21a55cd719, type: 2}
+--- !u!114 &9023217886702934136
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1585512081754594181}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 510f50aed0c1d9d48944c025cc431ad0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Action:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Action
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 27a28c37-f206-4da1-b148-7cd6a2559c06
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: cbac8bee-0a2b-4518-a5b2-653f02519b9e
+        m_Path: <OculusTouchController>{LeftHand}/trigger
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Action
+        m_Flags: 0
+    m_Reference: {fileID: 0}
+  Axis: {x: 1, y: 0, z: 0}
+  Angle: 10
+--- !u!114 &9023217886702934141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3539924440546547869}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dd6fe1208495f546a632af7853462ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Action:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Action
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: cdf37924-654e-4f91-b10a-a356697e8601
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: 4fd1b170-8770-4091-956d-55ac981f0d84
+        m_Path: <OculusTouchController>{LeftHand}/primaryTouched
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Action
+        m_Flags: 0
+    m_Reference: {fileID: 0}
+  SignifierMaterials:
+  - {fileID: 2100000, guid: 0a85cbe0a94a6a5459166a5e19c7dc8c, type: 2}
+  - {fileID: 2100000, guid: c13830383dee33940bdc1a21a55cd719, type: 2}
+--- !u!114 &9023217886702934142
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3539924440546547869}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2b2b98dfec58b641b89f1b06cca8429, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Action:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Action
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 5e2dbe80-e59a-43d2-99d7-22c1726bfac2
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: 99c1bd73-0b3f-4888-9299-ed07c35ce303
+        m_Path: <OculusTouchController>{LeftHand}/primaryButton
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Action
+        m_Flags: 0
+    m_Reference: {fileID: 0}
+  Axis: {x: 0, y: -0.002, z: 0}
+--- !u!114 &9023217886702934140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8051623341267855046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 510f50aed0c1d9d48944c025cc431ad0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Action:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Action
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 27a28c37-f206-4da1-b148-7cd6a2559c06
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: cbac8bee-0a2b-4518-a5b2-653f02519b9e
+        m_Path: <OculusTouchController>{LeftHand}/grip
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Action
+        m_Flags: 0
+    m_Reference: {fileID: 0}
+  Axis: {x: 0, y: 1, z: 0}
+  Angle: 10
