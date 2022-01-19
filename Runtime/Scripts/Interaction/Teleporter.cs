@@ -11,7 +11,9 @@ using SentienceLab.PostProcessing;
 namespace SentienceLab
 {
 	/// <summary>
-	/// Class for executing a teleport.
+	/// Class for moving a Transform from one location to another.
+	/// This component is specialised for user teleportation in XR,
+	/// but can also be used to move normal objects.
 	/// </summary>
 
 	[AddComponentMenu("SentienceLab/Interaction/Locomotion/Teleporter")]
@@ -19,14 +21,17 @@ namespace SentienceLab
 
 	public class Teleporter : MonoBehaviour
 	{
+		[Tooltip("Relative position reference object (e.g., tracked camera, HMD).")]
+		public Transform positionReference = null;
+
+		[Tooltip("Ignore Y axis of reference position object")]
+		public bool ignorePositionReferenceY = false;
+
 		[Tooltip("Type of the teleport transition")]
 		public TransitionType transitionType = TransitionType.MoveLinear;
 
 		[Tooltip("Duration of the teleport transition in seconds")]
 		public float transitionTime = 0.1f;
-
-		[Tooltip("Can the user teleport up and down?")]
-		public bool allowVerticalMovement = false;
 
 		[Tooltip("Sound to play during teleport (optional)")]
 		public AudioSource teleportSound;
@@ -41,13 +46,17 @@ namespace SentienceLab
 		}
 
 
-		void Start()
+		public void Start()
 		{
+			if (positionReference == null)
+			{
+				positionReference = this.transform;
+			}
 			transition = null;
 		}
 
 
-		void Update()
+		public void Update()
 		{
 			if (transition != null)
 			{
@@ -57,51 +66,6 @@ namespace SentienceLab
 					transition.Cleanup();
 					transition = null;
 				}
-			}
-		}
-
-
-		/// <summary>
-		/// Activates the Teleport function to a specific point.
-		/// </summary>
-		/// <param name="originPoint">the point to teleport from</param>
-		/// <param name="targetPoint">the point to teleport to</param>
-		/// 
-		public void Activate(Vector3 originPoint, Vector3 targetPoint)
-		{
-			if (!IsReady()) return;
-
-			if (teleportSound != null)
-			{
-				teleportSound.pitch = UnityEngine.Random.Range(0.9f, 1.1f);
-				teleportSound.Play();
-			}
-
-			// calculate offset to target point (relativ to floor level, not camera height)
-			originPoint.y = this.transform.position.y;
-			Vector3 offset = targetPoint - originPoint;
-			if (!allowVerticalMovement)
-			{
-				offset.y = 0;
-			}
-
-			Vector3 startPoint = this.transform.position;
-			Vector3 endPoint   = startPoint + offset;
-
-			// activate transition
-			switch (transitionType)
-			{
-				case TransitionType.Fade:
-					transition = new Transition_Fade(endPoint, transitionTime, this.gameObject);
-					break;
-
-				case TransitionType.MoveLinear:
-					transition = new Transition_Move(startPoint, endPoint, transitionTime, false);
-					break;
-
-				case TransitionType.MoveSmooth:
-					transition = new Transition_Move(startPoint, endPoint, transitionTime, true);
-					break;
 			}
 		}
 
@@ -117,11 +81,103 @@ namespace SentienceLab
 		}
 
 
-		public void OnGUI()
+		public void TeleportPosition(Transform target)
 		{
-			if (transition != null)
+			TeleportPosition(target.position);
+		}
+
+
+		public void TeleportPosition(Vector3 targetPos)
+		{
+			// calculate relative start position reference
+			Vector3 relStartPos = this.transform.InverseTransformPoint(positionReference.position);
+			if (ignorePositionReferenceY)
 			{
-				transition.UpdateUI();
+				relStartPos.y = 0;
+			}
+			// apply relative offset to target position
+			targetPos -= relStartPos;
+			TeleportPosition(transform.position, targetPos);
+		}
+
+
+		public void TeleportPosition(Transform source, Transform target)
+		{
+			TeleportPosition(source.position, target.position);
+		}
+
+
+		public void TeleportPosition(Vector3 source, Vector3 target)
+		{
+			DoTeleport(source, this.transform.rotation, target, this.transform.rotation);
+		}
+
+
+		public void TeleportPositionAndOrientation(Transform target)
+		{
+			// calculate relative start position reference
+			Vector3 relStartPos = this.transform.InverseTransformPoint(positionReference.position);
+			if (ignorePositionReferenceY)
+			{
+				relStartPos.y = 0;
+			}
+			// apply relative offset to target position
+			Vector3 targetPos = target.TransformPoint(-relStartPos);
+
+			// calculate relative start direction
+			Vector3 relFwd = this.transform.InverseTransformDirection(positionReference.forward);
+			if (ignorePositionReferenceY)
+			{
+				relFwd.y = 0; relFwd.Normalize();
+			}
+			float fwdAngle = Mathf.Atan2(relFwd.x, relFwd.z) * Mathf.Rad2Deg;
+
+			// calculate difference rotation so camera faces forwards after teleport
+			Quaternion targetRot = target.rotation;
+			targetRot = Quaternion.AngleAxis(-fwdAngle, target.up) * targetRot;
+
+			DoTeleport(this.transform.position, this.transform.rotation, targetPos, targetRot);
+		}
+
+
+		public void TeleportPositionAndOrientation(Transform source, Transform target)
+		{
+			DoTeleport(source.position, source.rotation, target.position, target.rotation);
+		}
+
+
+		/// <summary>
+		/// Starts the Teleport function to a specific point and a specific orientation.
+		/// </summary>
+		/// <param name="originPoint">the point to teleport from</param>
+		/// <param name="originOrientation">the orientation to teleport from</param>
+		/// <param name="targetPoint">the point to teleport to</param>
+		/// <param name="targetOrientation">the orientation to teleport to</param>
+		/// 
+		protected void DoTeleport(Vector3 originPoint, Quaternion originOrientation, Vector3 targetPoint, Quaternion targetOrientation)
+		{
+			if (!IsReady()) return;
+
+			if (teleportSound != null)
+			{
+				teleportSound.pitch = UnityEngine.Random.Range(0.9f, 1.1f);
+				teleportSound.Play();
+			}
+
+			// activate transition
+			switch (transitionType)
+			{
+				case TransitionType.Fade:
+					transition = new Transition_Fade(targetPoint, targetOrientation, transitionTime, this.gameObject);
+					break;
+
+				case TransitionType.MoveLinear:
+					transition = new Transition_Move(originPoint, originOrientation, targetPoint, targetOrientation, transitionTime, false);
+					break;
+
+				case TransitionType.MoveSmooth:
+					transition = new Transition_Move(originPoint, originOrientation, targetPoint, targetOrientation, transitionTime, true);
+					break;
 			}
 		}
 
@@ -132,7 +188,6 @@ namespace SentienceLab
 		private interface ITransition
 		{
 			void Update(Transform offsetObject);
-			void UpdateUI();
 			bool IsFinished();
 			void Cleanup();
 		}
@@ -140,10 +195,11 @@ namespace SentienceLab
 
 		private class Transition_Fade : ITransition
 		{
-			public Transition_Fade(Vector3 endPoint, float duration, GameObject parent)
+			public Transition_Fade(Vector3 endPoint, Quaternion endRot, float duration, GameObject parent)
 			{
-				this.endPoint = endPoint;
-				this.duration = duration;
+				this.endPoint    = endPoint;
+				this.endRotation = endRot;
+				this.duration    = duration;
 
 				progress = 0;
 				moved = false;
@@ -164,12 +220,10 @@ namespace SentienceLab
 				if ((progress >= 0.5f) && !moved)
 				{
 					offsetObject.position = endPoint;
+					offsetObject.rotation = endRotation;
 					moved = true; // only move once
 				}
-			}
 
-			public void UpdateUI()
-			{
 				float fadeFactor = 1.0f - Math.Abs(progress * 2 - 1); // from [0....1....0]
 				foreach (ScreenFade fade in fadeEffects)
 				{
@@ -191,21 +245,28 @@ namespace SentienceLab
 			}
 
 
-			private Vector3 endPoint;
-			private float   duration, progress;
-			private bool    moved;
+			private Vector3    endPoint;
+			private Quaternion endRotation;
+			private float      duration, progress;
+			private bool       moved;
 			private List<ScreenFade> fadeEffects;
 		}
 
 
 		private class Transition_Move : ITransition
 		{
-			public Transition_Move(Vector3 startPoint, Vector3 endPoint, float duration, bool smooth)
+			public Transition_Move(
+				Vector3 startPoint, Quaternion startRot, 
+				Vector3 endPoint,   Quaternion endRot, 
+				float   duration, 
+				bool    smooth)
 			{
-				this.startPoint = startPoint;
-				this.endPoint = endPoint;
-				this.duration = duration;
-				this.smooth = smooth;
+				this.startPoint    = startPoint;
+				this.startRotation = startRot;
+				this.endPoint      = endPoint;
+				this.endRotation   = endRot;
+				this.duration      = duration;
+				this.smooth        = smooth;
 
 				progress = 0;
 			}
@@ -218,11 +279,7 @@ namespace SentienceLab
 				// linear: lerpFactor = progress. smooth: lerpFactor = sin(progress * PI/2) ^ 2
 				float lerpFactor = smooth ? (float)Math.Pow(Math.Sin(progress * Math.PI / 2), 2) : progress;
 				offsetObject.position = Vector3.Lerp(startPoint, endPoint, lerpFactor);
-			}
-
-			public void UpdateUI()
-			{
-				// nothing to do
+				offsetObject.rotation = Quaternion.Slerp(startRotation, endRotation, lerpFactor);
 			}
 
 			public bool IsFinished()
@@ -235,9 +292,10 @@ namespace SentienceLab
 				// nothing to do
 			}
 
-			private Vector3 startPoint, endPoint;
-			private float duration, progress;
-			private bool smooth;
+			private Vector3    startPoint, endPoint;
+			private Quaternion startRotation, endRotation;
+			private float      duration, progress;
+			private bool       smooth;
 		}
 	}
 }

@@ -96,6 +96,7 @@ public class CircularReticle : MonoBehaviour, IGazePointer
 	public void OnGazeStart(Camera camera, GameObject targetObject, Vector3 intersectionPosition, bool isInteractive)
 	{
 		SetGazeTarget(intersectionPosition, isInteractive);
+		UpdateFuse(0);
 	}
 
 
@@ -108,6 +109,7 @@ public class CircularReticle : MonoBehaviour, IGazePointer
 	public void OnGazeStay(Camera camera, GameObject targetObject, Vector3 intersectionPosition, float fuseProgress, bool isInteractive)
 	{
 		SetGazeTarget(intersectionPosition, isInteractive);
+		UpdateFuse(fuseProgress);
 	}
 
 
@@ -123,6 +125,7 @@ public class CircularReticle : MonoBehaviour, IGazePointer
 		reticleDistanceInMeters = kReticleDistanceMax;
 		reticleInnerAngle = kReticleMinInnerAngle;
 		reticleOuterAngle = kReticleMinOuterAngle;
+		UpdateFuse(0);
 	}
 
 
@@ -216,7 +219,7 @@ public class CircularReticle : MonoBehaviour, IGazePointer
 		reticleDistanceInMeters = Mathf.Clamp(reticleDistanceInMeters, kReticleDistanceMin, kReticleDistanceMax);
 
 		reticleInnerAngle = Mathf.Max(reticleInnerAngle, kReticleMinInnerAngle);
-		reticleOuterAngle = Mathf.Min(reticleOuterAngle, kReticleMinOuterAngle);
+		reticleOuterAngle = Mathf.Max(reticleOuterAngle, kReticleMinOuterAngle);
 
 		float inner_half_angle_radians = Mathf.Deg2Rad * reticleInnerAngle * 0.5f;
 		float outer_half_angle_radians = Mathf.Deg2Rad * reticleOuterAngle * 0.5f;
@@ -232,6 +235,12 @@ public class CircularReticle : MonoBehaviour, IGazePointer
 		materialComp.SetFloat("_InnerDiameter", reticleInnerDiameter * reticleDistanceInMeters);
 		materialComp.SetFloat("_OuterDiameter", reticleOuterDiameter * reticleDistanceInMeters);
 		materialComp.SetFloat("_DistanceInMeters", reticleDistanceInMeters);
+	}
+
+
+	protected void UpdateFuse(float fuseTime)
+	{
+		materialComp.SetFloat("_FuseTime", fuseTime);
 	}
 
 

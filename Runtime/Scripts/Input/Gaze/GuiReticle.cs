@@ -4,7 +4,6 @@
 #endregion Copyright Information
 
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace SentienceLab
@@ -37,32 +36,6 @@ namespace SentienceLab
 			reticleNeutral.gameObject.SetActive(false);
 			reticleActive.gameObject.SetActive(false);
 			reticleFuse.gameObject.SetActive(false);
-		}
-
-
-		void OnEnable()
-		{
-			GazeInputModule.gazePointer = this;
-		
-			// create Physics Raycaster if this is attached to a camera
-			Camera cam = transform.parent.GetComponent<Camera>();
-			if (cam != null)
-			{
-				PhysicsRaycaster raycaster = cam.GetComponent<PhysicsRaycaster>();
-				if (raycaster == null)
-				{
-					cam.gameObject.AddComponent<PhysicsRaycaster>();
-				}
-			}
-		}
-
-
-		void OnDisable()
-		{
-			if (GazeInputModule.gazePointer == (IGazePointer) this)
-			{
-				GazeInputModule.gazePointer = null;
-			}
 		}
 
 

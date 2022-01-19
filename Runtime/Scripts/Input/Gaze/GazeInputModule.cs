@@ -57,19 +57,26 @@ public class GazeInputModule : BaseInputModule
 	[Tooltip("Gaze time after which to trigger an object (0: No fuse mode)")]
 	public float defaultFuseTime = 0;
 
+	[Tooltip("Game object (e.g., GuiReticle, CircularReticle) which will be responding to gaze events.")]
+	public GameObject gazePointerObject = null;
+
 	[Tooltip("Input action for triggering the object gazed at")]
 	public InputActionProperty TriggerAction;
+
+	[Tooltip("Draw debug gaze ray in editor")]
+	public bool DrawDebugGazeRay = true;
+
 
 	/// Time in seconds between the pointer down and up events sent by a trigger.
 	/// Allows time for the UI elements to make their state transitions.
 	[HideInInspector]
 	public float clickTime = 0.1f;  // Based on default time for a button to animate to Pressed.
 
-	/// The IGazePointer which will be responding to gaze events.
-	public static IGazePointer gazePointer;
+	/// The pixel through which to cast rays, in viewport coordinates.  Generally, the center
+	/// pixel is best, assuming a monoscopic camera is selected as the `Canvas`' event camera.
+	[HideInInspector]
+	public Vector2 hotspot = new Vector2(0.5f, 0.5f);
 
-	// Active state
-	private bool isActive = false;
 
 
 	public override bool ShouldActivateModule()
@@ -77,6 +84,14 @@ public class GazeInputModule : BaseInputModule
 		bool activeState = base.ShouldActivateModule();
 
 		activeState = activeState && (XRSettings.isDeviceActive || !vrModeOnly);
+
+		gazePointer = (gazePointerObject != null) ? gazePointerObject.GetComponent<IGazePointer>() : null;
+
+		if (activeState && (gazePointer == null))
+		{
+			Debug.LogWarning("No gaze pointer provided for GazeInputModule.");
+			activeState = false;
+		}
 
 		if (activeState != isActive)
 		{
@@ -91,17 +106,10 @@ public class GazeInputModule : BaseInputModule
 				}
 			}
 
-			// Calculate hotspot for raycasting (center of camera canvas)
-			// Careful with the size of the "canvas" in VR mode
-			pointerPos = new Vector2(
-					(XRSettings.eyeTextureWidth  > 0 ? XRSettings.eyeTextureWidth  : Screen.width ) / 2,
-					(XRSettings.eyeTextureHeight > 0 ? XRSettings.eyeTextureHeight : Screen.height) / 2
-				);
-
 			if (TriggerAction != null)
 			{
-				TriggerAction.action.performed -= OnTriggerPressed;
-				TriggerAction.action.canceled  -= OnTriggerReleased;
+				TriggerAction.action.performed += OnTriggerPressed;
+				TriggerAction.action.canceled  += OnTriggerReleased;
 				TriggerAction.action.Enable();
 			}
 		}
@@ -194,8 +202,6 @@ public class GazeInputModule : BaseInputModule
 
 	private void CastRayFromGaze()
 	{
-		if (gazePointer == null) return;
-
 		Vector2 headPose = (eventCamera == null) ? Vector2.zero : NormalizedCartesianToSpherical(eventCamera.transform.forward);
 
 		if (pointerData == null)
@@ -206,7 +212,12 @@ public class GazeInputModule : BaseInputModule
 
 		// Cast a ray into the scene
 		pointerData.Reset();
-		pointerData.position = pointerPos;
+		// Calculate hotspot for raycasting (center of camera canvas)
+		// Careful with the size of the "canvas" in VR mode
+		pointerData.position = new Vector2(
+			hotspot.x * (XRSettings.eyeTextureWidth  > 0 ? XRSettings.eyeTextureWidth  : Screen.width ),
+			hotspot.y * (XRSettings.eyeTextureHeight > 0 ? XRSettings.eyeTextureHeight : Screen.height)
+		);
 		eventSystem.RaycastAll(pointerData, m_RaycastResultCache);
 
 		// discard every hit too far away or too close
@@ -230,6 +241,16 @@ public class GazeInputModule : BaseInputModule
 
 		pointerData.pointerCurrentRaycast = FindFirstRaycast(m_RaycastResultCache);
 		m_RaycastResultCache.Clear();
+
+		if (DrawDebugGazeRay && (pointerData.enterEventCamera != null))
+		{
+			Debug.DrawLine(
+				pointerData.enterEventCamera.transform.position,
+				pointerData.pointerCurrentRaycast.worldPosition,
+				Color.red
+			);
+		}
+
 		pointerData.delta = headPose - lastHeadPose;
 		lastHeadPose = headPose;
 	}
@@ -266,10 +287,10 @@ public class GazeInputModule : BaseInputModule
 			eventCamera = pointerData.enterEventCamera;
 		}
 		
-		GameObject gazeObject = GetCurrentGameObject(); // Get the gaze target
-		Vector3 intersectionPosition = GetIntersectionPosition();
-		bool isInteractive = (pointerData.pointerPress != null) ||
-		                     ExecuteEvents.GetEventHandler<IPointerClickHandler>(gazeObject) != null;
+		GameObject gazeObject           = GetCurrentGameObject(); // Get the gaze target
+		Vector3    intersectionPosition = GetIntersectionPosition();
+		bool       isInteractive        = (pointerData.pointerPress != null) ||
+		                                  ExecuteEvents.GetEventHandler<IPointerClickHandler>(gazeObject) != null;
 
 		if (gazeObject == previousGazedObject)
 		{
@@ -483,15 +504,19 @@ public class GazeInputModule : BaseInputModule
 		Idle, Arming, Trigger, Triggered
 	}
 
+
 	private enum TriggerState
 	{
 		Inactive, Activated, Active, Deactivated
 	}
 
+
 	private PointerEventData pointerData;
-	private Vector2          lastHeadPose, pointerPos;
+	private Vector2          lastHeadPose;
 	private float            gazeStartTime, fuseTime;
 	private FuseState        fuseState;
 	private TriggerState     triggerState;
 	private Camera           eventCamera;
+	private bool             isActive = false;
+	private IGazePointer     gazePointer;
 }

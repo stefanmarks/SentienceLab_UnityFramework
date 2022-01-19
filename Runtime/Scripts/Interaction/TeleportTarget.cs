@@ -21,17 +21,17 @@ namespace SentienceLab
 		public Transform groundMarker;
 
 
-		void Start()
+		public void Start()
 		{
 			raycaster     = null;
 			raycastResult = new RaycastResult();
-			teleporter    = GameObject.FindObjectOfType<Teleporter>();
+			teleporter    = null;
 		}
 
 
-		void Update()
+		public void Update()
 		{
-			if (raycaster != null)
+			if (raycaster != null && teleporter != null)
 			{
 				groundMarker.gameObject.SetActive(teleporter.IsReady());
 
@@ -48,7 +48,7 @@ namespace SentienceLab
 					Transform hit = raycastResult.gameObject.transform;
 					if ((hit.transform == this.transform) || (hit.parent == this.transform))
 					{
-						float yaw = raycaster.transform.rotation.eulerAngles.y;
+						float yaw = raycaster.rotation.eulerAngles.y;
 						groundMarker.position = raycastResult.worldPosition;
 						groundMarker.localRotation = Quaternion.Euler(0, yaw, 0);
 					}
@@ -66,16 +66,18 @@ namespace SentienceLab
 			if (teleporter != null)
 			{
 				groundMarker.gameObject.SetActive(false);
-				teleporter.Activate(
-					Camera.main.transform.position,
-					eventData.pointerPressRaycast.worldPosition);
+				teleporter.TeleportPosition(
+					eventData.pointerPressRaycast.worldPosition
+				);
 			}
 		}
 
 
 		public void OnPointerEnter(PointerEventData eventData)
 		{
-			raycaster = eventData.enterEventCamera.transform;
+			// get the raycaster and the (hopefully) attached Teleporter component
+			raycaster  = eventData.enterEventCamera.transform;
+			teleporter = raycaster.GetComponentInParent<Teleporter>();
 		}
 
 
