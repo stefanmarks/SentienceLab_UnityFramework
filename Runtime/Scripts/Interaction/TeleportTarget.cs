@@ -18,6 +18,7 @@ namespace SentienceLab
 
 	public class TeleportTarget : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 	{
+		[Tooltip("Transform to position at the location and rotation of the potential teleport target")]
 		public Transform groundMarker;
 
 
@@ -31,21 +32,25 @@ namespace SentienceLab
 
 		public void Update()
 		{
+			bool enableTeleport = false;
+
 			if (raycaster != null && teleporter != null)
 			{
-				groundMarker.gameObject.SetActive(teleporter.IsReady());
+				enableTeleport = teleporter.IsReady();
 
 				// If this object is still "hit" by the raycast source, update ground marker position and orientation
 				raycastResult.Clear();
 				BaseInputModule bim = EventSystem.current.currentInputModule;
 				if (bim is GazeInputModule)
 				{
-					raycastResult = ((GazeInputModule)bim).GetPointerData().pointerCurrentRaycast;
+					GazeInputModule gim = (GazeInputModule) bim;
+					raycastResult = gim.GetPointerData().pointerCurrentRaycast;
 				}
 
-				if (raycastResult.gameObject != null)
+				if (enableTeleport && raycastResult.gameObject != null)
 				{
 					Transform hit = raycastResult.gameObject.transform;
+
 					if ((hit.transform == this.transform) || (hit.parent == this.transform))
 					{
 						float yaw = raycaster.rotation.eulerAngles.y;
@@ -54,10 +59,8 @@ namespace SentienceLab
 					}
 				}
 			}
-			else
-			{
-				groundMarker.gameObject.SetActive(false);
-			}
+
+			groundMarker.gameObject.SetActive(enableTeleport);
 		}
 
 

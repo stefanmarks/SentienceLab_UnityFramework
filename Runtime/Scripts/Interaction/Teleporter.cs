@@ -97,19 +97,11 @@ namespace SentienceLab
 			}
 			// apply relative offset to target position
 			targetPos -= relStartPos;
-			TeleportPosition(transform.position, targetPos);
-		}
-
-
-		public void TeleportPosition(Transform source, Transform target)
-		{
-			TeleportPosition(source.position, target.position);
-		}
-
-
-		public void TeleportPosition(Vector3 source, Vector3 target)
-		{
-			DoTeleport(source, this.transform.rotation, target, this.transform.rotation);
+			
+			DoTeleport(
+				this.transform.position, this.transform.rotation,
+				targetPos, this.transform.rotation
+			);
 		}
 
 
@@ -136,13 +128,10 @@ namespace SentienceLab
 			Quaternion targetRot = target.rotation;
 			targetRot = Quaternion.AngleAxis(-fwdAngle, target.up) * targetRot;
 
-			DoTeleport(this.transform.position, this.transform.rotation, targetPos, targetRot);
-		}
-
-
-		public void TeleportPositionAndOrientation(Transform source, Transform target)
-		{
-			DoTeleport(source.position, source.rotation, target.position, target.rotation);
+			DoTeleport(
+				this.transform.position, this.transform.rotation, 
+				targetPos, targetRot
+			);
 		}
 
 

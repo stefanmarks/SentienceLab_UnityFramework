@@ -410,7 +410,8 @@ public class GazeInputModule : BaseInputModule
 		}
 		else
 		{
-			ExecuteEvents.GetEventHandler<IPointerClickHandler>(go);
+			// no handler for PointerDown, but what about PointerClick?
+			pointerData.pointerPress = ExecuteEvents.GetEventHandler<IPointerClickHandler>(go);
 		}
 
 		// Save the drag handler as well
