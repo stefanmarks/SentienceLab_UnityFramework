@@ -45,29 +45,14 @@ public class CircularReticle : MonoBehaviour, IGazePointer
 	public float kReticleGrowthAngle = 1.5f;
 
 
-	void Start ()
+	public void Start ()
 	{
 		CreateReticleVertices();
 		materialComp = gameObject.GetComponent<Renderer>().material;
 	}
 
 
-	void OnEnable()
-	{
-		//GazeInputModule.gazePointer = this;
-	}
-
-
-	void OnDisable()
-	{
-		//if (GazeInputModule.gazePointer == (IGazePointer) this)
-		{
-		//	GazeInputModule.gazePointer = null;
-		}
-	}
-
-
-	void Update()
+	public void Update()
 	{
 		UpdateDiameters();
 	}
