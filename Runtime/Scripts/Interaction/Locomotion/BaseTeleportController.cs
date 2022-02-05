@@ -62,7 +62,7 @@ namespace SentienceLab
 				return;
 			}
 
-			if (TeleportAction == null)
+			if (TeleportAction != null)
 			{
 				TeleportAction.action.performed += delegate { OnActionStart(); };
 				TeleportAction.action.canceled  += delegate { OnActionEnd(); };
@@ -176,6 +176,11 @@ namespace SentienceLab
 						newTarget = null; 
 					}
 				}
+			}
+			else 
+			{
+				// nothing hit
+				newTarget = null;
 			}
 			
 			if (m_currentTarget != newTarget)
