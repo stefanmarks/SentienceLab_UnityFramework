@@ -12,7 +12,7 @@ namespace SentienceLab
 	/// Component to move/rotate an object forwards/sideways using input actions.
 	/// </summary>
 	/// 
-	[AddComponentMenu("SentienceLab/Interaction/Movement Controller")]
+	[AddComponentMenu("SentienceLab/Interaction/Locomotion/Movement Controller")]
 	public class MovementController_InputSystem : MonoBehaviour 
 	{
 		[Header("Translation")]

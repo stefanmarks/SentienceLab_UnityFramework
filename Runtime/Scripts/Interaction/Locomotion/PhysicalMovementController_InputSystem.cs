@@ -12,7 +12,7 @@ namespace SentienceLab
 	/// Component to move/rotate an object forwards/sideways using input actions and physics.
 	/// </summary>
 	/// 
-	[AddComponentMenu("SentienceLab/Interaction/Physical Movement Controller")]
+	[AddComponentMenu("SentienceLab/Interaction/Locomotion/Physical Movement Controller")]
 	[RequireComponent(typeof(Rigidbody))]
 	public class PhysicalMovementController_InputSystem : MonoBehaviour 
 	{
