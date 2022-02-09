@@ -74,12 +74,43 @@ namespace SentienceLab
 					indicator = ValidTargetIndicator;
 				}
 
+				// calculate orientation of marker
 				Vector3 pos = m_controller.ActivRaycastHit.point;
-				Vector3 up  = m_controller.ActivRaycastHit.normal;
-				Vector3 fwd = (m_controller.ActivRaycastHit.point - m_controller.transform.position).normalized;
+				Vector3 up  = Vector3.up;
+				Vector3 fwd = Vector3.forward;
+				switch (m_controller.ActiveTarget.OrientationAlignmentMode)
+				{
+					case Teleporter.OrientationAlignmentMode.KeepOrientation:
+						{
+							up  = m_controller.Teleporter.transform.up;
+							fwd = m_controller.Teleporter.positionReference.forward;
+							break;
+						}
+					case Teleporter.OrientationAlignmentMode.UseCollisionNormal:
+						{
+							up  = m_controller.ActivRaycastHit.normal;
+							fwd = m_controller.Teleporter.positionReference.forward;
+							break;
+						}
+					case Teleporter.OrientationAlignmentMode.UseTargetOrientation:
+						{
+							up  = m_controller.ActiveTarget.transform.up;
+							Vector3 relFwd = m_controller.Teleporter.transform.InverseTransformDirection(m_controller.Teleporter.positionReference.forward);
+							fwd = m_controller.ActiveTarget.transform.TransformDirection(relFwd);
+							break;
+						}
+					case Teleporter.OrientationAlignmentMode.UseTargetOrientationAndForceDirection:
+						{
+							up  = m_controller.ActiveTarget.transform.up;
+							fwd = m_controller.ActiveTarget.transform.forward;
+							break;
+						}
+				}
 				Vector3 fwdProj = Vector3.ProjectOnPlane(fwd, up).normalized;
+				
 				Quaternion rot = indicator.rotation; // fallback, in case fwdProj is 0
 				if (fwdProj.sqrMagnitude > 0) rot = Quaternion.LookRotation(fwdProj, up);
+				
 				indicator.SetPositionAndRotation(pos, rot);
 			}
 			else

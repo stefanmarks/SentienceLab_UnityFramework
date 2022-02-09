@@ -18,16 +18,10 @@ namespace SentienceLab
 
 	public class TeleportTarget : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
 	{
-		public enum EUpVector
-		{
-			Transform,
-			ColliderNormal
-		}
+		[Tooltip("How is the orientation and view direction determined after teleport")]
+		public Teleporter.OrientationAlignmentMode OrientationAlignmentMode = Teleporter.OrientationAlignmentMode.KeepOrientation;
 
-		[Tooltip("What defines 'up' when teleporting")]
-		public EUpVector UpVector = EUpVector.Transform;
-
-		[Tooltip("Flag to prevent teleporting")]
+		[Tooltip("Flag to prevent teleporting to this target")]
 		public bool DisableTeleporting = false;
 
 		public Events events;
@@ -97,7 +91,6 @@ namespace SentienceLab
 				m_controller.OnActionEnd();
 			}
 		}
-
 
 		protected BaseTeleportController m_controller;
 	}

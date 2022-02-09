@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 493562}
   - component: {fileID: 3390432}
   - component: {fileID: 2399970}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Footprint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -90,7 +90,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 444354}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: TeleportMarker_Invalid
   m_TagString: Untagged
   m_Icon: {fileID: 0}

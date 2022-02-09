@@ -62,7 +62,7 @@ namespace SentienceLab
 				return;
 			}
 
-			if (TeleportAction != null)
+			if (TeleportAction == null)
 			{
 				TeleportAction.action.performed += delegate { OnActionStart(); };
 				TeleportAction.action.canceled  += delegate { OnActionEnd(); };
@@ -139,6 +139,12 @@ namespace SentienceLab
 		}
 
 
+		public Teleporter Teleporter
+		{
+			get { return m_teleporter; }
+		}
+
+
 		protected abstract void CalculateTrajectory(ref Trajectory _trajectory);
 
 
@@ -149,38 +155,32 @@ namespace SentienceLab
 			CalculateTrajectory(ref m_trajectory);
 			
 			FindTrajectoryHit();
-			TeleportTarget newTarget = m_currentTarget;
 
+			TeleportTarget newTarget = null;
 			if (m_currentHit.transform != null)
 			{
-				if ((m_currentTarget == null) || (m_currentHit.transform.gameObject != m_currentTarget.gameObject))
+				GameObject hitGameObject = m_currentHit.transform.gameObject;
+				if ((m_currentTarget == null) || (hitGameObject != m_currentTarget.gameObject))
 				{
-					// hit an object > does it have an active TeleportTarget component?
-					newTarget = m_currentHit.transform.gameObject.GetComponent<TeleportTarget>();
-					if (newTarget != null && newTarget.isActiveAndEnabled)
-					{
-						// what does the teleport target consider as "up"?
-						if (newTarget.UpVector == TeleportTarget.EUpVector.Transform)
-						{
-							// change hit normal to TeleportTarget's "up"
-							m_currentHit.normal = newTarget.transform.up;
-						}
-						else
-						{
-							// nothing to do > hit normal is calculated from collider already
-						}
-					}
-					else
-					{
-						// target is disabled > ignore
-						newTarget = null; 
-					}
+					// hit a new object > does it have an active TeleportTarget component?
+					newTarget = hitGameObject.GetComponent<TeleportTarget>();
 				}
-			}
-			else 
-			{
-				// nothing hit
-				newTarget = null;
+				else if (hitGameObject == m_currentTarget.gameObject)
+				{
+					// hit the old target, use cached component value
+					newTarget = m_currentTarget;
+				}
+
+				// does the target not allow teleport?
+				if ((newTarget != null) && newTarget.isActiveAndEnabled)
+				{
+					// all is well
+				}
+				else
+				{
+					// target is disabled > ignore
+					newTarget = null; 
+				}
 			}
 			
 			if (m_currentTarget != newTarget)
@@ -192,7 +192,7 @@ namespace SentienceLab
 					m_currentTarget.TeleportControllerStartsAiming(this);
 				}
 
-				// Debug.LogFormat("New teleport target '{0}' > '{1}'", m_currentTarget, newTarget);
+				//Debug.LogFormat("New teleport target '{0}' > '{1}'", m_currentTarget, newTarget);
 				m_currentTarget = newTarget;
 
 				if (m_currentTarget != null)
@@ -210,9 +210,13 @@ namespace SentienceLab
 			{
 				if (m_teleporter != null)
 				{
-					// ...and activate teleport
-					m_teleporter.TeleportPosition(m_currentHit.point);
-					m_currentTarget.TeleportControllerInvokesTeleport(this);
+					// we need an active TeleportTarget
+					TeleportTarget target = m_currentHit.transform.gameObject.GetComponent<TeleportTarget>();
+					if (target != null)
+					{
+						m_teleporter.Teleport(target, m_currentHit.point, m_currentHit.normal);
+						m_currentTarget.TeleportControllerInvokesTeleport(this);
+					}
 				}
 				m_doTeleport = false;
 			}
@@ -228,7 +232,7 @@ namespace SentienceLab
 				Vector3 end     = m_trajectory.points[i];
 				float   maxDist = Vector3.Distance(end, start);
 				Ray     tempRay = new Ray(start, end-start);
-				Physics.Raycast(tempRay, out m_currentHit, maxDist);
+				Physics.Raycast(tempRay, out m_currentHit, maxDist, Physics.DefaultRaycastLayers);
 				// first hit will stop the loop
 				if ((m_currentHit.distance > 0) && (m_currentHit.transform != null)) break;
 			}
