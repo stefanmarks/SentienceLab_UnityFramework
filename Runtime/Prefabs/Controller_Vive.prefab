@@ -600,6 +600,46 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_TrackingType: 0
   m_UpdateType: 0
+  m_PositionInput:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Position
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 21f632e8-874b-435b-b5d9-036d5acb7292
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: 015f3b8f-6e38-4ee0-ba9d-156ded5812f3
+        m_Path: <ViveController>{RightHand}/devicePose/position
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Position
+        m_Flags: 0
+      m_Flags: 0
+    m_Reference: {fileID: 0}
+  m_RotationInput:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Rotation
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 684c0ca1-bd1c-4f00-b443-d989a7bdff77
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: 85a68710-f27e-432d-b3ca-d9eeef9b7606
+        m_Path: <ViveController>{RightHand}/devicePose/rotation
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Rotation
+        m_Flags: 0
+      m_Flags: 0
+    m_Reference: {fileID: 0}
   m_PositionAction:
     m_Name: Position
     m_Type: 0
@@ -616,6 +656,7 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Position
       m_Flags: 0
+    m_Flags: 0
   m_RotationAction:
     m_Name: Rotation
     m_Type: 0
@@ -632,6 +673,8 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Rotation
       m_Flags: 0
+    m_Flags: 0
+  m_HasMigratedActions: 1
 --- !u!114 &281723239656376469
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -660,6 +703,7 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Tracked State
       m_Flags: 0
+    m_Flags: 0
 --- !u!1 &1000012457012070
 GameObject:
   m_ObjectHideFlags: 0
@@ -2919,39 +2963,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &6904736332484703728
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2486149047812387694}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 510f50aed0c1d9d48944c025cc431ad0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Action:
-    m_UseReference: 0
-    m_Action:
-      m_Name: Action
-      m_Type: 0
-      m_ExpectedControlType: 
-      m_Id: 04abd365-cf6a-42e6-b250-8017d1251252
-      m_Processors: 
-      m_Interactions: 
-      m_SingletonActionBindings:
-      - m_Name: 
-        m_Id: afc06f06-69fc-471c-a6e7-ae592c648e25
-        m_Path: <ViveController>{RightHand}/trigger
-        m_Interactions: 
-        m_Processors: 
-        m_Groups: 
-        m_Action: Action
-        m_Flags: 0
-    m_Reference: {fileID: 0}
-  Axis: {x: 1, y: 0, z: 0}
-  Angle: -10
 --- !u!1 &8210545538955561434
 GameObject:
   m_ObjectHideFlags: 0
@@ -3074,3 +3085,37 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 2486149047812486602}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6904736332484703728
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2486149047812387694}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 510f50aed0c1d9d48944c025cc431ad0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Action:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Action
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 04abd365-cf6a-42e6-b250-8017d1251252
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: afc06f06-69fc-471c-a6e7-ae592c648e25
+        m_Path: <ViveController>{RightHand}/trigger
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Action
+        m_Flags: 0
+      m_Flags: 0
+    m_Reference: {fileID: 0}
+  Axis: {x: 1, y: 0, z: 0}
+  Angle: -10

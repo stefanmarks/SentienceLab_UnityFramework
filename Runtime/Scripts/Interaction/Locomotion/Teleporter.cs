@@ -101,56 +101,107 @@ namespace SentienceLab
 		/// Teleport to a new teleport target.
 		/// </summary>
 		/// <param name="target">the TeleportTarget to use</param>
-		/// <param name="desiredPosition">the desire position of the target reference point (e.g. hit point of controller)</param>
+		/// <param name="desiredPosition">the desired position of the target reference point (e.g. hit point of controller)</param>
+		/// <param name="desiredUp">the desired up vector for the target rotation</param>
 		/// 
 		public void Teleport(TeleportTarget target, Vector3 desiredPosition, Vector3 desiredUp)
 		{
+			switch (target.OrientationAlignmentMode)
+			{
+				case OrientationAlignmentMode.KeepOrientation:
+					Teleport_KeepOrientation(desiredPosition);
+					break;
+
+				case OrientationAlignmentMode.UseCollisionNormal:
+					Teleport_UseCollisionNormal(desiredPosition, desiredUp);
+					break;
+
+				case OrientationAlignmentMode.UseTargetOrientation:
+					Teleport_UseTargetOrientation(target, desiredPosition);
+					break;
+
+				case OrientationAlignmentMode.UseTargetOrientationAndForceDirection:
+					Teleport_ForceDirection(target, desiredPosition, desiredUp);
+					break;
+			}
+		}
+
+
+		protected void Teleport_KeepOrientation(Vector3 desiredPosition)
+		{
 			// calculate relative start and target position reference
 			Vector3 relStartPos  = this.transform.InverseTransformPoint(positionReference.position);
-			Vector3 relTargetPos = target.transform.InverseTransformPoint(desiredPosition);
-			relStartPos.y  = 0;
-			relTargetPos.y = 0;
-			
+			Vector3 relTargetPos = this.transform.InverseTransformPoint(desiredPosition);
+			relStartPos.y = 0; // project reference to floor
+
+			Vector3 targetPos = this.transform.TransformPoint(relTargetPos - relStartPos);
+
+			DoTeleport(
+				this.transform.position, this.transform.rotation,
+				targetPos, this.transform.rotation
+			);
+		}
+
+
+		protected void Teleport_UseCollisionNormal(Vector3 desiredPosition, Vector3 desiredUp)
+		{
+			// calculate relative start position reference
+			Vector3 relStartPos  = this.transform.InverseTransformPoint(positionReference.position);
+			relStartPos.y = 0; // project reference to floor
+
 			// calculate camera angle relative to start forward
 			Vector3 relFwd = this.transform.InverseTransformDirection(positionReference.forward);
 			relFwd.y = 0; relFwd.Normalize();
 			float fwdAngle = Mathf.Atan2(relFwd.x, relFwd.z) * Mathf.Rad2Deg;
 
-			Vector3    targetPos = Vector3.zero;
-			Quaternion targetRot = Quaternion.identity;
-			switch (target.OrientationAlignmentMode)
-			{
-				case OrientationAlignmentMode.KeepOrientation:
-					{
-						targetPos = this.transform.TransformPoint(relTargetPos - relStartPos);
-						targetRot = this.transform.rotation;
-						break;
-					}
-				case OrientationAlignmentMode.UseCollisionNormal:
-					{
-						// calculate forward from line of sight to desired position
-						Vector3 projectedForward = Vector3.ProjectOnPlane(desiredPosition - positionReference.position, desiredUp);
-						targetRot  = Quaternion.LookRotation(projectedForward, desiredUp);
-						// compensate for camera rotation to face the desired orientation
-						targetRot  = targetRot * Quaternion.AngleAxis(-fwdAngle, Vector3.up);
-						// compensate target position based on calculated rotation
-						targetPos = desiredPosition - targetRot * relStartPos;
-						break;
-					}
-				case OrientationAlignmentMode.UseTargetOrientation:
-					{
-						targetPos = target.transform.TransformPoint(relTargetPos - relStartPos);
-						targetRot = target.transform.rotation;
-						break;
-					}
-				case OrientationAlignmentMode.UseTargetOrientationAndForceDirection:
-					{
-						targetPos = target.transform.TransformPoint(relTargetPos - relStartPos);
-						// calculate difference rotation so camera faces forwards after teleport
-						targetRot = target.transform.rotation * Quaternion.AngleAxis(-fwdAngle, Vector3.up);
-						break;
-					}
-			}
+			// calculate forward from line of sight to desired position
+			Vector3    projectedForward = Vector3.ProjectOnPlane(desiredPosition - positionReference.position, desiredUp);
+			Quaternion targetRot = Quaternion.LookRotation(projectedForward, desiredUp);
+			// compensate for camera rotation to face the desired orientation
+			targetRot *= Quaternion.AngleAxis(-fwdAngle, Vector3.up);
+			// compensate target position based on calculated rotation
+			Vector3 targetPos = desiredPosition - targetRot * relStartPos;
+						
+			DoTeleport(
+				this.transform.position, this.transform.rotation,
+				targetPos, targetRot
+			);
+		}
+
+
+		protected void Teleport_UseTargetOrientation(TeleportTarget target, Vector3 desiredPosition)
+		{
+			// calculate relative start and target position reference
+			Vector3 relStartPos  = this.transform.InverseTransformPoint(positionReference.position);
+			Vector3 relTargetPos = target.transform.InverseTransformPoint(desiredPosition);
+			relStartPos.y = 0; // project reference to floor
+
+			Vector3    targetPos = target.transform.TransformPoint(relTargetPos - relStartPos);
+			Quaternion targetRot = target.transform.rotation;
+
+			DoTeleport(
+				this.transform.position, this.transform.rotation,
+				targetPos, targetRot
+			);
+		}
+
+
+
+		protected void Teleport_ForceDirection(TeleportTarget target, Vector3 desiredPosition, Vector3 desiredUp)
+		{
+			// calculate relative start and target position reference
+			Vector3 relStartPos  = this.transform.InverseTransformPoint(positionReference.position);
+			Vector3 relTargetPos = target.transform.InverseTransformPoint(desiredPosition);
+			relStartPos.y = 0; // project reference to floor
+
+			// calculate camera angle relative to start forward
+			Vector3 relFwd = this.transform.InverseTransformDirection(positionReference.forward);
+			relFwd.y = 0; relFwd.Normalize();
+			float fwdAngle = Mathf.Atan2(relFwd.x, relFwd.z) * Mathf.Rad2Deg;
+
+			Vector3 targetPos = target.transform.TransformPoint(relTargetPos - relStartPos);
+			// calculate difference rotation so camera faces forwards after teleport
+			Quaternion targetRot = target.transform.rotation * Quaternion.AngleAxis(-fwdAngle, Vector3.up);
 
 			DoTeleport(
 				this.transform.position, this.transform.rotation,

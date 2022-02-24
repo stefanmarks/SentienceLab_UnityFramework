@@ -894,6 +894,46 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_TrackingType: 0
   m_UpdateType: 0
+  m_PositionInput:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Position
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 22b21f4d-87c2-4b05-865d-035714b071fe
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: ef276f1a-a4f4-4e7d-9b89-6832ff04e3ef
+        m_Path: <OculusTouchController>{RightHand}/devicePosition
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Position
+        m_Flags: 0
+      m_Flags: 0
+    m_Reference: {fileID: 0}
+  m_RotationInput:
+    m_UseReference: 0
+    m_Action:
+      m_Name: Rotation
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: 3d2ec4a8-e6f9-4911-8e73-d0f0168925a4
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings:
+      - m_Name: 
+        m_Id: f72b1488-17c1-402f-a15b-423190a34f7c
+        m_Path: <OculusTouchController>{RightHand}/deviceRotation
+        m_Interactions: 
+        m_Processors: 
+        m_Groups: 
+        m_Action: Rotation
+        m_Flags: 0
+      m_Flags: 0
+    m_Reference: {fileID: 0}
   m_PositionAction:
     m_Name: Position
     m_Type: 0
@@ -910,6 +950,7 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Position
       m_Flags: 0
+    m_Flags: 0
   m_RotationAction:
     m_Name: Rotation
     m_Type: 0
@@ -926,6 +967,8 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Rotation
       m_Flags: 0
+    m_Flags: 0
+  m_HasMigratedActions: 1
 --- !u!114 &2526741810078116253
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -954,6 +997,7 @@ MonoBehaviour:
       m_Groups: 
       m_Action: Tracked State
       m_Flags: 0
+    m_Flags: 0
 --- !u!1 &2527715907075195792
 GameObject:
   m_ObjectHideFlags: 0
@@ -1732,6 +1776,7 @@ MonoBehaviour:
         m_Groups: 
         m_Action: Action
         m_Flags: 0
+      m_Flags: 0
     m_Reference: {fileID: 0}
   Axis: {x: 0, y: 1, z: 0}
   Angle: -10
@@ -1765,6 +1810,7 @@ MonoBehaviour:
         m_Groups: 
         m_Action: Action
         m_Flags: 0
+      m_Flags: 0
     m_Reference: {fileID: 0}
   SignifierMaterials:
   - {fileID: 2100000, guid: 0a85cbe0a94a6a5459166a5e19c7dc8c, type: 2}
@@ -1799,6 +1845,7 @@ MonoBehaviour:
         m_Groups: 
         m_Action: Action
         m_Flags: 0
+      m_Flags: 0
     m_Reference: {fileID: 0}
   Axis: {x: 0, y: -0.002, z: 0}
 --- !u!114 &5338900504644822364
@@ -1831,6 +1878,7 @@ MonoBehaviour:
         m_Groups: 
         m_Action: Action
         m_Flags: 0
+      m_Flags: 0
     m_Reference: {fileID: 0}
   Axis: {x: 1, y: 0, z: 0}
   Angle: 10
@@ -1864,6 +1912,7 @@ MonoBehaviour:
         m_Groups: 
         m_Action: Action
         m_Flags: 0
+      m_Flags: 0
     m_Reference: {fileID: 0}
   SignifierMaterials:
   - {fileID: 2100000, guid: 0a85cbe0a94a6a5459166a5e19c7dc8c, type: 2}
@@ -1898,5 +1947,6 @@ MonoBehaviour:
         m_Groups: 
         m_Action: Action
         m_Flags: 0
+      m_Flags: 0
     m_Reference: {fileID: 0}
   Axis: {x: 0, y: -0.002, z: 0}

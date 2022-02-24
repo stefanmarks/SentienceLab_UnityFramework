@@ -229,10 +229,9 @@ public class GazeInputModule : BaseInputModule
 			gazePointer.GetDistanceLimits(out float min, out float max);
 
 			// consider gaze behaviour modifiers
-			GazeBehaviourModifier gbm = (r.gameObject != null) ? r.gameObject.GetComponent<GazeBehaviourModifier>() : null;
+			GazeBehaviourModifier gbm = (r.gameObject != null) ? r.gameObject.GetComponentInParent<GazeBehaviourModifier>() : null;
 			min = (gbm != null) && (gbm.minimumGazeRangeOverride > 0) ? gbm.minimumGazeRangeOverride : min;
 			max = (gbm != null) && (gbm.maximumGazeRangeOverride > 0) ? gbm.maximumGazeRangeOverride : max;
-
 			if ((r.distance > max) || (r.distance < min))
 			{
 				m_RaycastResultCache.RemoveAt(idx);
@@ -292,20 +291,47 @@ public class GazeInputModule : BaseInputModule
 		bool       isInteractive        = (pointerData.pointerPress != null) ||
 		                                  ExecuteEvents.GetEventHandler<IPointerClickHandler>(gazeObject) != null;
 
+		// consider teleport targets out of range 
+		TeleportTarget tt = (gazeObject != null) ? gazeObject.GetComponentInParent<TeleportTarget>() : null;
+		if ((tt != null) && (tt.AimingController == null))
+		{
+			// teleport target, but not considered by the teleport controller
+			isInteractive = false;
+		}
+
 		if (gazeObject == previousGazedObject)
 		{
 			if (gazeObject != null)
 			{
 				float progress = 0;
-				if (isInteractive && fuseState != FuseState.Triggered)
-				{ 
-					float delta = Time.unscaledTime - gazeStartTime;
-					progress = Mathf.Clamp01(delta / fuseTime);
-					if ((fuseState == FuseState.Arming) && (delta >= fuseTime))
+
+				if (fuseState == FuseState.Arming)
+				{
+					if (!isInteractive)
 					{
-						fuseState = FuseState.Trigger;
+						// reset timer in case objects are not interactive
+						gazeStartTime = Time.unscaledTime;
+					}
+					else
+					{
+						float delta = Time.unscaledTime - gazeStartTime;
+						progress = Mathf.Clamp01(delta / fuseTime);
+						if ((fuseState == FuseState.Arming) && (delta >= fuseTime))
+						{
+							fuseState = FuseState.Trigger;
+						}
 					}
 				}
+				else if (fuseState == FuseState.Triggered)
+				{
+					// the object that was just triggered is not interactive any more > allow for a re-trigger
+					if (!isInteractive)
+					{
+						fuseState     = FuseState.Arming;
+						gazeStartTime = Time.unscaledTime;
+					}
+				}
+
 				gazePointer.OnGazeStay(eventCamera, gazeObject, intersectionPosition, progress, isInteractive);
 			}
 		}
@@ -321,7 +347,7 @@ public class GazeInputModule : BaseInputModule
 			{
 				gazePointer.OnGazeStart(eventCamera, gazeObject, intersectionPosition, isInteractive);
 				gazeStartTime = Time.unscaledTime;
-				GazeBehaviourModifier gbm = gazeObject.GetComponent<GazeBehaviourModifier>();
+				GazeBehaviourModifier gbm = gazeObject.GetComponentInParent<GazeBehaviourModifier>();
 				fuseTime  = (gbm != null) && (gbm.fuseTimeOverride > 0) ? gbm.fuseTimeOverride : defaultFuseTime;
 				fuseState = FuseState.Arming;
 			}

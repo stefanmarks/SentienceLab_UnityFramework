@@ -108,6 +108,12 @@ namespace SentienceLab
 		}
 
 
+		public void Log(string _event)
+		{
+			Log(_event, new object[] { });
+		}
+
+
 		public void Log(string _event, params object[] _data)
 		{
 			if (m_writer != null)

@@ -40,6 +40,9 @@ namespace SentienceLab
 			public UnityEvent OnTeleport;
 		}
 
+		// active teleport controller aiming at this target
+		public BaseTeleportController AimingController { get; protected set; }
+
 
 		public void Start()
 		{
@@ -47,23 +50,22 @@ namespace SentienceLab
 		}
 
 
-		public void TeleportControllerStartsAiming(BaseTeleportController _contoller)
+		public void TeleportControllerStartsAiming(BaseTeleportController _controller)
 		{
-			m_controller = _contoller;
+			AimingController = _controller;
 			events.OnStartAiming?.Invoke();
 		}
 
 
-		public void TeleportControllerEndsAiming(BaseTeleportController _contoller)
+		public void TeleportControllerEndsAiming(BaseTeleportController _)
 		{
-			m_controller = _contoller;
 			events.OnEndAiming?.Invoke();
+			AimingController = null;
 		}
 
 
-		public void TeleportControllerInvokesTeleport(BaseTeleportController _contoller)
+		public void TeleportControllerInvokesTeleport(BaseTeleportController _)
 		{
-			m_controller = _contoller;
 			events.OnTeleport?.Invoke();
 		}
 
@@ -77,21 +79,19 @@ namespace SentienceLab
 
 		public void OnPointerDown(PointerEventData eventData)
 		{
-			if (m_controller != null)
+			if (AimingController != null)
 			{
-				m_controller.OnActionStart();
+				AimingController.OnActionStart();
 			}
 		}
 
 
 		public void OnPointerUp(PointerEventData eventData)
 		{
-			if (m_controller != null)
+			if (AimingController != null)
 			{
-				m_controller.OnActionEnd();
+				AimingController.OnActionEnd();
 			}
 		}
-
-		protected BaseTeleportController m_controller;
 	}
 }

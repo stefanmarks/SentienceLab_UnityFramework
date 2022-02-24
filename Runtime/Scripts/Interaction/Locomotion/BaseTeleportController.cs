@@ -62,17 +62,17 @@ namespace SentienceLab
 				return;
 			}
 
-			if (TeleportAction == null)
+			if (TeleportAction != null)
 			{
 				TeleportAction.action.performed += delegate { OnActionStart(); };
 				TeleportAction.action.canceled  += delegate { OnActionEnd(); };
 				TeleportAction.action.Enable();
 			}
 
-			m_currentHit = new RaycastHit();
-
-			m_doAim      = ActivationType == EActivationType.Immediately;
-			m_doTeleport = false;
+			m_currentHit  = new RaycastHit();
+			m_doAim       = ActivationType == EActivationType.Immediately;
+			m_doTeleport  = false;
+			m_resetTarget = false;
 
 			m_trajectory.points = new List<Vector3>();
 			m_trajectory.points.Clear();
@@ -153,11 +153,10 @@ namespace SentienceLab
 			if ((m_teleporter == null) || !m_teleporter.IsReady()) return;
 
 			CalculateTrajectory(ref m_trajectory);
-			
 			FindTrajectoryHit();
-
+			
 			TeleportTarget newTarget = null;
-			if (m_currentHit.transform != null)
+			if (!m_resetTarget && m_currentHit.transform != null)
 			{
 				GameObject hitGameObject = m_currentHit.transform.gameObject;
 				if ((m_currentTarget == null) || (hitGameObject != m_currentTarget.gameObject))
@@ -182,14 +181,16 @@ namespace SentienceLab
 					newTarget = null; 
 				}
 			}
-			
+
+			// if target had to be reset, we are done now
+			m_resetTarget = false;
+
 			if (m_currentTarget != newTarget)
 			{
 				// teleport target has changed > invoke event handlers
-
 				if (m_currentTarget != null)
 				{
-					m_currentTarget.TeleportControllerStartsAiming(this);
+					m_currentTarget.TeleportControllerEndsAiming(this);
 				}
 
 				//Debug.LogFormat("New teleport target '{0}' > '{1}'", m_currentTarget, newTarget);
@@ -197,7 +198,7 @@ namespace SentienceLab
 
 				if (m_currentTarget != null)
 				{
-					m_currentTarget.TeleportControllerEndsAiming(this);
+					m_currentTarget.TeleportControllerStartsAiming(this);
 				}
 			}
 
@@ -216,6 +217,9 @@ namespace SentienceLab
 					{
 						m_teleporter.Teleport(target, m_currentHit.point, m_currentHit.normal);
 						m_currentTarget.TeleportControllerInvokesTeleport(this);
+						events.OnTeleport.Invoke();
+						// reset current target to allow re-enabling it in next frame
+						m_resetTarget = true;
 					}
 				}
 				m_doTeleport = false;
@@ -244,5 +248,6 @@ namespace SentienceLab
 		private Trajectory      m_trajectory;
 		private TeleportTarget  m_currentTarget;
 		private RaycastHit      m_currentHit;
+		private bool            m_resetTarget;
 	}
 }
