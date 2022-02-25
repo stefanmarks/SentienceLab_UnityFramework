@@ -176,6 +176,6 @@ namespace SentienceLab
 		private static DataLogger   m_instance         = null;
 		private static IDataLogger  m_consoleLogger    = null;
 		private static bool         m_instanceSearched = false;
-		private        StreamWriter m_writer;
+		private static StreamWriter m_writer;
 	}
 }
