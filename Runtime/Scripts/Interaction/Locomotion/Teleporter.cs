@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using SentienceLab.PostProcessing;
 
 namespace SentienceLab
@@ -29,6 +30,18 @@ namespace SentienceLab
 
 		[Tooltip("Duration of the teleport transition in seconds")]
 		public float transitionTime = 0.1f;
+
+		[System.Serializable]
+		public class Events
+		{
+			[Tooltip("Event fired when the teleporter starts")]
+			public UnityEvent<Transform> OnTeleportStart;
+
+			[Tooltip("Event fired when the teleporter finishes")]
+			public UnityEvent<Transform> OnTeleportEnd;
+		}
+
+		public Events events;		
 
 
 		public enum TransitionType
@@ -57,19 +70,28 @@ namespace SentienceLab
 			{
 				positionReference = this.transform;
 			}
-			transition = null;
+			m_transition = null;
 		}
 
 
 		public void Update()
 		{
-			if (transition != null)
+			if (m_transition != null)
 			{
-				transition.Update(this.transform);
-				if (transition.IsFinished())
+				if (m_fireStartEvent)
 				{
-					transition.Cleanup();
-					transition = null;
+					events.OnTeleportStart.Invoke(transform);
+					m_fireStartEvent = false;
+				}
+
+				m_transition.Update(this.transform);
+
+				if (m_transition.IsFinished())
+				{
+					m_transition.Cleanup();
+					m_transition = null;
+
+					events.OnTeleportEnd.Invoke(transform);
 				}
 			}
 		}
@@ -82,7 +104,7 @@ namespace SentienceLab
 		/// 
 		public bool IsReady()
 		{
-			return transition == null;
+			return m_transition == null;
 		}
 
 
@@ -226,21 +248,24 @@ namespace SentienceLab
 			switch (transitionType)
 			{
 				case TransitionType.Fade:
-					transition = new Transition_Fade(targetPoint, targetOrientation, transitionTime, this.gameObject);
+					m_transition = new Transition_Fade(targetPoint, targetOrientation, transitionTime);
 					break;
 
 				case TransitionType.MoveLinear:
-					transition = new Transition_Move(originPoint, originOrientation, targetPoint, targetOrientation, transitionTime, false);
+					m_transition = new Transition_Move(originPoint, originOrientation, targetPoint, targetOrientation, transitionTime, false);
 					break;
 
 				case TransitionType.MoveSmooth:
-					transition = new Transition_Move(originPoint, originOrientation, targetPoint, targetOrientation, transitionTime, true);
+					m_transition = new Transition_Move(originPoint, originOrientation, targetPoint, targetOrientation, transitionTime, true);
 					break;
 			}
+
+			m_fireStartEvent = true;
 		}
 
 
-		private ITransition transition;
+		private ITransition m_transition;
+		private bool        m_fireStartEvent;
 
 
 		private interface ITransition
@@ -253,18 +278,18 @@ namespace SentienceLab
 
 		private class Transition_Fade : ITransition
 		{
-			public Transition_Fade(Vector3 endPoint, Quaternion endRot, float duration, GameObject parent)
+			public Transition_Fade(Vector3 endPoint, Quaternion endRot, float duration)
 			{
-				this.endPoint    = endPoint;
-				this.endRotation = endRot;
-				this.duration    = duration;
+				this.m_endPoint    = endPoint;
+				this.m_endRotation = endRot;
+				this.m_duration    = duration;
 
-				progress = 0;
-				moved = false;
+				m_progress = 0;
+				m_moved = false;
 
 				// create fade effect
-				fadeEffects = ScreenFade.AttachToAllCameras();
-				foreach (ScreenFade fade in fadeEffects)
+				m_fadeEffects = ScreenFade.AttachToAllCameras();
+				foreach (ScreenFade fade in m_fadeEffects)
 				{
 					fade.FadeColour = Color.black;
 				}
@@ -273,17 +298,17 @@ namespace SentienceLab
 			public void Update(Transform offsetObject)
 			{
 				// move immediately to B when fade is half way (all black)
-				progress += Time.deltaTime / duration;
-				progress  = Math.Min(1, progress);
-				if ((progress >= 0.5f) && !moved)
+				m_progress += Time.deltaTime / m_duration;
+				m_progress  = Math.Min(1, m_progress);
+				if ((m_progress >= 0.5f) && !m_moved)
 				{
-					offsetObject.position = endPoint;
-					offsetObject.rotation = endRotation;
-					moved = true; // only move once
+					offsetObject.position = m_endPoint;
+					offsetObject.rotation = m_endRotation;
+					m_moved = true; // only move once
 				}
 
-				float fadeFactor = 1.0f - Math.Abs(progress * 2 - 1); // from [0....1....0]
-				foreach (ScreenFade fade in fadeEffects)
+				float fadeFactor = 1.0f - Math.Abs(m_progress * 2 - 1); // from [0....1....0]
+				foreach (ScreenFade fade in m_fadeEffects)
 				{
 					fade.FadeFactor = fadeFactor;
 				}
@@ -291,23 +316,23 @@ namespace SentienceLab
 
 			public bool IsFinished()
 			{
-				return progress >= 1; // movement has finished
+				return m_progress >= 1; // movement has finished
 			}
 
 			public void Cleanup()
 			{
-				foreach (ScreenFade fade in fadeEffects)
+				foreach (ScreenFade fade in m_fadeEffects)
 				{
 					GameObject.Destroy(fade);
 				}
 			}
 
 
-			private Vector3    endPoint;
-			private Quaternion endRotation;
-			private float      duration, progress;
-			private bool       moved;
-			private List<ScreenFade> fadeEffects;
+			private Vector3          m_endPoint;
+			private Quaternion       m_endRotation;
+			private float            m_duration, m_progress;
+			private bool             m_moved;
+			private List<ScreenFade> m_fadeEffects;
 		}
 
 
@@ -319,30 +344,30 @@ namespace SentienceLab
 				float   duration, 
 				bool    smooth)
 			{
-				this.startPoint    = startPoint;
-				this.startRotation = startRot;
-				this.endPoint      = endPoint;
-				this.endRotation   = endRot;
-				this.duration      = duration;
-				this.smooth        = smooth;
+				this.m_startPoint    = startPoint;
+				this.m_startRotation = startRot;
+				this.m_endPoint      = endPoint;
+				this.m_endRotation   = endRot;
+				this.m_duration      = duration;
+				this.m_smooth        = smooth;
 
-				progress = 0;
+				m_progress = 0;
 			}
 
 			public void Update(Transform offsetObject)
 			{
 				// move from A to B
-				progress += Time.deltaTime / duration;
-				progress = Math.Min(1, progress);
+				m_progress += Time.deltaTime / m_duration;
+				m_progress = Math.Min(1, m_progress);
 				// linear: lerpFactor = progress. smooth: lerpFactor = sin(progress * PI/2) ^ 2
-				float lerpFactor = smooth ? (float)Math.Pow(Math.Sin(progress * Math.PI / 2), 2) : progress;
-				offsetObject.position = Vector3.Lerp(startPoint, endPoint, lerpFactor);
-				offsetObject.rotation = Quaternion.Slerp(startRotation, endRotation, lerpFactor);
+				float lerpFactor = m_smooth ? (float)Math.Pow(Math.Sin(m_progress * Math.PI / 2), 2) : m_progress;
+				offsetObject.position = Vector3.Lerp(m_startPoint, m_endPoint, lerpFactor);
+				offsetObject.rotation = Quaternion.Slerp(m_startRotation, m_endRotation, lerpFactor);
 			}
 
 			public bool IsFinished()
 			{
-				return progress >= 1; // movement has finished
+				return m_progress >= 1; // movement has finished
 			}
 
 			public void Cleanup()
@@ -350,10 +375,10 @@ namespace SentienceLab
 				// nothing to do
 			}
 
-			private Vector3    startPoint, endPoint;
-			private Quaternion startRotation, endRotation;
-			private float      duration, progress;
-			private bool       smooth;
+			private Vector3    m_startPoint, m_endPoint;
+			private Quaternion m_startRotation, m_endRotation;
+			private float      m_duration, m_progress;
+			private bool       m_smooth;
 		}
 	}
 }

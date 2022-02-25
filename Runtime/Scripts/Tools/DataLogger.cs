@@ -114,6 +114,21 @@ namespace SentienceLab
 		}
 
 
+		public void LogTransform(Transform _t)
+		{
+
+			Log("transform", 
+				_t.gameObject.name,
+				_t.position.x.ToString("F4"),
+				_t.position.y.ToString("F4"),
+				_t.position.z.ToString("F4"),
+				_t.rotation.x.ToString("F4"),
+				_t.rotation.y.ToString("F4"),
+				_t.rotation.z.ToString("F4"),
+				_t.rotation.w.ToString("F4"));
+		}
+
+
 		public void Log(string _event, params object[] _data)
 		{
 			if (m_writer != null)

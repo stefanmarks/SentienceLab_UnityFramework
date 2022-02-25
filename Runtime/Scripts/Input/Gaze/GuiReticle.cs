@@ -36,6 +36,8 @@ namespace SentienceLab
 			reticleNeutral.gameObject.SetActive(true);
 			reticleActive.gameObject.SetActive(false);
 			reticleFuse.gameObject.SetActive(false);
+
+			SetGazeDistance(maximumReticleDistance);
 		}
 
 
