@@ -23,6 +23,10 @@ namespace SentienceLab
 		[Tooltip("Optional: The game object to use as a forbidden teleport target indicator")]
 		public Transform InvalidTargetIndicator = null;
 
+		[Tooltip("Smoothing time for indicator movements in seconds (0: none)")]
+		[Range(0, 0.2f)]
+		public float SmoothingTime = 0.1f;
+
 
 		public void Start()
 		{
@@ -74,8 +78,18 @@ namespace SentienceLab
 					indicator = ValidTargetIndicator;
 				}
 
-				// calculate orientation of marker
+				// get position of marker (+ smoothing)
 				Vector3 pos = m_controller.ActivRaycastHit.point;
+				if (m_pointSnap)
+				{
+					m_pointSnap = false;
+				}
+				else
+				{
+					pos = Vector3.SmoothDamp(m_prevPoint, pos, ref m_pointVel, SmoothingTime);
+				}
+				
+				// calculate orientation of marker
 				Vector3 up  = Vector3.up;
 				Vector3 fwd = Vector3.forward;
 				switch (m_controller.ActiveTarget.OrientationAlignmentMode)
@@ -112,14 +126,19 @@ namespace SentienceLab
 				if (fwdProj.sqrMagnitude > 0) rot = Quaternion.LookRotation(fwdProj, up);
 				
 				indicator.SetPositionAndRotation(pos, rot);
+
+				m_prevPoint = pos;
 			}
 			else
 			{
 				ValidTargetIndicator.gameObject.SetActive(false);
 				InvalidTargetIndicator.gameObject.SetActive(false);
+				m_pointSnap = true; // snap the target when it becomes valid again
 			}
 		}
 
-		BaseTeleportController m_controller;
+		protected BaseTeleportController m_controller;
+		protected Vector3                m_prevPoint, m_pointVel;
+		protected bool                   m_pointSnap;
 	}
 }
