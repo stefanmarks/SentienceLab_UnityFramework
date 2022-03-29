@@ -79,9 +79,11 @@ namespace SentienceLab
 
 		[Header("Speed Settings")]
 
-		[Tooltip("Lower to decrease speed, raise to increase.")]
-		public float speedScale = 1;
-		[Tooltip("The max speed the user can move in game units. (If 0 or less, max speed is uncapped)")]
+		[Tooltip("Factor to scale head movement by for speed calculation.")]
+		public float headsetSpeedScale = 10;
+		[Tooltip("Factor to scale controller movement by for speed calculation.")]
+		public float controllerSpeedScale = 5;
+		[Tooltip("The max speed the user can move in game units.")]
 		public float maxSpeed = 4;
 		[Tooltip("The speed in which the play area slows down to a complete stop when the user is no longer pressing the engage button. This deceleration effect can ease any motion sickness that may be suffered.")]
 		public float deceleration = 0.1f;
@@ -90,20 +92,49 @@ namespace SentienceLab
 
 		[Header("Advanced Settings")]
 
+		[Tooltip("Amount of averaged samples")]
+		[Range(1, 60)]
+		public int averagePeriod = 10;
+
 		[Tooltip("The degree threshold that all tracked objects (controllers, headset) must be within to change direction when using the Smart Decoupling Direction Method.")]
 		public float smartDecoupleThreshold = 30f;
 		// The cap before we stop adding the delta to the movement list. This will help regulate speed.
-		[Tooltip("The maximum amount of movement required to register in the virtual world.  Decreasing this will increase acceleration, and vice versa.")]
-		public float sensitivity = 0.02f;
+		[Tooltip("Movement beyond this delta will be ignored as it might be from tracking jitter.")]
+		public float deltaThreshold = 0.15f;
 
 
-		// The maximum number of updates we should hold to process movements. The higher the number, the slower the acceleration/deceleration & vice versa.
-		protected int averagePeriod;
-		// Which tracked objects to use to determine amount of movement.
-		protected List<Transform> trackedObjects;
-		// List of all the update's movements over the average period.
-		protected Dictionary<Transform, List<float>> movementList;
-		protected Dictionary<Transform, float> previousYPositions;
+		/// <summary>
+		/// Structure for keeping movement data for each tracked object
+		/// </summary>
+		protected class MovementData
+		{
+			public Transform   trackedObject;
+			public Vector3     lastPosition;
+			public List<float> deltas;
+			public float       scaleFactor;
+
+			public MovementData(Transform _t, float _scaleFactor)
+			{
+				deltas        = new List<float>();
+				trackedObject = _t;
+				lastPosition  = _t.localPosition;
+				scaleFactor   = _scaleFactor;
+			}
+
+			public void Update()
+			{
+				lastPosition = trackedObject.localPosition;
+			}
+
+
+			public void Reset()
+			{
+				deltas.Clear();
+			}
+		}
+
+		// Ttracked objects to use to determine amount of movement.
+		protected Dictionary<Transform, MovementData> trackedObjects;
 		// controller that initiated the engage action
 		protected Transform engageController;
 		// Used to determine the direction when using a decoupling method.
@@ -129,13 +160,13 @@ namespace SentienceLab
 
 			if (controllerLeftHand != null && controllerRightHand != null && (controlOptions.Equals(ControlOptions.HeadsetAndControllers) || controlOptions.Equals(ControlOptions.ControllersOnly)))
 			{
-				trackedObjects.Add(controllerLeftHand);
-				trackedObjects.Add(controllerRightHand);
+				trackedObjects[controllerLeftHand]  = new MovementData(controllerLeftHand,  controllerSpeedScale);
+				trackedObjects[controllerRightHand] = new MovementData(controllerRightHand, controllerSpeedScale);
 			}
 
 			if (headset != null && (controlOptions.Equals(ControlOptions.HeadsetAndControllers) || controlOptions.Equals(ControlOptions.HeadsetOnly)))
 			{
-				trackedObjects.Add(headset.transform);
+				trackedObjects[headset] = new MovementData(headset, headsetSpeedScale);
 			}
 		}
 
@@ -160,29 +191,19 @@ namespace SentienceLab
 
 		public void Start()
 		{
-			trackedObjects = new List<Transform>();
-			movementList = new Dictionary<Transform, List<float>>();
-			previousYPositions = new Dictionary<Transform, float>();
-			initalGaze = Vector3.zero;
-			direction = Vector3.zero;
+			trackedObjects    = new Dictionary<Transform, MovementData>();
+			initalGaze        = Vector3.zero;
+			direction         = Vector3.zero;
 			previousDirection = Vector3.zero;
-			averagePeriod = 60;
-			currentSpeed = 0f;
-			active = false;
-			engageController = null;
+			currentSpeed      = 0f;
+			active            = false;
+			engageController  = null;
 
 			engageAction.action.performed += OnEngageActionPerformed;
 			engageAction.action.canceled  += OnEngageActionCanceled;
+			engageAction.action.Enable();
 
 			SetControlOptions(controlOptions);
-
-			// Initialize the lists.
-			for (int i = 0; i < trackedObjects.Count; i++)
-			{
-				Transform trackedObj = trackedObjects[i];
-				movementList.Add(trackedObj, new List<float>());
-				previousYPositions.Add(trackedObj, trackedObj.transform.localPosition.y);
-			}
 		}
 
 
@@ -198,26 +219,23 @@ namespace SentienceLab
 			if (MovementActivated() && !currentlyFalling)
 			{
 				// Calculate the average movement
-				float average = CalculateAverageMovement() / trackedObjects.Count;
-				average /= Time.fixedDeltaTime;
-				float speed = Mathf.Clamp(speedScale * average, 0f, maxSpeed);
+				currentSpeed      = Mathf.Min(maxSpeed, CalculateAverageMovement() / Time.fixedDeltaTime);
 				previousDirection = direction;
-				direction = SetDirection();
-				// Update our current speed.
-				currentSpeed = speed;
+				direction         = SetDirection();
 			}
 			else if (currentSpeed > 0f)
 			{
-				currentSpeed -= (currentlyFalling ? fallingDeceleration : deceleration);
+				float dec = currentlyFalling ? fallingDeceleration : deceleration;
+				currentSpeed -= dec * Time.fixedDeltaTime;
 			}
 			else
 			{
-				currentSpeed = 0f;
-				direction = Vector3.zero;
+				currentSpeed      = 0f;
+				direction         = Vector3.zero;
 				previousDirection = Vector3.zero;
 			}
 
-			SetDeltaTransformData();
+			UpdateTrackedObjectsState();
 			MovePlayArea(direction, currentSpeed);
 		}
 
@@ -229,40 +247,41 @@ namespace SentienceLab
 
 		protected virtual float CalculateAverageMovement()
 		{
-			float listAverage = 0;
+			float averageMovement = 0;
 
-			for (int i = 0; i < trackedObjects.Count; i++)
+			foreach (var trackedObject in trackedObjects.Values)
 			{
-				Transform trackedObj = trackedObjects[i];
 				// Get the amount of Y movement that's occured since the last update.
-				float deltaYPostion = Mathf.Abs(previousYPositions[trackedObj] - trackedObj.transform.localPosition.y);
-
-				// Convenience code.
-				List<float> trackedObjList = movementList[trackedObj];
-
-				// Cap off the speed.
-				trackedObjList.Add(Mathf.Min(deltaYPostion, sensitivity));
+				float delta = Mathf.Abs(trackedObject.lastPosition.y - trackedObject.trackedObject.localPosition.y);
+				
+				// add delta unless larger than tracking jitter threshold
+				if (delta < deltaThreshold)
+				{
+					trackedObject.deltas.Add(delta);
+				}
+				else Debug.Log("ignore " + delta);
 				
 				// Keep our tracking list at m_averagePeriod number of elements.
-				if (trackedObjList.Count > averagePeriod)
+				if (trackedObject.deltas.Count > averagePeriod)
 				{
-					trackedObjList.RemoveAt(0);
+					trackedObject.deltas.RemoveAt(0);
 				}
 
 				// Average out the current tracker's list.
 				float sum = 0;
-				for (int j = 0; j < trackedObjList.Count; j++)
+				for (int j = 0; j < trackedObject.deltas.Count; j++)
 				{
-					float diffrences = trackedObjList[j];
-					sum += diffrences;
+					sum += trackedObject.deltas[j];
 				}
 				float avg = sum / averagePeriod;
-
+				
 				// Add the average to the the list average.
-				listAverage += avg;
+				averageMovement += avg * trackedObject.scaleFactor;
 			}
 
-			return listAverage;
+			averageMovement /= Mathf.Max(1, trackedObjects.Count);
+
+			return averageMovement;
 		}
 
 		protected virtual Vector3 SetDirection()
@@ -338,13 +357,11 @@ namespace SentienceLab
 			return (Vector3.Angle(previousDirection, calculatedControllerDirection) <= 90f ? calculatedControllerDirection : previousDirection);
 		}
 
-		protected virtual void SetDeltaTransformData()
+		protected virtual void UpdateTrackedObjectsState()
 		{
-			for (int i = 0; i < trackedObjects.Count; i++)
+			foreach (var trackedObject in trackedObjects.Values)
 			{
-				Transform trackedObj = trackedObjects[i];
-				// Get delta postions and rotations
-				previousYPositions[trackedObj] = trackedObj.transform.localPosition.y;
+				trackedObject.Update();
 			}
 		}
 
@@ -395,10 +412,9 @@ namespace SentienceLab
 		protected void OnEngageActionCanceled(InputAction.CallbackContext _)
 		{
 			// If the button is released, clear all the lists.
-			for (int i = 0; i < trackedObjects.Count; i++)
+			foreach (var movementData in trackedObjects.Values)
 			{
-				Transform trackedObj = trackedObjects[i];
-				movementList[trackedObj].Clear();
+				movementData.Reset();
 			}
 			initalGaze = Vector3.zero;
 
