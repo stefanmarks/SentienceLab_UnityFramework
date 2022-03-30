@@ -22,12 +22,12 @@ namespace SentienceLab
 	public class WalkInPlace : MonoBehaviour
 	{
 		/// <summary>
-		/// Options for testing if a play space fall is valid.
+		/// Which tracked devices are used for determining the movement amount.
 		/// </summary>
 		/// <param name="HeadsetAndControllers">Track both headset and controllers for movement calculations.</param>
 		/// <param name="ControllersOnly">Track only the controllers for movement calculations.</param>
 		/// <param name="HeadsetOnly">Track only headset for movement caluclations.</param>
-		public enum ControlOptions
+		public enum MovementSourceOption
 		{
 			HeadsetAndControllers,
 			ControllersOnly,
@@ -35,7 +35,7 @@ namespace SentienceLab
 		}
 
 		/// <summary>
-		/// Options for which method is used to determine player direction while moving.
+		/// Options for which source is used to determine player direction while moving.
 		/// </summary>
 		/// <param name="Gaze">Player will always move in the direction they are currently looking.</param>
 		/// <param name="ControllerRotation">Player will move in the direction that the controllers are pointing (averaged).</param>
@@ -44,7 +44,7 @@ namespace SentienceLab
 		/// <param name="EngageControllerRotationOnly">Player will move in the direction that the controller with the engage button pressed is pointing.</param>
 		/// <param name="LeftControllerRotationOnly">Player will move in the direction that the left controller is pointing.</param>
 		/// <param name="RightControllerRotationOnly">Player will move in the direction that the right controller is pointing.</param>
-		public enum DirectionalMethod
+		public enum DirectionSourceOption
 		{
 			Gaze,
 			ControllerRotation,
@@ -73,9 +73,10 @@ namespace SentienceLab
 		public InputActionProperty engageAction;
 
 		[Tooltip("Select which trackables are used to determine movement.")]
-		public ControlOptions controlOptions = ControlOptions.HeadsetAndControllers;
+		public MovementSourceOption controlOptions = MovementSourceOption.HeadsetAndControllers;
+
 		[Tooltip("How the user's movement direction will be determined.  The Gaze method tends to lead to the least motion sickness.  Smart decoupling is still a Work In Progress.")]
-		public DirectionalMethod directionMethod = DirectionalMethod.Gaze;
+		public DirectionSourceOption directionMethod = DirectionSourceOption.Gaze;
 
 		[Header("Speed Settings")]
 
@@ -86,15 +87,15 @@ namespace SentienceLab
 		[Tooltip("The max speed the user can move in game units.")]
 		public float maxSpeed = 4;
 		[Tooltip("The speed in which the play area slows down to a complete stop when the user is no longer pressing the engage button. This deceleration effect can ease any motion sickness that may be suffered.")]
-		public float deceleration = 0.1f;
+		public float deceleration = 8;
 		[Tooltip("The speed in which the play area slows down to a complete stop when the user is falling.")]
 		public float fallingDeceleration = 0.01f;
 
 		[Header("Advanced Settings")]
 
-		[Tooltip("Amount of averaged samples")]
-		[Range(1, 60)]
-		public int averagePeriod = 10;
+		[Tooltip("Time period for averaging tracking samples [s]")]
+		[Range(0.01f, 1)]
+		public float averagingPeriod = 0.1f;
 
 		[Tooltip("The degree threshold that all tracked objects (controllers, headset) must be within to change direction when using the Smart Decoupling Direction Method.")]
 		public float smartDecoupleThreshold = 30f;
@@ -131,10 +132,37 @@ namespace SentienceLab
 			{
 				deltas.Clear();
 			}
+
+
+			public void ProcessDelta(float deltaThreshold, int maxBufferSize)
+			{
+				// Get the amount of Y movement that's occured since the last update.
+				float delta = Mathf.Abs(lastPosition.y - trackedObject.localPosition.y);
+
+				// add delta unless larger than tracking jitter threshold
+				if (delta < deltaThreshold)
+				{
+					deltas.Add(delta);
+				}
+
+				// limit buffer size
+				if (deltas.Count > maxBufferSize)
+				{
+					deltas.RemoveRange(deltas.Count, maxBufferSize - deltas.Count);
+				}
+			}
+
+			public float GetAverageDelta()
+			{
+				float sum = 0;
+				foreach (var delta in deltas) { sum += delta; }
+				float average = sum / Mathf.Max(1, deltas.Count);
+				return average * scaleFactor;
+			}
 		}
 
 		// Ttracked objects to use to determine amount of movement.
-		protected Dictionary<Transform, MovementData> trackedObjects;
+		protected List<MovementData> trackedObjects;
 		// controller that initiated the engage action
 		protected Transform engageController;
 		// Used to determine the direction when using a decoupling method.
@@ -153,20 +181,20 @@ namespace SentienceLab
 		/// Set the control options and modify the trackables to match.
 		/// </summary>
 		/// <param name="givenControlOptions">The control options to set the current control options to.</param>
-		public virtual void SetControlOptions(ControlOptions givenControlOptions)
+		public virtual void SetControlOptions(MovementSourceOption givenControlOptions)
 		{
 			controlOptions = givenControlOptions;
 			trackedObjects.Clear();
 
-			if (controllerLeftHand != null && controllerRightHand != null && (controlOptions.Equals(ControlOptions.HeadsetAndControllers) || controlOptions.Equals(ControlOptions.ControllersOnly)))
+			if (controllerLeftHand != null && controllerRightHand != null && (controlOptions.Equals(MovementSourceOption.HeadsetAndControllers) || controlOptions.Equals(MovementSourceOption.ControllersOnly)))
 			{
-				trackedObjects[controllerLeftHand]  = new MovementData(controllerLeftHand,  controllerSpeedScale);
-				trackedObjects[controllerRightHand] = new MovementData(controllerRightHand, controllerSpeedScale);
+				trackedObjects.Add(new MovementData(controllerLeftHand,  controllerSpeedScale));
+				trackedObjects.Add(new MovementData(controllerRightHand, controllerSpeedScale));
 			}
 
-			if (headset != null && (controlOptions.Equals(ControlOptions.HeadsetAndControllers) || controlOptions.Equals(ControlOptions.HeadsetOnly)))
+			if (headset != null && (controlOptions.Equals(MovementSourceOption.HeadsetAndControllers) || controlOptions.Equals(MovementSourceOption.HeadsetOnly)))
 			{
-				trackedObjects[headset] = new MovementData(headset, headsetSpeedScale);
+				trackedObjects.Add(new MovementData(headset, headsetSpeedScale));
 			}
 		}
 
@@ -191,7 +219,7 @@ namespace SentienceLab
 
 		public void Start()
 		{
-			trackedObjects    = new Dictionary<Transform, MovementData>();
+			trackedObjects    = new List<MovementData>();
 			initalGaze        = Vector3.zero;
 			direction         = Vector3.zero;
 			previousDirection = Vector3.zero;
@@ -212,16 +240,17 @@ namespace SentienceLab
 			// nothing to do here
 		}
 
+
 		protected virtual void FixedUpdate()
 		{
 			HandleFalling();
-			// If Move In Place is currently engaged.
-			if (MovementActivated() && !currentlyFalling)
+			
+			if (IsActive() && !currentlyFalling)
 			{
 				// Calculate the average movement
 				currentSpeed      = Mathf.Min(maxSpeed, CalculateAverageMovement() / Time.fixedDeltaTime);
 				previousDirection = direction;
-				direction         = SetDirection();
+				direction         = CalculateDirection();
 			}
 			else if (currentSpeed > 0f)
 			{
@@ -236,60 +265,38 @@ namespace SentienceLab
 			}
 
 			UpdateTrackedObjectsState();
-			MovePlayArea(direction, currentSpeed);
+			MoveTrackingOffset(direction, currentSpeed);
 		}
 
-		protected virtual bool MovementActivated()
+
+		public bool IsActive()
 		{
 			return active;
 		}
 
 
-		protected virtual float CalculateAverageMovement()
+		protected float CalculateAverageMovement()
 		{
-			float averageMovement = 0;
+			float averageMovement      = 0;
+			int   averagingBufferCount = (int) Mathf.Max(1, averagingPeriod / Time.fixedDeltaTime);
 
-			foreach (var trackedObject in trackedObjects.Values)
+			foreach (var trackedObject in trackedObjects)
 			{
-				// Get the amount of Y movement that's occured since the last update.
-				float delta = Mathf.Abs(trackedObject.lastPosition.y - trackedObject.trackedObject.localPosition.y);
-				
-				// add delta unless larger than tracking jitter threshold
-				if (delta < deltaThreshold)
-				{
-					trackedObject.deltas.Add(delta);
-				}
-				else Debug.Log("ignore " + delta);
-				
-				// Keep our tracking list at m_averagePeriod number of elements.
-				if (trackedObject.deltas.Count > averagePeriod)
-				{
-					trackedObject.deltas.RemoveAt(0);
-				}
-
-				// Average out the current tracker's list.
-				float sum = 0;
-				for (int j = 0; j < trackedObject.deltas.Count; j++)
-				{
-					sum += trackedObject.deltas[j];
-				}
-				float avg = sum / averagePeriod;
-				
-				// Add the average to the the list average.
-				averageMovement += avg * trackedObject.scaleFactor;
+				trackedObject.ProcessDelta(deltaThreshold, averagingBufferCount);
+				averageMovement += trackedObject.GetAverageDelta();
 			}
-
 			averageMovement /= Mathf.Max(1, trackedObjects.Count);
 
 			return averageMovement;
 		}
 
-		protected virtual Vector3 SetDirection()
+
+		protected virtual Vector3 CalculateDirection()
 		{
 			Vector3 returnDirection = Vector3.zero;
 
 			// If we're doing a decoupling method...
-			if (directionMethod == DirectionalMethod.SmartDecoupling || directionMethod == DirectionalMethod.DumbDecoupling)
+			if (directionMethod == DirectionSourceOption.SmartDecoupling || directionMethod == DirectionSourceOption.DumbDecoupling)
 			{
 				// If we haven't set an inital gaze yet, set it now.
 				// If we're doing dumb decoupling, this is what we'll be sticking with.
@@ -299,7 +306,7 @@ namespace SentienceLab
 				}
 
 				// If we're doing smart decoupling, check to see if we want to reset our distance.
-				if (directionMethod == DirectionalMethod.SmartDecoupling)
+				if (directionMethod == DirectionSourceOption.SmartDecoupling)
 				{
 					bool closeEnough = true;
 					float curXDir = headset.rotation.eulerAngles.y;
@@ -320,31 +327,31 @@ namespace SentienceLab
 				returnDirection = initalGaze;
 			}
 			// if we're doing controller rotation movement
-			else if (directionMethod.Equals(DirectionalMethod.ControllerRotation))
+			else if (directionMethod.Equals(DirectionSourceOption.ControllerRotation))
 			{
 				Vector3 calculatedControllerDirection = DetermineAverageControllerRotation() * Vector3.forward;
 				returnDirection = CalculateControllerRotationDirection(calculatedControllerDirection);
 			}
 			// if we're doing left controller only rotation movement
-			else if (directionMethod.Equals(DirectionalMethod.LeftControllerRotationOnly))
+			else if (directionMethod.Equals(DirectionSourceOption.LeftControllerRotationOnly))
 			{
 				Vector3 calculatedControllerDirection = (controllerLeftHand != null ? controllerLeftHand.transform.rotation : Quaternion.identity) * Vector3.forward;
 				returnDirection = CalculateControllerRotationDirection(calculatedControllerDirection);
 			}
 			// if we're doing right controller only rotation movement
-			else if (directionMethod.Equals(DirectionalMethod.RightControllerRotationOnly))
+			else if (directionMethod.Equals(DirectionSourceOption.RightControllerRotationOnly))
 			{
 				Vector3 calculatedControllerDirection = (controllerRightHand != null ? controllerRightHand.transform.rotation : Quaternion.identity) * Vector3.forward;
 				returnDirection = CalculateControllerRotationDirection(calculatedControllerDirection);
 			}
 			// if we're doing engaged controller only rotation movement
-			else if (directionMethod.Equals(DirectionalMethod.EngageControllerRotationOnly))
+			else if (directionMethod.Equals(DirectionSourceOption.EngageControllerRotationOnly))
 			{
 				Vector3 calculatedControllerDirection = (engageController != null ? engageController.rotation : Quaternion.identity) * Vector3.forward;
 				returnDirection = CalculateControllerRotationDirection(calculatedControllerDirection);
 			}
 			// Otherwise if we're just doing Gaze movement, always set the direction to where we're looking.
-			else if (directionMethod.Equals(DirectionalMethod.Gaze))
+			else if (directionMethod.Equals(DirectionSourceOption.Gaze))
 			{
 				returnDirection = (new Vector3(headset.forward.x, 0, headset.forward.z));
 			}
@@ -359,13 +366,13 @@ namespace SentienceLab
 
 		protected virtual void UpdateTrackedObjectsState()
 		{
-			foreach (var trackedObject in trackedObjects.Values)
+			foreach (var trackedObject in trackedObjects)
 			{
 				trackedObject.Update();
 			}
 		}
 
-		protected virtual void MovePlayArea(Vector3 moveDirection, float moveSpeed)
+		protected virtual void MoveTrackingOffset(Vector3 moveDirection, float moveSpeed)
 		{
 			Vector3 movement = (moveDirection * moveSpeed) * Time.fixedDeltaTime;
 			Vector3 finalPosition = new Vector3(movement.x + trackingOffset.position.x, trackingOffset.position.y, movement.z + trackingOffset.position.z);
@@ -412,7 +419,7 @@ namespace SentienceLab
 		protected void OnEngageActionCanceled(InputAction.CallbackContext _)
 		{
 			// If the button is released, clear all the lists.
-			foreach (var movementData in trackedObjects.Values)
+			foreach (var movementData in trackedObjects)
 			{
 				movementData.Reset();
 			}
