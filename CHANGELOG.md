@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
+- Added Walk-in-Place scripts
+- Added scripts in Tools for: InputAction debugging, object spawning, audio detection
+
 ### Changed
 
 - Moved locomotion-related scripts into different menu folder
