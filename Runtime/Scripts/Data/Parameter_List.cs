@@ -34,6 +34,10 @@ namespace SentienceLab.Data
 		protected List<SItem> listItems = new List<SItem>();
 
 
+		[Tooltip("If checked, decreasing or increasing beyond limits leads to wraparound")]
+		public bool ValueWraparound = false;
+
+
 		public int Count { get { return listItems.Count; } }
 
 
@@ -118,8 +122,16 @@ namespace SentienceLab.Data
 
 		protected int SanityCheck(int _index)
 		{
-			if (_index < 0) { _index = 0; }
-			if (_index >= listItems.Count) { _index = listItems.Count - 1; }
+			if (_index < 0) 
+			{
+				if (ValueWraparound) { _index = listItems.Count - 1; }
+				else                 { _index = 0; }
+			}
+			if (_index >= listItems.Count) 
+			{
+				if (ValueWraparound) { _index = 0; }
+				else                 { _index = listItems.Count - 1; }
+			}
 			return _index;
 		}
 
