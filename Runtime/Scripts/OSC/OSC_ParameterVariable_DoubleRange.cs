@@ -9,7 +9,7 @@ using SentienceLab.Data;
 
 namespace SentienceLab.OSC
 {
-	[AddComponentMenu("OSC/Double Range Parameter")]
+	[AddComponentMenu("OSC/OSC Double Range Parameter")]
 	[RequireComponent(typeof(Parameter_DoubleRange))]
 	public class OSC_ParameterVariable_DoubleRange : MonoBehaviour, IOSCVariableContainer
 	{

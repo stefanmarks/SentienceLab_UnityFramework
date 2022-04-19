@@ -9,7 +9,7 @@ using SentienceLab.Data;
 
 namespace SentienceLab.OSC
 {
-	[AddComponentMenu("OSC/Double Parameter")]
+	[AddComponentMenu("OSC/OSC Double Parameter")]
 	[RequireComponent(typeof(Parameter_Double))]
 	public class OSC_ParameterVariable_Double : MonoBehaviour, IOSCVariableContainer
 	{

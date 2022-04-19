@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace SentienceLab.OSC
 {
-	[AddComponentMenu("OSC/Slider Variable")]
+	[AddComponentMenu("OSC/OSC Slider Variable")]
 	[RequireComponent(typeof(Slider))]
 	public class OSC_SliderVariable : MonoBehaviour, IOSCVariableContainer
 	{

@@ -9,7 +9,7 @@ using SentienceLab.Data;
 
 namespace SentienceLab.OSC
 {
-	[AddComponentMenu("OSC/List Parameter")]
+	[AddComponentMenu("OSC/OSC List Parameter")]
 	[RequireComponent(typeof(Parameter_List))]
 	public class OSC_ParameterVariable_List : MonoBehaviour, IOSCVariableContainer
 	{

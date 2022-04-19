@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace SentienceLab.OSC
 {
-	[AddComponentMenu("OSC/Dropdown Variable")]
+	[AddComponentMenu("OSC/OSC Dropdown Variable")]
 	[RequireComponent(typeof(Dropdown))]
 	public class OSC_DropdownVariable : MonoBehaviour, IOSCVariableContainer
 	{

@@ -9,7 +9,7 @@ using UnityEngine.UI;
 
 namespace SentienceLab.OSC
 {
-	[AddComponentMenu("OSC/Button Variable")]
+	[AddComponentMenu("OSC/OSC Button Variable")]
 	[RequireComponent(typeof(Button))]
 	public class OSC_ButtonVariable : MonoBehaviour, IOSCVariableContainer
 	{

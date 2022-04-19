@@ -9,7 +9,7 @@ using SentienceLab.Data;
 
 namespace SentienceLab.OSC
 {
-	[AddComponentMenu("OSC/Boolean Parameter")]
+	[AddComponentMenu("OSC/OSC Boolean Parameter")]
 	[RequireComponent(typeof(Parameter_Boolean))]
 	public class OSC_ParameterVariable_Boolean : MonoBehaviour, IOSCVariableContainer
 	{
