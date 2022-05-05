@@ -27,10 +27,13 @@ namespace SentienceLab
 		public ERotationReference Reference = ERotationReference.Global;
 
 		[System.Serializable]
-		public class OnLimitsEnforcedEvent : UnityEvent<RotationLimits> { }
+		public class Events
+		{
+			[Tooltip("Event fired when a rotation limit is enforced")]
+			public UnityEvent<RotationLimits> OnLimitsEnforced;
+		}
 
-		[Tooltip("Event fired when a position limit is enforced")]
-		public OnLimitsEnforcedEvent OnLimitsEnforced;
+		public Events events;
 
 
 		public void Start()
@@ -93,7 +96,7 @@ namespace SentienceLab
 					transform.rotation = qrot;
 				}
 
-				OnLimitsEnforced.Invoke(this);
+				if (events != null) events.OnLimitsEnforced.Invoke(this);
 			}
 		}
 

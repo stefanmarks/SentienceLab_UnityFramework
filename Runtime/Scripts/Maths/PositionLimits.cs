@@ -26,12 +26,14 @@ namespace SentienceLab
 		[Tooltip("What position reference to use")]
 		public EPositionReference Reference = EPositionReference.Global;
 
-
 		[System.Serializable]
-		public class OnLimitsEnforcedEvent : UnityEvent<PositionLimits> { }
+		public class Events
+		{
+			[Tooltip("Event fired when a position limit is enforced")]
+			public UnityEvent<PositionLimits> OnLimitsEnforced;
+		}
 
-		[Tooltip("Event fired when a position limit is enforced")]
-		public OnLimitsEnforcedEvent OnLimitsEnforced;
+		public Events events;
 
 
 		public void Start()
@@ -92,7 +94,7 @@ namespace SentienceLab
 					transform.position = pos;
 				}
 
-				OnLimitsEnforced.Invoke(this);
+				if (events != null) events.OnLimitsEnforced.Invoke(this);
 			}
 		}
 

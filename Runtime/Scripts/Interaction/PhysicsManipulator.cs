@@ -26,11 +26,11 @@ namespace SentienceLab
 		[System.Serializable]
 		public class Events
 		{
-			[Tooltip("Event fired when the manipulator starts moving an object")]
-			public UnityEvent<Rigidbody> OnManipulationStart;
+			[Tooltip("Event fired when the manipulator grabs an object")]
+			public UnityEvent<Rigidbody> OnGrabStart;
 
-			[Tooltip("Event fired when the manipulator finishes moving an object")]
-			public UnityEvent<Rigidbody> OnManipulationEnd;
+			[Tooltip("Event fired when the manipulator releases an object")]
+			public UnityEvent<Rigidbody> OnGrabEnd;
 		}
 
 		public Events events;
@@ -83,7 +83,7 @@ namespace SentienceLab
 
 				if (events != null)
 				{
-					events.OnManipulationStart.Invoke(m_activeBody);
+					events.OnGrabStart.Invoke(m_activeBody);
 				}
 			}
 			else
@@ -108,7 +108,7 @@ namespace SentienceLab
 
 				if (events != null)
 				{
-					events.OnManipulationEnd.Invoke(m_activeBody);
+					events.OnGrabEnd.Invoke(m_activeBody);
 				}
 
 				m_activeBody = null;

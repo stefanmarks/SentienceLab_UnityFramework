@@ -16,14 +16,21 @@ namespace SentienceLab
 	
 	public class ScaleLimits : MonoBehaviour
 	{
+		[Tooltip("Minimum scale")]
 		public float Minimum = 0.001f;
+
+		[Tooltip("Maximum scale")]
 		public float Maximum = float.PositiveInfinity;
 
-		[System.Serializable]
-		public class OnLimitsEnforcedEvent : UnityEvent<ScaleLimits> { }
 
-		[Tooltip("Event fired when a scale limit is enforced")]
-		public OnLimitsEnforcedEvent OnLimitsEnforced;
+		[System.Serializable]
+		public class Events
+		{
+			[Tooltip("Event fired when a scale limit is enforced")]
+			public UnityEvent<ScaleLimits> OnLimitsEnforced;
+		}
+
+		public Events events;
 
 
 		public void Start()
@@ -70,7 +77,7 @@ namespace SentienceLab
 				}
 				if (_invokeCallbacks)
 				{
-					OnLimitsEnforced.Invoke(this);
+					if (events != null) events.OnLimitsEnforced.Invoke(this);
 				}
 			}
 			
