@@ -12,26 +12,21 @@ namespace SentienceLab
 	[RequireComponent(typeof(Rigidbody))]
 	public class InteractiveRigidbody : MonoBehaviour
 	{
-		[System.Serializable]
-		public class OnHoverStartEvent : UnityEvent<InteractiveRigidbody, GameObject> { }
-		[System.Serializable]
-		public class OnHoverEndEvent   : UnityEvent<InteractiveRigidbody, GameObject> { }
-		[System.Serializable]
-		public class OnGrabStartEvent  : UnityEvent<InteractiveRigidbody, GameObject> { }
-		[System.Serializable]
-		public class OnGrabEndEvent    : UnityEvent<InteractiveRigidbody, GameObject> { }
-
-
 		public bool  CanTranslate  = true;
 		public bool  CanRotate     = true;
 		public bool  CanScale      = false;
 
 
-		public OnHoverStartEvent OnHoverStart;
-		public OnHoverEndEvent   OnHoverEnd;
-		public OnGrabStartEvent  OnGrabStart;
-		public OnGrabEndEvent    OnGrabEnd;
+		[System.Serializable]
+		public class Events
+		{
+			public UnityEvent<InteractiveRigidbody, GameObject> OnTouchStart;
+			public UnityEvent<InteractiveRigidbody, GameObject> OnTouchEnd;
+			public UnityEvent<InteractiveRigidbody, GameObject> OnGrabStart;
+			public UnityEvent<InteractiveRigidbody, GameObject> OnGrabEnd;
+		}
 
+		public Events events;
 
 		public Rigidbody Rigidbody { get; private set; }
 
@@ -41,11 +36,10 @@ namespace SentienceLab
 			Rigidbody = GetComponent<Rigidbody>();
 		}
 
-
 		
-		public void InvokeHoverStart(GameObject _other) { OnHoverStart.Invoke(this, _other); }
-		public void InvokeHoverEnd(GameObject _other) { OnHoverEnd.Invoke(this, _other); }
-		public void InvokeGrabStart(GameObject _other) { OnGrabStart.Invoke(this, _other); }
-		public void InvokeGrabEnd(GameObject _other) { OnGrabEnd.Invoke(this, _other); }
+		public void InvokeTouchStart(GameObject _other) { if (events != null) events.OnTouchStart.Invoke(this, _other); }
+		public void InvokeTouchEnd(  GameObject _other) { if (events != null) events.OnTouchEnd.Invoke(this, _other); }
+		public void InvokeGrabStart( GameObject _other) { if (events != null) events.OnGrabStart.Invoke(this, _other); }
+		public void InvokeGrabEnd(   GameObject _other) { if (events != null) events.OnGrabEnd.Invoke(this, _other); }
 	}
 }

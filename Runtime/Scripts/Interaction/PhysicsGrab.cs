@@ -79,7 +79,7 @@ namespace SentienceLab
 			InteractiveRigidbody irb = other.GetComponentInParent<InteractiveRigidbody>();
 			if (irb != null)
 			{
-				irb.InvokeHoverStart(this.gameObject);
+				irb.InvokeTouchStart(this.gameObject);
 				m_candidate = irb;
 			}
 		}
@@ -90,7 +90,7 @@ namespace SentienceLab
 			InteractiveRigidbody irb = other.GetComponentInParent<InteractiveRigidbody>();
 			if (irb != null)
 			{
-				irb.InvokeHoverEnd(this.gameObject);
+				irb.InvokeTouchEnd(this.gameObject);
 				if (irb == m_candidate)
 				{
 					m_candidate = null;

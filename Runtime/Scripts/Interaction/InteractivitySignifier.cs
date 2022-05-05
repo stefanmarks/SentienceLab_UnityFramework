@@ -9,7 +9,7 @@ using UnityEngine;
 namespace SentienceLab
 {
 	/// <summary>
-	/// Component for changing the appearance of an object on hover/select.
+	/// Component for changing the appearance of an object on grab/hover.
 	/// </summary>
 	/// 
 	[AddComponentMenu("SentienceLab/Interaction/Interactivity Signifier")]
@@ -18,26 +18,27 @@ namespace SentienceLab
 	{
 		public List<MeshRenderer> Renderers;
 
-		public Material HoverMaterial;
+		public Material TouchMaterial;
 		public Material GrabMaterial;
+
 
 		public void Awake()
 		{
 			InteractiveRigidbody irb = GetComponent<InteractiveRigidbody>();
 
-			irb.OnHoverStart.AddListener(OnHoverStart);
-			irb.OnHoverEnd.AddListener(OnHoverEnd);
-			irb.OnGrabStart.AddListener(OnGrabStart);
-			irb.OnGrabEnd.AddListener(OnGrabEnd);
+			irb.events.OnTouchStart.AddListener(OnTouchStart);
+			irb.events.OnTouchEnd.AddListener(  OnTouchEnd);
+			irb.events.OnGrabStart.AddListener( OnGrabStart);
+			irb.events.OnGrabEnd.AddListener(   OnGrabEnd);
 
-			m_hover = m_grab = false;
+			m_touch = m_grab = false;
 
 			UpdateMaterials();
 		}
 
 
-		private void OnHoverStart(InteractiveRigidbody _rb, GameObject _other) { m_hover = true; UpdateMaterials(); }
-		private void OnHoverEnd(InteractiveRigidbody _rb, GameObject _other) { m_hover = false; UpdateMaterials(); }
+		private void OnTouchStart(InteractiveRigidbody _rb, GameObject _other) { m_touch = true; UpdateMaterials(); }
+		private void OnTouchEnd(InteractiveRigidbody _rb, GameObject _other) { m_touch = false; UpdateMaterials(); }
 		private void OnGrabStart(InteractiveRigidbody _rb, GameObject _other) { m_grab = true; UpdateMaterials(); }
 		private void OnGrabEnd(InteractiveRigidbody _rb, GameObject _other) { m_grab = false; UpdateMaterials(); }
 
@@ -45,7 +46,7 @@ namespace SentienceLab
 		{
 			Material m = null;
 			if      (m_grab ) { m = GrabMaterial;  }
-			else if (m_hover) { m = HoverMaterial; }
+			else if (m_touch) { m = TouchMaterial; }
 
 			foreach (var r in Renderers)
 			{
@@ -61,6 +62,6 @@ namespace SentienceLab
 			}
 		}
 
-		private bool m_hover, m_grab;
+		private bool m_touch, m_grab;
 	}
 }
