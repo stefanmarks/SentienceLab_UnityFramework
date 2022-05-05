@@ -41,7 +41,7 @@ namespace SentienceLab
 			public UnityEvent<Transform> OnTeleportEnd;
 		}
 
-		public Events events;		
+		public Events events;
 
 
 		public enum TransitionType
