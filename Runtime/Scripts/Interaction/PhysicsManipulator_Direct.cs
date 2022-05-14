@@ -7,9 +7,14 @@ using UnityEngine;
 
 namespace SentienceLab
 {
+	/// <summary>
+	/// Component for moving a physical object directly by clicking and moving it.
+	/// When clicked, the script will try to maintain the relative position of the rigid body using forces applied to its centre.
+	/// </summary>
+	///
 	[AddComponentMenu("SentienceLab/Interaction/Direct Physics Manipulator")]
 	[RequireComponent(typeof(Collider))]
-	public class PhysicsGrab : BasePhysicsManipulator
+	public class PhysicsManipulator_Direct : BasePhysicsManipulator
 	{
 		[Tooltip("Default rigidbody that is manipulated when not touching any object (e.g., the only main object in the scene)")]
 		public Rigidbody DefaultRigidBody = null;
