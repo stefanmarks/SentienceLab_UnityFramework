@@ -12,7 +12,7 @@ namespace SentienceLab
 	/// Enables the user to scale an object by grabbing it and twisting the controllers.
 	/// </summary>
 	[AddComponentMenu("SentienceLab/Interaction/XR/Twist Scale Controller")]
-	[RequireComponent(typeof(PhysicsGrab))]
+	[RequireComponent(typeof(BasePhysicsManipulator))]
 	public class TwistScaleController : MonoBehaviour
 	{
 		[Tooltip("Input action that starts the twist scale")]
@@ -39,10 +39,10 @@ namespace SentienceLab
 				this.enabled = false;
 			}
 
-			m_physicsGrabScript = GetComponent<PhysicsGrab>();
-			m_rotation = 0;
-			m_twistActive = false;
-			m_lastRotation = Vector3.zero;
+			m_physicsGrabScript = GetComponent<BasePhysicsManipulator>();
+			m_rotation          = 0;
+			m_twistActive       = false;
+			m_lastRotation      = Vector3.zero;
 		}
 
 
@@ -105,9 +105,9 @@ namespace SentienceLab
 			}
 		}
 
-		private PhysicsGrab  m_physicsGrabScript;
-		private bool         m_twistActive;
-		private float        m_rotation;
-		private Vector3      m_lastRotation;
+		private BasePhysicsManipulator  m_physicsGrabScript;
+		private bool                    m_twistActive;
+		private float                   m_rotation;
+		private Vector3                 m_lastRotation;
 	}
 }
