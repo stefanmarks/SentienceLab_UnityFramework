@@ -17,10 +17,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Moved locomotion-related scripts into different menu folder
 - Reworked Teleportation related scripts (only one controller script, separate renderer)
+- Refactored Physics manipulator scripts. ``PhysicsGrab`` is now ``PhysicsManipulator_Direct``. ``PhysicsManipulator`` is now ``PhysicsManipulator_Ray``.
 
 ### Removed
 
 - Moving MajorDomo into own Unity package
+- InteractivitySignifier removed because events in InteractiveRigidbody provide more flexibility.
 
 
 ## [1.5] - 2020-10-21
