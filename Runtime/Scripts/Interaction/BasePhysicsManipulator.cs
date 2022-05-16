@@ -47,17 +47,38 @@ namespace SentienceLab
 
 		public virtual void Start()
 		{
+			if (GrabAction == null)
+			{
+				Debug.LogWarning("No action defined for grab");
+				this.enabled = false;
+			}
+
+			m_candidateBody = null;
+			m_activeBody    = null;
+		}
+
+
+		public void OnEnable()
+		{
 			if (GrabAction != null)
 			{
 				GrabAction.action.performed += OnGrabStart;
 				GrabAction.action.canceled  += OnGrabEnd;
 				GrabAction.action.Enable();
 			}
-			else
+		}
+
+
+		public void OnDisable()
+		{
+			if (GrabAction != null)
 			{
-				Debug.LogWarning("No action defined for grab");
-				this.enabled = false;
+				GrabAction.action.performed -= OnGrabStart;
+				GrabAction.action.canceled  -= OnGrabEnd;
 			}
+			// just in case we were manipulating or touching an object...
+			EndGrab();
+			SetCandidate(null, Vector3.zero);
 		}
 
 
@@ -69,7 +90,9 @@ namespace SentienceLab
 		/// 
 		protected void SetCandidate(Rigidbody _candidate, Vector3 _grabPoint)
 		{
-			// don't change candidate while holding onto an object
+			if (!isActiveAndEnabled) return;
+			
+			// don't change candidate while already manipulating an object
 			if (!IsManipulatingRigidbody())
 			{
 				if (m_candidateBody != _candidate)
@@ -123,11 +146,29 @@ namespace SentienceLab
 		}
 
 
-		protected void OnGrabStart(InputAction.CallbackContext obj)
+		protected void OnGrabStart(InputAction.CallbackContext _)
+		{
+			StartGrab();
+		}
+
+
+		public void StartGrab()
 		{
 			if ((m_candidateBody != null) || (m_defaultBody != null))
 			{
-				m_activeBody = (m_candidateBody != null) ? m_candidateBody : m_defaultBody;
+				if (m_candidateBody != null)
+				{
+					// we have a candidate > make active body
+					m_activeBody = m_candidateBody;
+				}
+				else
+				{
+					// no candidate > fallback to default body:
+					// need to also use current transform position as grab point
+					m_activeBody         = m_defaultBody;
+					m_candidateGrabPoint = this.transform.position;
+				}
+
 				RigidbodyConstraints c = m_activeBody.constraints;
 				if (c == RigidbodyConstraints.None)
 				{
@@ -163,7 +204,13 @@ namespace SentienceLab
 		}
 
 
-		protected void OnGrabEnd(InputAction.CallbackContext obj)
+		protected void OnGrabEnd(InputAction.CallbackContext _)
+		{
+			EndGrab();
+		}
+
+
+		public void EndGrab()
 		{
 			if (m_activeBody != null)
 			{

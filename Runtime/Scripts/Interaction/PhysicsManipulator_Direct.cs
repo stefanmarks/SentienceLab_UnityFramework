@@ -19,16 +19,18 @@ namespace SentienceLab
 		[Tooltip("Default rigidbody that is manipulated when not touching any object (e.g., the only main object in the scene)")]
 		public Rigidbody DefaultRigidBody = null;
 
+
 		public override void Start()
 		{
 			base.Start();
 			SetDefaultRigidbody(DefaultRigidBody);
 		}
 
+
 		public void OnTriggerEnter(Collider other)
 		{
 			var rb = other.GetComponentInParent<Rigidbody>();
-			SetCandidate(rb, other.transform.position);
+			SetCandidate(rb, this.transform.position);
 		}
 
 
