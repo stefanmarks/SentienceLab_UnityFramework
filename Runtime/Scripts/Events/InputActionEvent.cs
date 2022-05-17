@@ -64,19 +64,19 @@ namespace SentienceLab
 
 		protected void OnActionStarted(InputAction.CallbackContext obj)
 		{
-			events.OnActionStarted.Invoke();
+			if (this.isActiveAndEnabled) events.OnActionStarted.Invoke();
 		}
 
 
 		protected void OnActionPerformed(InputAction.CallbackContext obj)
 		{
-			PerformAction();
+			if (this.isActiveAndEnabled) PerformAction();
 		}
 
 
 		protected void OnActionCanceled(InputAction.CallbackContext obj)
 		{
-			events.OnActionCanceled.Invoke();
+			if (this.isActiveAndEnabled) events.OnActionCanceled.Invoke();
 		}
 
 
