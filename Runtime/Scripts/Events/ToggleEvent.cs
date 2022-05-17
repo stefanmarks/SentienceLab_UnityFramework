@@ -13,37 +13,36 @@ namespace SentienceLab
 	/// e.g, to turn lights on and off.
 	/// </summary>
 	/// 
-	[AddComponentMenu("SentienceLab/Interaction/Toggle Event")]
+	[AddComponentMenu("SentienceLab/Events/Toggle Event")]
 	public class ToggleEvent : MonoBehaviour 
 	{
 		[Tooltip("Initial state of the toggle")]
-		public bool       ToggleState = false; 
+		public bool State = false;
 
-		[Tooltip("Event to fire when toggle turns on")]
-		public UnityEvent OnToggleOn;
-
-		[Tooltip("Event to fire when toggle turns off")]
-		public UnityEvent OnToggleOff;
-
-
-		public void Start()
+		[System.Serializable]
+		public struct Events
 		{
-			// nothing to do here
+			[Tooltip("Event fired when toggle turns on")]
+			public UnityEvent OnToggleOn;
+
+			[Tooltip("Event fired when toggle turns off")]
+			public UnityEvent OnToggleOff;
 		}
+		public Events events;
 
 
-		public void Toggle()
+		public void ToggleState()
 		{
-			SetState(!ToggleState);
+			SetState(!State);
 		}
 
 
 		public void SetState(bool _newState)
 		{
-			ToggleState = _newState;
+			State = _newState;
 
-			if (ToggleState) OnToggleOn.Invoke();
-			else             OnToggleOff.Invoke();
+			if (State) events.OnToggleOn.Invoke();
+			else       events.OnToggleOff.Invoke();
 		}
 	}
 }

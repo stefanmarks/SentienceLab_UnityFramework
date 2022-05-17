@@ -12,13 +12,14 @@ namespace SentienceLab
 	/// Component to trigger Unity events via timing.
 	/// </summary>
 	/// 
-	[AddComponentMenu("SentienceLab/Interaction/Timer Event")]
+	[AddComponentMenu("SentienceLab/Events/Timer Event")]
 	public class TimerEvent : MonoBehaviour 
 	{
 		[Tooltip("Timer runtime in seconds")]
-		public float      Duration;
+		public float Duration;
 		
-		public UnityEvent TimerExpired;
+		[Tooltip("Event fired when timer expires")]
+		public UnityEvent<GameObject> OnTimerExpired;
 
 
 		public void Start()
@@ -48,7 +49,7 @@ namespace SentienceLab
 				if (m_fTime > Duration) 
 				{
 					StopTimer();
-					TimerExpired.Invoke();
+					OnTimerExpired.Invoke(this.gameObject);
 				}
 			}
 		}

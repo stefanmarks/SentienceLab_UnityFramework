@@ -12,21 +12,29 @@ namespace SentienceLab
 	/// Script that allows events to be sent when Triggers are entered/exited.
 	/// </summary>
 	///
-	[AddComponentMenu("SentienceLab/Interaction/Trigger Event")]
+	[AddComponentMenu("SentienceLab/Events/Trigger Event")]
 	[RequireComponent(typeof(Collider))]
 	public class TriggerEvent : MonoBehaviour
 	{
-		public UnityEvent TriggerEnter;
-		public UnityEvent TriggerExit;
-
 		[Tooltip("GameObject tags to react to. If empty, react to any object")]
 		[TagSelector]
 		public string[] TagNames = { };
 
+		[System.Serializable]
+		public struct Events
+		{
+			[Tooltip("Event fired when trigger is entered")]
+			public UnityEvent<Collider> OnTriggerEnter;
+
+			[Tooltip("Event fired when trigger is exited")]
+			public UnityEvent<Collider> OnTriggerExit;
+		}
+		public Events events;
+
 
 		public void Start()
 		{
-			// no code here, just to have the enable flag
+			// no code here, just to have the "enable" flag
 		}
 
 		
@@ -34,7 +42,7 @@ namespace SentienceLab
 		{
 			if (this.isActiveAndEnabled && TagMatches(_other))
 			{
-				TriggerEnter.Invoke();
+				events.OnTriggerEnter.Invoke(_other);
 			}
 		}
 
@@ -42,7 +50,7 @@ namespace SentienceLab
 		{
 			if (this.isActiveAndEnabled && TagMatches(_other))
 			{
-				TriggerExit.Invoke();
+				events.OnTriggerExit.Invoke(_other);
 			}
 		}
 
