@@ -15,9 +15,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
-- Moved locomotion-related scripts into different menu folder
-- Reworked Teleportation related scripts (only one controller script, separate renderer)
+- Moved locomotion-related scripts into different menu folder.
+- Reworked Teleportation related scripts (only one controller script, separate renderer).
 - Refactored Physics manipulator scripts. ``PhysicsGrab`` is now ``PhysicsManipulator_Direct``. ``PhysicsManipulator`` is now ``PhysicsManipulator_Ray``.
+- Reorganised components related to events:
+  - Moved to subfolder ``Ēvents``.
+  - ``ActionEvent_InputSystem`` is now ``InputActionEvent``
+  - Toggle aspect separated from ``InputActionEvent`` into ``ToggleEvent`` component.
+  - In case of several events for a component, they are now all grouped.
 
 ### Removed
 
