@@ -14,7 +14,7 @@ namespace SentienceLab
 	/// </summary>
 	/// 
 	[AddComponentMenu("SentienceLab/Events/InputAction Event")]
-	public class ActionEvent_InputSystem : MonoBehaviour
+	public class InputActionEvent : MonoBehaviour
 	{
 		[Tooltip("InputAction that fires the events")]
 		public InputActionProperty action;
