@@ -16,15 +16,11 @@ namespace SentienceLab
 	[AddComponentMenu("SentienceLab/Interaction/Action Event")]
 	public class ActionEvent_InputSystem : MonoBehaviour 
 	{
+		[Tooltip("Action that fires the event")]
 		public InputActionProperty action;
 
-		[Header("One-Shot Behaviour")]
-		public UnityEvent ActionPerformed;
-
-		[Header("Toggle Behaviour")]
-		public bool       ToggleState = false; 
-		public UnityEvent ToggleOn;
-		public UnityEvent ToggleOff;
+		[Tooltip("Event fired when action is performed")]
+		public UnityEvent OnActionPerformed;
 
 
 		public void Start()
@@ -32,35 +28,19 @@ namespace SentienceLab
 			if (action != null) 
 			{ 
 				action.action.Enable();
-				action.action.performed += OnActionPerformed;
+				action.action.performed += ActionPerformed;
 			}
 		}
 
-		private void OnActionPerformed(InputAction.CallbackContext obj)
+		private void ActionPerformed(InputAction.CallbackContext obj)
 		{
 			PerformAction();
-			PerformToggle();		
 		}
 
 
 		public void PerformAction()
 		{
-			ActionPerformed.Invoke();
-		}
-
-
-		public void PerformToggle()
-		{
-			SetToggleState(!ToggleState);
-		}
-
-
-		public void SetToggleState(bool _newState)
-		{
-			ToggleState = _newState;
-
-			if (ToggleState) ToggleOn.Invoke();
-			else             ToggleOff.Invoke();
+			OnActionPerformed.Invoke();
 		}
 	}
 }
