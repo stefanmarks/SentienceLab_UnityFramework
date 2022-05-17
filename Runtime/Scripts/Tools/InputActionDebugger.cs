@@ -56,7 +56,7 @@ namespace SentienceLab
 		protected void DebugAction(InputAction action)
 		{
 			m_string.Append(action.name);
-			if ((action.controls != null) && (action.controls.Count > 0))
+			if (action.controls.Count > 0)
 			{
 				System.Type valueType = action.controls[0].valueType;
 				m_string.Append(" (").Append(valueType.ToString()).Append(") = ");
