@@ -14,7 +14,7 @@ namespace SentienceLab
 	/// Component for debugging input action values.
 	/// </summary>
 	/// 
-	[AddComponentMenu("SentienceLab/Tools/Input Action Debugger")]
+	[AddComponentMenu("SentienceLab/Tools/InputAction Debugger")]
 	public class InputActionDebugger : MonoBehaviour
 	{
 		public List<InputActionProperty> actionsToDebug;
@@ -56,7 +56,7 @@ namespace SentienceLab
 		protected void DebugAction(InputAction action)
 		{
 			m_string.Append(action.name);
-//			if (action.activeControl != null)
+			if ((action.controls != null) && (action.controls.Count > 0))
 			{
 				System.Type valueType = action.controls[0].valueType;
 				m_string.Append(" (").Append(valueType.ToString()).Append(") = ");
