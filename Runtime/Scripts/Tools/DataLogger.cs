@@ -3,9 +3,8 @@
 // (C) SentienceLab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
-using System;
-using System.IO;
 using UnityEngine;
+using System.IO;
 
 namespace SentienceLab
 {
@@ -20,6 +19,9 @@ namespace SentienceLab
 		
 		[Tooltip("Filename of the logfile\n(The string \"{TIMESTAMP}\" will be replaced by an actual timestamp)")]
 		public string LogFilename = "Logfile_{TIMESTAMP}.txt";
+
+		[Tooltip("Separator between values")]
+		public string Separator = "\\t";
 
 		public bool AlsoLogToConsole = false;
 
@@ -61,25 +63,30 @@ namespace SentienceLab
 		}
 
 
-		private void OpenLogfile()
+		protected void OpenLogfile()
 		{
 			if (m_writer == null && this.enabled)
 			{
 				try
 				{
 					// if required, build timestamped filename
-					string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+					string timestamp = System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
 					LogFilename = LogFilename.Replace("{TIMESTAMP}", timestamp);
 
 #if !UNITY_EDITOR
 					LogFilename = Application.persistentDataPath + "/" + LogFilename;
 #endif
+					// special case for TAB as separator
+					if (Separator == "\\t")
+					{
+						Separator = "\t";
+					}
 
 					// open logfile and append
 					m_writer = new StreamWriter(LogFilename, true);
-					Log("start", DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss"));
+					Log("start", System.DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss"));
 				}
-				catch (Exception e)
+				catch (System.Exception e)
 				{
 					Debug.LogWarningFormat("Could not open logfile (Reason: {0})", e.ToString());
 					this.enabled = false;
@@ -88,20 +95,20 @@ namespace SentienceLab
 		}
 
 
-		private void CloseLogfile()
+		protected void CloseLogfile()
 		{
 			// close logfile
 			try
 			{
 				if (m_writer != null)
 				{
-					Log("end", DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss"));
+					Log("end", System.DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss"));
 					m_writer.WriteLine();
 					m_writer.Close();
 					m_writer = null;
 				}
 			}
-			catch (Exception e)
+			catch (System.Exception e)
 			{
 				Debug.LogWarningFormat("Could not close logfile (Reason: {0})", e.ToString());
 			}
@@ -116,7 +123,6 @@ namespace SentienceLab
 
 		public void LogTransform(Transform _t)
 		{
-
 			Log("transform", 
 				_t.gameObject.name,
 				_t.position.x.ToString("F4"),
@@ -129,16 +135,26 @@ namespace SentienceLab
 		}
 
 
+		public void LogTransformPosition(Transform _t)
+		{
+			Log("transform",
+				_t.gameObject.name,
+				_t.position.x.ToString("F4"),
+				_t.position.y.ToString("F4"),
+				_t.position.z.ToString("F4"));
+		}
+
+
 		public void Log(string _event, params object[] _data)
 		{
 			if (m_writer != null)
 			{
 				m_writer.Write(string.Format("{0:0.000}", Time.unscaledTime));
-				m_writer.Write("\t");
+				m_writer.Write(Separator);
 				m_writer.Write(_event);
 				foreach (object obj in _data)
 				{
-					m_writer.Write("\t");
+					m_writer.Write(Separator);
 					m_writer.Write(obj.ToString());
 				}
 				m_writer.WriteLine();
@@ -176,6 +192,6 @@ namespace SentienceLab
 		private static DataLogger   m_instance         = null;
 		private static IDataLogger  m_consoleLogger    = null;
 		private static bool         m_instanceSearched = false;
-		private static StreamWriter m_writer;
+		private        StreamWriter m_writer;
 	}
 }
