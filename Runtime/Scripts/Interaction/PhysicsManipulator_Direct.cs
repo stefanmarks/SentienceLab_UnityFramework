@@ -34,6 +34,13 @@ namespace SentienceLab
 		}
 
 
+		public void OnTriggerStay(Collider other)
+		{
+			var rb = other.GetComponentInParent<Rigidbody>();
+			SetCandidate(rb, this.transform.position);
+		}
+
+
 		public void OnTriggerExit(Collider other)
 		{
 			SetCandidate(null, Vector3.zero);
