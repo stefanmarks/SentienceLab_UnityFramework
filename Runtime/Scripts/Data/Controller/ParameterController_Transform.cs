@@ -28,7 +28,6 @@ namespace SentienceLab.Data
 		public Parameter_Double  scaleParameter;
 
 
-
 		public void Start()
 		{
 			m_rigidbody = GetComponent<Rigidbody>();
@@ -107,6 +106,20 @@ namespace SentienceLab.Data
 
 
 		public void Update()
+		{
+			// use Update for transforms without physics
+			if (m_rigidbody == null) DoUpdate();
+		}
+
+
+		public void FixedUpdate()
+		{
+			// use FixedUpdate for transforms with physics
+			if (m_rigidbody != null) DoUpdate();
+		}
+		
+		
+		protected void DoUpdate()
 		{
 			// avoid infinite update loops by checking the last frame a change happened
 			if ( (positionParameter != null) && 
