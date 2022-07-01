@@ -83,8 +83,8 @@ namespace SentienceLab
 				// actually change parameter
 
 				var rb  = m_physicsGrabScript.GetActiveRigidbody();
-				var irb = rb.GetComponent<InteractiveRigidbody>();
-				if ((Mathf.Abs(m_rotation) > 1) && (irb != null) && irb.CanScale)
+				var irb = (rb != null) ? rb.GetComponent<InteractiveRigidbody>() : null;
+				if ( (irb != null) && irb.CanScale && (Mathf.Abs(m_rotation) > 1) )
 				{
 					float relScaleFactor = 1.0f + Curve.Evaluate(m_rotation) * Time.fixedDeltaTime;
 					float oldScale = irb.Rigidbody.transform.localScale.x;
