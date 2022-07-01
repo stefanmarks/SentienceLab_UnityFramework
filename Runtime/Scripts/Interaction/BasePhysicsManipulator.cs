@@ -53,7 +53,8 @@ namespace SentienceLab
 				this.enabled = false;
 			}
 
-			m_touchedBody = null;
+			m_candidateBody = null;
+			m_touchedBody   = null;
 			m_activeBody    = null;
 		}
 
