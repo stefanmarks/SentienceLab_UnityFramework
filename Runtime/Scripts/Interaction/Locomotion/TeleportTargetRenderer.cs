@@ -55,8 +55,13 @@ namespace SentienceLab
 			}
 
 			// hide indicators for now
-			ValidTargetIndicator.gameObject.SetActive(false);
-			InvalidTargetIndicator.gameObject.SetActive(false);
+			HideMarkers();
+		}
+
+
+		public void OnDisable()
+		{
+			HideMarkers();
 		}
 
 
@@ -131,11 +136,18 @@ namespace SentienceLab
 			}
 			else
 			{
-				ValidTargetIndicator.gameObject.SetActive(false);
-				InvalidTargetIndicator.gameObject.SetActive(false);
-				m_pointSnap = true; // snap the target when it becomes valid again
+				HideMarkers();
 			}
 		}
+
+
+		protected void HideMarkers()
+		{
+			if (ValidTargetIndicator   != null) ValidTargetIndicator.gameObject.SetActive(false);
+			if (InvalidTargetIndicator != null) InvalidTargetIndicator.gameObject.SetActive(false);
+			m_pointSnap = true; // snap the target when it becomes visible again
+		}
+
 
 		protected BaseTeleportController m_controller;
 		protected Vector3                m_prevPoint, m_pointVel;
