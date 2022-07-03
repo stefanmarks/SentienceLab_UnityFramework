@@ -47,6 +47,7 @@ namespace SentienceLab
 				action.action.started   += OnActionStarted;
 				action.action.performed += OnActionPerformed;
 				action.action.canceled  += OnActionCanceled;
+				action.action.Enable();
 			}
 		}
 
