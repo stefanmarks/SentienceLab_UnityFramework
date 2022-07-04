@@ -19,6 +19,9 @@ namespace SentienceLab
 		[Tooltip("Default rigidbody that is manipulated when not touching any object (e.g., the only main object in the scene)")]
 		public Rigidbody DefaultRigidBody = null;
 
+		[Tooltip("Layer mask of objects to consider for manipulation")]
+		public LayerMask LayerMask = Physics.AllLayers;
+
 
 		public override void Start()
 		{
@@ -27,23 +30,32 @@ namespace SentienceLab
 		}
 
 
-		public void OnTriggerEnter(Collider other)
+		public void OnTriggerEnter(Collider _other)
 		{
-			var rb = other.GetComponentInParent<Rigidbody>();
-			SetCandidate(rb, this.transform.position);
+			if (((1 << _other.gameObject.layer) & LayerMask.value) != 0)
+			{
+				var rb = _other.GetComponentInParent<Rigidbody>();
+				SetCandidate(rb, this.transform.position);
+			}
 		}
 
 
-		public void OnTriggerStay(Collider other)
+		public void OnTriggerStay(Collider _other)
 		{
-			var rb = other.GetComponentInParent<Rigidbody>();
-			SetCandidate(rb, this.transform.position);
+			if ((1 << (_other.gameObject.layer) & LayerMask.value) != 0)
+			{
+				var rb = _other.GetComponentInParent<Rigidbody>();
+				SetCandidate(rb, this.transform.position);
+			}
 		}
 
 
-		public void OnTriggerExit(Collider other)
+		public void OnTriggerExit(Collider _other)
 		{
-			SetCandidate(null, Vector3.zero);
+			if ((1 << (_other.gameObject.layer) & LayerMask.value) != 0)
+			{
+				SetCandidate(null, Vector3.zero);
+			}
 		}
 	}
 }
