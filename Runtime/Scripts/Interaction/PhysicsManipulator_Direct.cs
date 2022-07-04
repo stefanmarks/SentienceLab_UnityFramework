@@ -32,7 +32,7 @@ namespace SentienceLab
 
 		public void OnTriggerEnter(Collider _other)
 		{
-			if (((1 << _other.gameObject.layer) & LayerMask.value) != 0)
+			if (LayerMaskMatches(_other))
 			{
 				var rb = _other.GetComponentInParent<Rigidbody>();
 				SetCandidate(rb, this.transform.position);
@@ -42,7 +42,7 @@ namespace SentienceLab
 
 		public void OnTriggerStay(Collider _other)
 		{
-			if ((1 << (_other.gameObject.layer) & LayerMask.value) != 0)
+			if (LayerMaskMatches(_other))
 			{
 				var rb = _other.GetComponentInParent<Rigidbody>();
 				SetCandidate(rb, this.transform.position);
@@ -52,10 +52,16 @@ namespace SentienceLab
 
 		public void OnTriggerExit(Collider _other)
 		{
-			if ((1 << (_other.gameObject.layer) & LayerMask.value) != 0)
+			if (LayerMaskMatches(_other))
 			{
 				SetCandidate(null, Vector3.zero);
 			}
+		}
+		
+		
+		protected bool LayerMaskMatches(Collider _other)
+		{
+			return (1 << (_other.gameObject.layer) & LayerMask.value) != 0;
 		}
 	}
 }
