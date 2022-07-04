@@ -16,6 +16,9 @@ namespace SentienceLab
 	[RequireComponent(typeof(Collider))]
 	public class TriggerEvent : MonoBehaviour
 	{
+		[Tooltip("Layer mask for objects eligible to trigger")]
+		public LayerMask LayerMask = Physics.AllLayers;
+
 		[Tooltip("GameObject tags to react to. If empty, react to any object")]
 		[TagSelector]
 		public string[] TagNames = { };
@@ -40,7 +43,7 @@ namespace SentienceLab
 		
 		public void OnTriggerEnter(Collider _other)
 		{
-			if (this.isActiveAndEnabled && TagMatches(_other))
+			if (this.isActiveAndEnabled && LayerMaskAndTagMatches(_other) )
 			{
 				events.OnTriggerEnter.Invoke(_other);
 			}
@@ -48,19 +51,26 @@ namespace SentienceLab
 
 		public void OnTriggerExit(Collider _other)
 		{
-			if (this.isActiveAndEnabled && TagMatches(_other))
+			if (this.isActiveAndEnabled && LayerMaskAndTagMatches(_other))
 			{
 				events.OnTriggerExit.Invoke(_other);
 			}
 		}
 
 		
-		private bool TagMatches(Collider _other)
+		protected bool LayerMaskAndTagMatches(Collider _other)
 		{
 			bool matches = true;
 
-			if ((TagNames != null) && (TagNames.Length > 0))
+			if ((1 << (_other.gameObject.layer) & LayerMask.value) == 0)
 			{
+				// wrong layer
+				matches = false;
+			}
+
+			if (matches && (TagNames != null) && (TagNames.Length > 0))
+			{
+				// tag names are given > check the list
 				matches = false;
 				foreach (var tag in TagNames)
 				{
