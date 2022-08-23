@@ -16,9 +16,12 @@ namespace SentienceLab
 	[RequireComponent(typeof(Collider))]
 	public class CollisionEvent : MonoBehaviour
 	{
+		[Tooltip("Layer mask for objects eligible to trigger")]
+		public LayerMask LayerMask = Physics.AllLayers;
+
 		[Tooltip("GameObject tags to react to. If empty, react to any object")]
 		[TagSelector]
-		public string[] TagNames;
+		public string[] TagNames = { };
 
 		[System.Serializable]
 		public struct Events 
@@ -40,7 +43,7 @@ namespace SentienceLab
 
 		public void OnCollisionEnter(Collision _collision)
 		{
-			if (this.isActiveAndEnabled && TagMatches(_collision.collider))
+			if (this.isActiveAndEnabled && LayerMaskAndTagMatches(_collision.collider))
 			{
 				events.OnColliderEnter.Invoke(_collision);
 			}
@@ -49,19 +52,26 @@ namespace SentienceLab
 
 		public void OnCollisionExit(Collision _collision)
 		{
-			if (this.isActiveAndEnabled && TagMatches(_collision.collider))
+			if (this.isActiveAndEnabled && LayerMaskAndTagMatches(_collision.collider))
 			{
 				events.OnColliderExit.Invoke(_collision);
 			}
 		}
 
 		
-		private bool TagMatches(Collider _other)
+		protected bool LayerMaskAndTagMatches(Collider _other)
 		{
 			bool matches = true;
 
-			if ((TagNames != null) && (TagNames.Length > 0))
+			if ((1 << (_other.gameObject.layer) & LayerMask.value) == 0)
 			{
+				// wrong layer
+				matches = false;
+			}
+
+			if (matches && (TagNames != null) && (TagNames.Length > 0))
+			{
+				// tag names are given > check the list
 				matches = false;
 				foreach (var tag in TagNames)
 				{
@@ -72,7 +82,7 @@ namespace SentienceLab
 					}
 				}
 			}
-			
+
 			return matches;
 		}
 	}
