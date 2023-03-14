@@ -4,6 +4,7 @@
 #endregion Copyright Information
 
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace SentienceLab
 {
@@ -21,6 +22,9 @@ namespace SentienceLab
 	[AddComponentMenu("SentienceLab/Interaction/Locomotion/Redirected Walking")]
 	public class RedirectedWalking : MonoBehaviour
 	{
+		[Tooltip("Activate redirecting")]
+		public bool Active;
+
 		[Tooltip("The node that represents the user's head")]
 		public Transform HeadObject;
 
@@ -42,7 +46,32 @@ namespace SentienceLab
 		[Tooltip("How much does translation affect rotation and vice versa")]
 		public float TranslationRotationCrossoverFactor = 0.2f;
 
-		
+		[System.Serializable]
+		public class Events
+		{
+			[Tooltip("Event fired when the redirecting starts")]
+			public UnityEvent OnRedirectingStart;
+
+			[Tooltip("Event fired during redirecting")]
+			public UnityEvent<float> OnRedirectingProgress;
+			
+			[Tooltip("Event fired when the redirecting finishes")]
+			public UnityEvent OnRedirectingEnd;
+		}
+
+		public Events events;
+
+
+		public void StartRedirecting()
+		{
+			Active = true;
+		}
+
+		public void EndRedirecting()
+		{
+			Active = false;
+		}
+
 		public void Start()
 		{
 			if (HeadObject == null)
@@ -56,35 +85,68 @@ namespace SentienceLab
 				// fallback: this object
 				TrackingSpace = this.transform;
 			}
+
+			m_active = false;
 		}
 
 
 		public void Update()
 		{
-			// don't start warping immediately
-			if (Time.frameCount > 10)
+			// avoid working at all at the very beginning to avoid sudden jumps
+			if (Time.frameCount < 10) return;
+
+			if (Active)
 			{
+				if (!m_active)
+				{
+					// just activated > send event
+					events.OnRedirectingStart.Invoke();
+					m_active = true;
+					m_trackingSpaceStartPosition = TrackingSpace.transform.position;
+					m_trackingSpaceStartRotation = TrackingSpace.transform.rotation.eulerAngles.y;
+				}
+
 				// how much did the head move
-				Vector3 deltaT = HeadObject.position - m_oldPosition;
+				Vector3 deltaT = HeadObject.position - m_oldHeadPosition;
 
 				// how much did the head rotate
-				float deltaR = AngleDifference(HeadObject.rotation.eulerAngles.y, m_oldRotation);
+				float deltaR = AngleDifference(HeadObject.rotation.eulerAngles.y, m_oldHeadRotation);
 
-				m_targetReached &= WarpTranslation(deltaT, deltaR);
-				m_targetReached &= WarpRotation(deltaT, deltaR);
+				// warp
+				float progressT = WarpTranslation(deltaT, deltaR);
+				float progressR = WarpRotation(deltaT, deltaR);
+
+				// signal progress
+				float progress = Mathf.Min(progressT, progressR);
+				events.OnRedirectingProgress.Invoke(progress);
+				if (progress >= 1.0f)
+				{
+					// reached goal > deactivate (which will send event next frame)
+					Active = false;
+				}
 			}
-			m_oldPosition = HeadObject.position;
-			m_oldRotation = HeadObject.rotation.eulerAngles.y;
+			else // not active
+			{
+				if (m_active)
+				{
+					// just deactivated > send event
+					events.OnRedirectingEnd.Invoke();
+					m_active = false;
+				}
+			}
+
+			// remember current head position for next delta calculation
+			m_oldHeadPosition = HeadObject.position;
+			m_oldHeadRotation = HeadObject.rotation.eulerAngles.y;
 		}
 
 
-		private bool WarpTranslation(Vector3 deltaT, float deltaR)
+		private float WarpTranslation(Vector3 deltaT, float deltaR)
 		{
-			bool targetReached = true;
+			float progress = 1.0f;
 			Vector3 targetVector = TranslationTarget - TrackingSpace.position;
 			if (targetVector.sqrMagnitude > 0)
 			{
-				targetReached = false;
 				// only find the bit in the actual correction direction (project onto direction vector)
 				deltaT = Vector3.Project(deltaT, targetVector.normalized);
 				// determine amount of influence
@@ -95,18 +157,21 @@ namespace SentienceLab
 				// apply delta
 				Vector3 offset = targetVector.normalized * diff;
 				TrackingSpace.position += offset;
+				// calculate progress
+				float overall = (TranslationTarget - m_trackingSpaceStartPosition).magnitude;
+				float current = (TranslationTarget - TrackingSpace.position      ).magnitude;
+				progress = 1.0f - (current / overall);
 			}
-			return targetReached;
+			return progress;
 		}
 
 
-		private bool WarpRotation(Vector3 deltaT, float deltaR)
+		private float WarpRotation(Vector3 deltaT, float deltaR)
 		{
-			bool targetReached = true;
+			float progress = 1.0f;
 			float targetRotation = AngleDifference(RotationTarget, TrackingSpace.rotation.eulerAngles.y);
 			if (Mathf.Abs(targetRotation) > 0)
 			{
-				targetReached = false;
 				// determine amount of influence
 				float diff = Mathf.Abs(deltaR) * RotationModificationFactor;
 				diff += deltaT.magnitude * Mathf.Rad2Deg * TranslationModificationFactor * TranslationRotationCrossoverFactor;
@@ -115,8 +180,12 @@ namespace SentienceLab
 				// apply delta
 				float offset = Mathf.Sign(targetRotation) * diff;
 				TrackingSpace.RotateAround(HeadObject.position, Vector3.up, offset);
+				// calculate progress
+				float overall = AngleDifference(RotationTarget, m_trackingSpaceStartRotation);
+				float current = AngleDifference(RotationTarget, TrackingSpace.rotation.eulerAngles.y);
+				progress = 1.0f - (current / overall);
 			}
-			return targetReached;
+			return progress;
 		}
 
 
@@ -129,11 +198,10 @@ namespace SentienceLab
 		}
 
 
-		public bool TargetReached { get { return m_targetReached; } private set { } }
-
-
-		private Vector3 m_oldPosition;
-		private float   m_oldRotation;
-		private bool    m_targetReached;
+		private Vector3 m_trackingSpaceStartPosition;
+		private float   m_trackingSpaceStartRotation;
+		private Vector3 m_oldHeadPosition;
+		private float   m_oldHeadRotation;
+		private bool    m_active;
 	}
 }
