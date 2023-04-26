@@ -4,6 +4,7 @@
 #endregion Copyright Information
 
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace SentienceLab
 {
@@ -36,11 +37,26 @@ namespace SentienceLab
 		[Range(0,1)]
 		public float yAxisInfluence = 1.0f;
 
+		[System.Serializable]
+		public class Events
+		{
+			[Tooltip("Event fired when the GoGo modification starts")]
+			public UnityEvent OnGoGoStart;
+
+			[Tooltip("Event fired when the GoGo modification ends")]
+			public UnityEvent OnGoGoEnd;
+		}
+
+		public Events events;
+
 
 		public void Start()
 		{
 			curve.preWrapMode  = WrapMode.Clamp;
 			curve.postWrapMode = WrapMode.Clamp;
+			
+			// assume inactive at start
+			gogoActive = false;
 		}
 
 
@@ -58,7 +74,7 @@ namespace SentienceLab
 
 			// calculate distance and GoGo-factor
 			Vector3 distVec = pos;
-			float scaleFactor = curve.Evaluate(distVec.magnitude);
+			float scaleFactor = Mathf.Max(1.0f, curve.Evaluate(distVec.magnitude));
 
 			// scale object position
 			pos.x *= scaleFactor;
@@ -68,6 +84,20 @@ namespace SentienceLab
 			// turn back to absolute coordinate and apply
 			pos += offset;
 			transform.position = pos;
+
+			// determine active status (scale factor > 1 with a little bit of hystheresis)
+			if (!gogoActive && (scaleFactor > 1.01f))
+			{
+				if (events != null) events.OnGoGoStart.Invoke();
+				gogoActive = true;
+			}
+			else if (gogoActive && Mathf.Approximately(scaleFactor, 1.0f))
+			{ 
+				if (events != null) events.OnGoGoEnd.Invoke();
+				gogoActive = false;
+			}
 		}
+
+		protected bool gogoActive;
 	}
 }
