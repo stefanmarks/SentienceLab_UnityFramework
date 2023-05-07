@@ -23,13 +23,19 @@ namespace SentienceLab
 				if (ms_instance == null)
 				{
 					ms_instance = FindObjectOfType<MainThreadTaskDispatcher>();
+					if (ms_instance == null)
+					{
+						// not instance found > just make your own then
+						GameObject go = new GameObject("MainThreadTasjkDispatcher");
+						ms_instance   = go.AddComponent<MainThreadTaskDispatcher>();
+					}
 				}
 				return ms_instance;
 			}
 		}
 
 
-		void Awake()
+		public void Awake()
 		{
 			if (ms_instance == null)
 			{
