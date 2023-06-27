@@ -2,7 +2,7 @@
   "name": "nz.ac.aut.sentiencelab",
   "displayName": "SentienceLab Unity Framework",
   "version": "1.7.0",
-  "unity": "2021.3",
+  "unity": "2022.3",
   "description": "A collection of useful components and assets for XR Unity Development",
   "keywords": [
     "ar",

@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## [1.7] - 2023-03-01
+
+### Added
+
+- GameObject related events (enable/disable)
+
+### Changed
+
+- Extended timer functionality (restart, pause, sending values to text elements)
+
+
 ## [1.6] - 2021-12-12
 
 ### Added
@@ -15,11 +26,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- All events are now in their own event subsection
+- Progress in RedirectedWalking
+- ScreenFade works in instanced rendering
+- Layers considered in collision and trigger events
 - Moved locomotion-related scripts into different menu folder.
 - Reworked Teleportation related scripts (only one controller script, separate renderer).
 - Refactored Physics manipulator scripts. ``PhysicsGrab`` is now ``PhysicsManipulator_Direct``. ``PhysicsManipulator`` is now ``PhysicsManipulator_Ray``.
 - Reorganised components related to events:
-  - Moved to subfolder ``Ēvents``.
+  - Moved to subfolder ``Events``.
   - ``ActionEvent_InputSystem`` is now ``InputActionEvent``
   - Toggle aspect separated from ``InputActionEvent`` into ``ToggleEvent`` component.
   - In case of several events for a component, they are now all grouped.
