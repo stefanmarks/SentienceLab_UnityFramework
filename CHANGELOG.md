@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 
+- Minimum Unity version 2022.3
 - Extended timer functionality (restart, pause, sending values to text elements)
 
 
