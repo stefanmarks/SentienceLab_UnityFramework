@@ -16,7 +16,7 @@ namespace SentienceLab
 	[AddComponentMenu("SentienceLab/Interaction/Locomotion/Teleport Target")]
 	[DisallowMultipleComponent]
 
-	public class TeleportTarget : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
+	public class TeleportTarget : MonoBehaviour
 	{
 		[Tooltip("How is the orientation and view direction determined after teleport")]
 		public Teleporter.OrientationAlignmentMode OrientationAlignmentMode = Teleporter.OrientationAlignmentMode.KeepOrientation;
@@ -30,18 +30,9 @@ namespace SentienceLab
 		[System.Serializable]
 		public class Events
 		{
-			[Tooltip("Event fired when a teleport controller starts aiming at this teleporter")]
-			public UnityEvent OnStartAiming;
-
-			[Tooltip("Event fired when a teleport controller stops aiming at this teleporter")]
-			public UnityEvent OnEndAiming;
-
 			[Tooltip("Event fired when teleporting to this target")]
 			public UnityEvent OnTeleport;
 		}
-
-		// active teleport controller aiming at this target
-		public BaseTeleportController AimingController { get; protected set; }
 
 
 		public void Start()
@@ -50,48 +41,9 @@ namespace SentienceLab
 		}
 
 
-		public void TeleportControllerStartsAiming(BaseTeleportController _controller)
-		{
-			AimingController = _controller;
-			events.OnStartAiming?.Invoke();
-		}
-
-
-		public void TeleportControllerEndsAiming(BaseTeleportController _)
-		{
-			events.OnEndAiming?.Invoke();
-			AimingController = null;
-		}
-
-
-		public void TeleportControllerInvokesTeleport(BaseTeleportController _)
+		public void InvokeOnTeleport()
 		{
 			events.OnTeleport?.Invoke();
-		}
-
-
-		public void OnPointerClick(PointerEventData eventData)
-		{
-			// Pointer Down/Up do the work.
-			// This handler's presence makes sure the gaze cursor changes appearance
-		}
-
-
-		public void OnPointerDown(PointerEventData eventData)
-		{
-			if (AimingController != null)
-			{
-				AimingController.OnActionStart();
-			}
-		}
-
-
-		public void OnPointerUp(PointerEventData eventData)
-		{
-			if (AimingController != null)
-			{
-				AimingController.OnActionEnd();
-			}
 		}
 	}
 }

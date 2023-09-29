@@ -187,19 +187,8 @@ namespace SentienceLab
 
 			if (m_currentTarget != newTarget)
 			{
-				// teleport target has changed > invoke event handlers
-				if (m_currentTarget != null)
-				{
-					m_currentTarget.TeleportControllerEndsAiming(this);
-				}
-
 				//Debug.LogFormat("New teleport target '{0}' > '{1}'", m_currentTarget, newTarget);
 				m_currentTarget = newTarget;
-
-				if (m_currentTarget != null)
-				{
-					m_currentTarget.TeleportControllerStartsAiming(this);
-				}
 			}
 
 			if (m_currentTarget == null || m_currentTarget.DisableTeleporting)
@@ -216,7 +205,7 @@ namespace SentienceLab
 					if (target != null)
 					{
 						m_teleporter.Teleport(target, m_currentHit.point, m_currentHit.normal);
-						m_currentTarget.TeleportControllerInvokesTeleport(this);
+						m_currentTarget.InvokeOnTeleport();
 						events.OnTeleport.Invoke();
 						// reset current target to allow re-enabling it in next frame
 						m_resetTarget = true;

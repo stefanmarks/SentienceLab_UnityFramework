@@ -84,7 +84,15 @@ namespace SentienceLab
 					m_fireStartEvent = false;
 				}
 
-				m_transition.Update(this.transform);
+				if (m_transition.Update(this.transform))
+				{
+					// teleport has happened (or finished) > if there was a target, let it know
+					if (m_target != null)
+					{
+						m_target.InvokeOnTeleport();
+						m_target = null;
+					}
+				}
 
 				if (m_transition.IsFinished())
 				{
@@ -128,6 +136,7 @@ namespace SentienceLab
 		/// 
 		public void Teleport(TeleportTarget target, Vector3 desiredPosition, Vector3 desiredUp)
 		{
+			m_target = target;
 			switch (target.OrientationAlignmentMode)
 			{
 				case OrientationAlignmentMode.KeepOrientation:
@@ -264,13 +273,14 @@ namespace SentienceLab
 		}
 
 
-		private ITransition m_transition;
-		private bool        m_fireStartEvent;
+		private ITransition    m_transition;
+		private TeleportTarget m_target;
+		private bool           m_fireStartEvent;
 
 
 		private interface ITransition
 		{
-			void Update(Transform offsetObject);
+			bool Update(Transform offsetObject);
 			bool IsFinished();
 			void Cleanup();
 		}
@@ -287,16 +297,19 @@ namespace SentienceLab
 				m_progress = 0;
 				m_moved = false;
 
-				// create fade effect
-				m_fadeEffects = ScreenFade.AttachToAllCameras();
-				foreach (ScreenFade fade in m_fadeEffects)
+				// are there any fade effects already?
+				m_fadeEffects = new List<ScreenFade>(FindObjectsOfType<ScreenFade>(true));
+				if (m_fadeEffects.Count == 0)
 				{
-					fade.FadeColour = Color.black;
+					// if none exist, brute-force create fade effect on all cameras
+					m_fadeEffects = ScreenFade.AttachToAllCameras();
 				}
 			}
 
-			public void Update(Transform offsetObject)
+			public bool Update(Transform offsetObject)
 			{
+				bool teleportHappened = false;
+
 				// move immediately to B when fade is half way (all black)
 				m_progress += Time.deltaTime / m_duration;
 				m_progress  = Math.Min(1, m_progress);
@@ -305,13 +318,18 @@ namespace SentienceLab
 					offsetObject.position = m_endPoint;
 					offsetObject.rotation = m_endRotation;
 					m_moved = true; // only move once
+					teleportHappened = true;
 				}
 
-				float fadeFactor = 1.0f - Math.Abs(m_progress * 2 - 1); // from [0....1....0]
+				// calculate fade factor from progress [0 ... 0.5 ... 1] as [0 ... 1 ... 0]
+				// with a slight plateau around the middle to make sure it's black for more than one frame
+				float fadeFactor = Mathf.Min(1.0f, (1.1f - 1.1f * Math.Abs(m_progress * 2.0f - 1.0f))); 
 				foreach (ScreenFade fade in m_fadeEffects)
 				{
 					fade.FadeFactor = fadeFactor;
 				}
+
+				return teleportHappened;
 			}
 
 			public bool IsFinished()
@@ -321,10 +339,7 @@ namespace SentienceLab
 
 			public void Cleanup()
 			{
-				foreach (ScreenFade fade in m_fadeEffects)
-				{
-					GameObject.Destroy(fade);
-				}
+				// nothing to do
 			}
 
 
@@ -354,7 +369,7 @@ namespace SentienceLab
 				m_progress = 0;
 			}
 
-			public void Update(Transform offsetObject)
+			public bool Update(Transform offsetObject)
 			{
 				// move from A to B
 				m_progress += Time.deltaTime / m_duration;
@@ -363,6 +378,8 @@ namespace SentienceLab
 				float lerpFactor = m_smooth ? (float)Math.Pow(Math.Sin(m_progress * Math.PI / 2), 2) : m_progress;
 				offsetObject.position = Vector3.Lerp(m_startPoint, m_endPoint, lerpFactor);
 				offsetObject.rotation = Quaternion.Slerp(m_startRotation, m_endRotation, lerpFactor);
+
+				return IsFinished();
 			}
 
 			public bool IsFinished()
