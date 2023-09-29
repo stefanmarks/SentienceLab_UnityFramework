@@ -291,14 +291,6 @@ public class GazeInputModule : BaseInputModule
 		bool       isInteractive        = (pointerData.pointerPress != null) ||
 		                                  ExecuteEvents.GetEventHandler<IPointerClickHandler>(gazeObject) != null;
 
-		// consider teleport targets out of range 
-		TeleportTarget tt = (gazeObject != null) ? gazeObject.GetComponentInParent<TeleportTarget>() : null;
-		if ((tt != null) && (tt.AimingController == null))
-		{
-			// teleport target, but not considered by the teleport controller
-			isInteractive = false;
-		}
-
 		if (gazeObject == previousGazedObject)
 		{
 			if (gazeObject != null)
