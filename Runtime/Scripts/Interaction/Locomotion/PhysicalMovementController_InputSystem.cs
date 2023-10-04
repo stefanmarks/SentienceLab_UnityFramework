@@ -53,6 +53,18 @@ namespace SentienceLab
 		}
 
 
+		public void SetTranslationForce(float _force)
+		{
+			TranslationForce = _force;
+		}
+
+
+		public void SetRotationTorque(float _torque)
+		{
+			RotationTorque = _torque;
+		}
+
+
 		public void FixedUpdate() 
 		{
 			// Rotation
