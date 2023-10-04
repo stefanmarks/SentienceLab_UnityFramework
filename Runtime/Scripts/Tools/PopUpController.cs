@@ -13,6 +13,8 @@ namespace SentienceLab
 	/// linking a PointerEnter event to "TriggerAppearance" and a PointerExit event to "TriggerDisappearance".
 	/// </summary>
 	/// 
+	[AddComponentMenu("SentienceLab/Tools/Popup Controller")]
+	
 	public class PopUpController : MonoBehaviour
 	{
 		[Tooltip("The game object to appear/disappear")]
