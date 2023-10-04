@@ -12,6 +12,12 @@ using UnityEngine.SceneManagement;
 
 namespace SentienceLab
 {
+	/// <summary>
+	/// Script for managing and loading scenes, including fading between the transitions.
+	/// </summary>
+	///
+	[AddComponentMenu("SentienceLab/Tools/Scene Loader")]
+	
 	public class SceneLoader : MonoBehaviour
 	{
 		public List<string>   ScenesToLoad = null;
@@ -74,19 +80,26 @@ namespace SentienceLab
 		public IEnumerator LoadSceneWorker()
 		{
 			string thisScene = SceneManager.GetActiveScene().name;
-			Debug.LogFormat(
-				"Scene {0} attaching ScreenFade effect to cameras",
-				thisScene);
-			// create fade effect
-			List<ScreenFade> fadeEffects = ScreenFade.AttachToAllCameras();
-			foreach (ScreenFade fade in fadeEffects)
-			{
-				fade.FadeColour = FadeColour;
-			}
 
+			// are there any fade effects already?
+			List<ScreenFade> fadeEffects = new List<ScreenFade>(FindObjectsOfType<ScreenFade>(true));
+			if (fadeEffects.Count == 0)
+			{
+				// if none exist, brute-force create fade effect on all cameras
+				Debug.LogFormat(
+					"Scene {0} attaching ScreenFade effect to cameras",
+					thisScene);
+				fadeEffects = ScreenFade.AttachToAllCameras();
+				foreach (ScreenFade fade in fadeEffects)
+				{
+					fade.FadeColour = FadeColour;
+				}
+			}
+			
 			Debug.LogFormat(
-				"Scene {0} fading to black",
+				"Scene {0} fading out",
 				thisScene);
+
 			float fadeFactor = 0;
 			while (fadeFactor < 1)
 			{

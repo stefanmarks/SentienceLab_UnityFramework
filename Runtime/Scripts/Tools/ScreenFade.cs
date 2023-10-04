@@ -5,17 +5,15 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
 
-namespace SentienceLab.PostProcessing
+namespace SentienceLab
 {
 	/// <summary>
 	/// Class for fading the screen using postprocessing.
 	/// </summary>
-
-	[DisallowMultipleComponent]
+	///
 	[RequireComponent(typeof(Camera))]
-	[AddComponentMenu("Effects/Screen Fade")]
+	[AddComponentMenu("SentienceLab/Effects/Screen Fade")]
 
 	public class ScreenFade : MonoBehaviour
 	{
