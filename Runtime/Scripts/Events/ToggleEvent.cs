@@ -39,10 +39,13 @@ namespace SentienceLab
 
 		public void SetState(bool _newState)
 		{
+			if (_newState != State)
+			{ 
 			State = _newState;
 
 			if (State) events.OnToggleOn.Invoke();
 			else       events.OnToggleOff.Invoke();
+			}
 		}
 	}
 }
