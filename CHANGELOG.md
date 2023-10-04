@@ -11,12 +11,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 - GameObject related events (enable/disable)
+- Added some tool scripts from CTEC601 (VolumeSpawner, Footsteps, Sun Control, etc.)
 
 ### Changed
 
 - Minimum Unity version 2022.3
 - Extended timer functionality (restart, pause, sending values to text elements)
-
+- Added more Component menu entries
+- Bugfix in ToggleEvent to fire events only when state actually changes
 
 ## [1.6] - 2021-12-12
 
