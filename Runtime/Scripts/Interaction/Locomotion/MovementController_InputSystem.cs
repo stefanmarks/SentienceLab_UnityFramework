@@ -52,6 +52,7 @@ namespace SentienceLab
 		{
 			m_vecTranslate = Vector3.zero;
 			m_vecRotate = Vector3.zero;
+			m_inputCooldown = 10;  // don't immediately process input (e.g., initial mouse delta causing large jump)
 
 			if (RotationBasisNode == null)
 			{
@@ -68,6 +69,8 @@ namespace SentienceLab
 
 		public void Update() 
 		{
+			if (m_inputCooldown > 0) { m_inputCooldown--; return; }
+
 			// Rotation
 			Vector3 vecR = Vector3.zero;
 			vecR.x = (actionRotateX != null) ? actionRotateX.action.ReadValue<float>() : 0;
@@ -107,5 +110,6 @@ namespace SentienceLab
 
 		private Vector3 m_vecTranslate;
 		private Vector3 m_vecRotate;
+		private int     m_inputCooldown;
 	}
 }
