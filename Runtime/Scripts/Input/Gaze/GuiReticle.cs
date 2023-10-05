@@ -48,6 +48,7 @@ namespace SentienceLab
 			if (reticleFuse != null)
 			{
 				reticleFuse.fillAmount = fuseProgress;
+				reticleFuse.gameObject.SetActive(fuseProgress > 0);
 			}
 		}
 
@@ -161,7 +162,7 @@ namespace SentienceLab
 		{
 			reticleNeutral.gameObject.SetActive(!interactive);
 			reticleActive.gameObject.SetActive(interactive);
-			reticleFuse.gameObject.SetActive(interactive);
+			if (!interactive) reticleFuse.gameObject.SetActive(false);
 		}
 
 

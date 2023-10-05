@@ -243,10 +243,15 @@ public class GazeInputModule : BaseInputModule
 
 		if (DrawDebugGazeRay && (pointerData.enterEventCamera != null))
 		{
+			Color      col = Color.red;
+			GameObject go  = pointerData.pointerCurrentRaycast.gameObject;
+			GameObject pch = (go != null) ? ExecuteEvents.GetEventHandler<IPointerClickHandler>(go) : null;
+			if (pch          != null               ) { col = Color.yellow; }
+			if (triggerState == TriggerState.Active) { col = Color.green;  }
 			Debug.DrawLine(
 				pointerData.enterEventCamera.transform.position,
 				pointerData.pointerCurrentRaycast.worldPosition,
-				Color.red
+				col
 			);
 		}
 
@@ -341,7 +346,7 @@ public class GazeInputModule : BaseInputModule
 				gazeStartTime = Time.unscaledTime;
 				GazeBehaviourModifier gbm = gazeObject.GetComponentInParent<GazeBehaviourModifier>();
 				fuseTime  = (gbm != null) && (gbm.fuseTimeOverride > 0) ? gbm.fuseTimeOverride : defaultFuseTime;
-				fuseState = FuseState.Arming;
+				if (fuseTime > 0) fuseState = FuseState.Arming;
 			}
 		}
 	}
