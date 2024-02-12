@@ -41,10 +41,10 @@ namespace SentienceLab
 		{
 			if (_newState != State)
 			{ 
-			State = _newState;
+				State = _newState;
 
-			if (State) events.OnToggleOn.Invoke();
-			else       events.OnToggleOff.Invoke();
+				if (State) events.OnToggleOn.Invoke();
+				else       events.OnToggleOff.Invoke();
 			}
 		}
 	}

@@ -297,7 +297,7 @@ namespace SentienceLab
 				m_moved = false;
 
 				// are there any fade effects already?
-				m_fadeEffects = new List<ScreenFade>(FindObjectsOfType<ScreenFade>(true));
+				m_fadeEffects = new(FindObjectsByType<ScreenFade>(FindObjectsInactive.Include, FindObjectsSortMode.None));
 				if (m_fadeEffects.Count == 0)
 				{
 					// if none exist, brute-force create fade effect on all cameras

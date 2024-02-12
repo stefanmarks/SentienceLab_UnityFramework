@@ -73,7 +73,7 @@ public class GazeInputModule : BaseInputModule
 	public float clickTime = 0.1f;  // Based on default time for a button to animate to Pressed.
 
 	/// The pixel through which to cast rays, in viewport coordinates.  Generally, the center
-	/// pixel is best, assuming a monoscopic camera is selected as the `Canvas`' event camera.
+	/// pixel is best, assuming a monoscopic camera is selected as the `Canvas` event camera.
 	[HideInInspector]
 	public Vector2 hotspot = new Vector2(0.5f, 0.5f);
 

@@ -28,7 +28,7 @@ namespace SentienceLab
 		public void SetTrackingOriginMode(TrackingOriginModeFlags _mode)
 		{
 			List<XRInputSubsystem> inputSubsystems = new List<XRInputSubsystem>();
-			SubsystemManager.GetInstances<XRInputSubsystem>(inputSubsystems);
+			SubsystemManager.GetSubsystems<XRInputSubsystem>(inputSubsystems);
 			foreach (var subsystem in inputSubsystems)
 			{
 				if (!subsystem.TrySetTrackingOriginMode(_mode))

@@ -88,7 +88,7 @@ namespace SentienceLab
 			// Unity 2019.3 > Check XR Input Subsystem for chaperone bounds
 
 			List<XRInputSubsystem> xrSubsystems = new List<XRInputSubsystem>();
-			SubsystemManager.GetInstances(xrSubsystems);
+			SubsystemManager.GetSubsystems(xrSubsystems);
 
 			foreach (var subsystem in xrSubsystems)
 			{

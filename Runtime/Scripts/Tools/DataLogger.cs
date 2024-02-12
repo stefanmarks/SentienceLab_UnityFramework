@@ -34,7 +34,7 @@ namespace SentienceLab
 				{
 					m_instanceSearched = true;
 					m_consoleLogger = new ConsoleLogger();
-					m_instance = GameObject.FindObjectOfType<DataLogger>();
+					m_instance = FindAnyObjectByType<DataLogger>();
 					if (m_instance != null)
 					{
 						m_instance.OpenLogfile();
