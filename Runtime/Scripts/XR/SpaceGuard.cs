@@ -24,7 +24,7 @@ namespace SentienceLab
 		public bool includeMoCapObjects = true;
 
 		[Tooltip("Additional objects that need to be guarded to stay within the walls.")]
-		public List<Transform> guardedObjects = new List<Transform>();
+		public List<Transform> guardedObjects = new();
 
 		[Tooltip("Material to use for rendering the walls.")]
 		public Material wallMaterial;
@@ -67,7 +67,7 @@ namespace SentienceLab
 			// automatically add all MoCap objects
 			if (includeMoCapObjects)
 			{
-				MoCapObject[] objects = FindObjectsOfType<MoCapObject>();
+				MoCapObject[] objects = FindObjectsByType<MoCapObject>(FindObjectsSortMode.None);
 				foreach (MoCapObject o in objects)
 				{
 					guardedObjects.Add(o.transform);
@@ -87,12 +87,12 @@ namespace SentienceLab
 #if UNITY_2019_3_OR_NEWER
 			// Unity 2019.3 > Check XR Input Subsystem for chaperone bounds
 
-			List<XRInputSubsystem> xrSubsystems = new List<XRInputSubsystem>();
+			List<XRInputSubsystem> xrSubsystems = new();
 			SubsystemManager.GetSubsystems(xrSubsystems);
 
 			foreach (var subsystem in xrSubsystems)
 			{
-				List<Vector3> boundaryPoints = new List<Vector3>();
+				List<Vector3> boundaryPoints = new();
 				if (!foundChaperoneBounds && subsystem.TryGetBoundaryPoints(boundaryPoints))
 				{
 					for (int idx = 0; idx < boundaryPoints.Count; idx++)
@@ -133,8 +133,8 @@ namespace SentienceLab
 			Destroy(quad.GetComponent<Collider>());  // no need for physics
 			Destroy(quad.GetComponent<Rigidbody>());
 
-			Vector3 corner1 = new Vector3(x1, 0, z1);
-			Vector3 corner2 = new Vector3(x2, 0, z2);
+			Vector3 corner1 = new(x1, 0, z1);
+			Vector3 corner2 = new(x2, 0, z2);
 			Vector3 wall = corner2 - corner1;
 			Vector3 centre = 0.5f * (corner2 + corner1) + new Vector3(0, wallHeight / 2, 0);
 			quad.name = name;
@@ -162,8 +162,8 @@ namespace SentienceLab
 			Destroy(quad.GetComponent<Collider>());  // no need for physics
 			Destroy(quad.GetComponent<Rigidbody>());
 
-			Vector3 corner1 = new Vector3(x1, FloorOffsetY, z1);
-			Vector3 corner2 = new Vector3(x2, FloorOffsetY, z2);
+			Vector3 corner1 = new(x1, FloorOffsetY, z1);
+			Vector3 corner2 = new(x2, FloorOffsetY, z2);
 			Vector3 floor = corner2 - corner1;
 			Vector3 centre = 0.5f * (corner2 + corner1);
 			quad.name = "Floor";

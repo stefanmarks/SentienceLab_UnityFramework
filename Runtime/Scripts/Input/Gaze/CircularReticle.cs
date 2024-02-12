@@ -148,7 +148,7 @@ public class CircularReticle : MonoBehaviour, IGazePointer
 
 	private void CreateReticleVertices()
 	{
-		Mesh mesh = new Mesh();
+		Mesh mesh = new();
 		gameObject.AddComponent<MeshFilter>();
 		GetComponent<MeshFilter>().mesh = mesh;
 

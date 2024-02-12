@@ -88,8 +88,8 @@ namespace SentienceLab
 
 		private void ListMicrophones()
 		{
-			string[] microphones = Microphone.devices;
-			StringBuilder sb = new StringBuilder();
+			string[]      microphones = Microphone.devices;
+			StringBuilder sb          = new();
 			foreach (string mic in microphones)
 			{
 				sb.Append("- ").Append(mic).Append("\n");
@@ -103,11 +103,8 @@ namespace SentienceLab
 			if (m_clip == null) return;
 
 			// allocate audio data buffer if not already done
-			if (m_data == null)
-			{
-				// allocate buffer if not yet done
-				m_data = new float[m_clip.samples * m_clip.channels];
-			}
+			m_data ??= new float[m_clip.samples * m_clip.channels];
+
 			// how much data do we have?
 			m_dataPos = Microphone.GetPosition(MicrophoneName);
 			if (m_dataPos != m_prevDataPos)

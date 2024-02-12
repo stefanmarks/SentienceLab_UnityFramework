@@ -75,7 +75,7 @@ public class GazeInputModule : BaseInputModule
 	/// The pixel through which to cast rays, in viewport coordinates.  Generally, the center
 	/// pixel is best, assuming a monoscopic camera is selected as the `Canvas` event camera.
 	[HideInInspector]
-	public Vector2 hotspot = new Vector2(0.5f, 0.5f);
+	public Vector2 hotspot = new(0.5f, 0.5f);
 
 
 
@@ -453,10 +453,7 @@ public class GazeInputModule : BaseInputModule
 		pointerData.clickCount       = 1;
 		pointerData.clickTime        = Time.unscaledTime;
 
-		if (gazePointer != null)
-		{
-			gazePointer.OnGazeTriggerStart(pointerData.enterEventCamera);
-		}
+		gazePointer?.OnGazeTriggerStart(pointerData.enterEventCamera);
 	}
 
 

@@ -112,9 +112,11 @@ namespace SentienceLab
 			if (m_touchedBody != null)
 			{
 				// fire "touch end" events
-				var irb = m_touchedBody.GetComponent<InteractiveRigidbody>();
-				if (irb    != null) irb.InvokeTouchEnd(this.gameObject);
-				if (events != null) events.OnTouchEnd.Invoke(m_touchedBody);
+				if (m_touchedBody.TryGetComponent<InteractiveRigidbody>(out var irb))
+				{
+					irb.InvokeTouchEnd(this.gameObject);
+				}
+				events?.OnTouchEnd.Invoke(m_touchedBody);
 			}
 
 			m_touchedBody = m_candidateBody;
@@ -124,9 +126,11 @@ namespace SentienceLab
 			if (m_touchedBody != null)
 			{
 				// fire "touch start" events
-				var irb = m_touchedBody.GetComponent<InteractiveRigidbody>();
-				if (irb    != null) irb.InvokeTouchStart(this.gameObject);
-				if (events != null) events.OnTouchStart.Invoke(m_touchedBody);
+				if (m_touchedBody.TryGetComponent<InteractiveRigidbody>(out var irb))
+				{
+					irb.InvokeTouchStart(this.gameObject);
+				}
+				events?.OnTouchStart.Invoke(m_touchedBody);
 			}
 		}
 
@@ -202,9 +206,11 @@ namespace SentienceLab
 				}
 
 				// fire grab start events
-				var irb = m_activeBody.GetComponent<InteractiveRigidbody>();
-				if (irb    != null) irb.InvokeGrabStart(this.gameObject);
-				if (events != null) events.OnGrabStart.Invoke(m_activeBody);
+				if (m_activeBody.TryGetComponent<InteractiveRigidbody>(out var irb))
+				{
+					irb.InvokeGrabStart(this.gameObject);
+				}
+				events?.OnGrabStart.Invoke(m_activeBody);
 			}
 			else
 			{
@@ -230,9 +236,11 @@ namespace SentienceLab
 				}
 
 				// fire grab end events
-				var irb = m_activeBody.GetComponent<InteractiveRigidbody>();
-				if (irb    != null) irb.InvokeGrabEnd(this.gameObject);
-				if (events != null) events.OnGrabEnd.Invoke(m_activeBody);
+				if (m_activeBody.TryGetComponent<InteractiveRigidbody>(out var irb))
+				{
+					irb.InvokeGrabEnd(this.gameObject);
+				}
+				events?.OnGrabEnd.Invoke(m_activeBody);
 
 				m_activeBody = null;
 

@@ -22,11 +22,11 @@ namespace SentienceLab
 			{
 				if (ms_instance == null)
 				{
-					ms_instance = FindObjectOfType<MainThreadTaskDispatcher>();
+					ms_instance = FindAnyObjectByType<MainThreadTaskDispatcher>();
 					if (ms_instance == null)
 					{
 						// not instance found > just make your own then
-						GameObject go = new GameObject("MainThreadTasjkDispatcher");
+						GameObject go = new("MainThreadTaskDispatcher");
 						ms_instance   = go.AddComponent<MainThreadTaskDispatcher>();
 					}
 				}
@@ -68,6 +68,6 @@ namespace SentienceLab
 
 
 		private static          MainThreadTaskDispatcher ms_instance    = null;
-		private static readonly Queue<Action>            ms_actionQueue = new Queue<Action>();
+		private static readonly Queue<Action>            ms_actionQueue = new();
 	}
 }

@@ -50,8 +50,8 @@ namespace SentienceLab
 
 		public void Start()
 		{
-			m_vecTranslate = Vector3.zero;
-			m_vecRotate = Vector3.zero;
+			m_vecTranslate  = Vector3.zero;
+			m_vecRotate     = Vector3.zero;
 			m_inputCooldown = 10;  // don't immediately process input (e.g., initial mouse delta causing large jump)
 
 			if (RotationBasisNode == null)
@@ -59,11 +59,11 @@ namespace SentienceLab
 				RotationBasisNode = this.transform;
 			}
 
-			if (actionMoveX   != null) { actionMoveX.action.Enable(); }
-			if (actionMoveY   != null) { actionMoveY.action.Enable(); }
-			if (actionMoveZ   != null) { actionMoveZ.action.Enable(); }
-			if (actionRotateX != null) { actionRotateX.action.Enable(); }
-			if (actionRotateY != null) { actionRotateY.action.Enable(); }
+			actionMoveX.action?.Enable();
+			actionMoveY.action?.Enable();
+			actionMoveZ.action?.Enable();
+			actionRotateX.action?.Enable();
+			actionRotateY.action?.Enable();
 		}
 
 
@@ -95,17 +95,17 @@ namespace SentienceLab
 			// translate forward (Z)
 			Vector3 v = RotationBasisNode.forward;
 			if (TranslationIgnoresPitch) { v.y = 0; v.Normalize(); }
-			transform.Translate(v * m_vecTranslate.z * TranslationSpeed * Time.deltaTime, Space.World);
+			transform.Translate(m_vecTranslate.z * Time.deltaTime * TranslationSpeed * v, Space.World);
 
 			// translate upwards (Y)
 			v = TranslationIgnoresPitch ? Vector3.up : RotationBasisNode.up;
-			transform.Translate(v * m_vecTranslate.y * TranslationSpeed * Time.deltaTime, Space.World);
+			transform.Translate(m_vecTranslate.y * Time.deltaTime * TranslationSpeed * v, Space.World);
 		
 			// translate sideways (X)
 			v = RotationBasisNode.right; 
 			v.y = 0; // make sure, any roll has no effect
 			v.Normalize();
-			transform.Translate(v * m_vecTranslate.x * TranslationSpeed * Time.deltaTime, Space.World);
+			transform.Translate(m_vecTranslate.x * Time.deltaTime * TranslationSpeed * v, Space.World);
 		}
 
 		private Vector3 m_vecTranslate;

@@ -201,8 +201,7 @@ namespace SentienceLab
 				if (m_teleporter != null)
 				{
 					// we need an active TeleportTarget
-					TeleportTarget target = m_currentHit.transform.gameObject.GetComponent<TeleportTarget>();
-					if (target != null)
+					if (m_currentHit.transform.gameObject.TryGetComponent<TeleportTarget>(out var target))
 					{
 						m_teleporter.Teleport(target, m_currentHit.point, m_currentHit.normal);
 						m_currentTarget.InvokeOnTeleport();
@@ -224,7 +223,7 @@ namespace SentienceLab
 				Vector3 start   = m_trajectory.points[i-1];
 				Vector3 end     = m_trajectory.points[i];
 				float   maxDist = Vector3.Distance(end, start);
-				Ray     tempRay = new Ray(start, end-start);
+				Ray     tempRay = new(start, end-start);
 				Physics.Raycast(tempRay, out m_currentHit, maxDist, Physics.DefaultRaycastLayers);
 				// first hit will stop the loop
 				if ((m_currentHit.distance > 0) && (m_currentHit.transform != null)) break;

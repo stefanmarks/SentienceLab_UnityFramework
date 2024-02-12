@@ -37,9 +37,27 @@ namespace SentienceLab
 		}
 
 		
-		public void InvokeTouchStart(GameObject _other) { if (events != null) events.OnTouchStart.Invoke(this, _other); }
-		public void InvokeTouchEnd(  GameObject _other) { if (events != null) events.OnTouchEnd.Invoke(this, _other); }
-		public void InvokeGrabStart( GameObject _other) { if (events != null) events.OnGrabStart.Invoke(this, _other); }
-		public void InvokeGrabEnd(   GameObject _other) { if (events != null) events.OnGrabEnd.Invoke(this, _other); }
+		public void InvokeTouchStart(GameObject _other) 
+		{
+			events?.OnTouchStart.Invoke(this, _other); 
+		}
+
+
+		public void InvokeTouchEnd(GameObject _other) 
+		{ 
+			events?.OnTouchEnd.Invoke(this, _other); 
+		}
+
+
+		public void InvokeGrabStart(GameObject _other)
+		{ 
+			events?.OnGrabStart.Invoke(this, _other); 
+		}
+
+
+		public void InvokeGrabEnd(GameObject _other) 
+		{ 
+			events?.OnGrabEnd.Invoke(this, _other); 
+		}
 	}
 }
