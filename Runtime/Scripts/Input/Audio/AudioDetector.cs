@@ -3,6 +3,7 @@
 // (C) SentienceLab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
+using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Events;
@@ -17,13 +18,14 @@ namespace SentienceLab
 	public class AudioDetector : MonoBehaviour
 	{
 		[Tooltip("Name of the microphone to use (can be regular expression. empty: use default)")]
+		[ContextMenuItem("List Microphones", "ListMicrophones")]
 		public string MicrophoneName = "";
 
 		[Tooltip("Threshold at which to fire noise/silence detected events")]
 		[Range(0,1)]
 		public float NoiseThreshold = 0.2f;
 
-		[Tooltip("Event fired when the detected volume level is below the noise threshold")]
+		[Tooltip("Event fired when the detected volume level falls below the noise threshold")]
 		public UnityEvent SilenceDetected;
 
 		[Tooltip("Event fired when the noise threshold is exceeded")]
@@ -33,17 +35,22 @@ namespace SentienceLab
 		public void Start()
 		{
 			SelectMicrophone();
-		
-			// Start recording audio in 1s clips, looping
-			m_clip = Microphone.Start(MicrophoneName, true, 1, 44100);
+
+			// Start recording audio in lowest quality in 1s clips, looping
+			Microphone.GetDeviceCaps(MicrophoneName, out int minFreq, out int maxFreq);
+			m_clip = Microphone.Start(MicrophoneName, true, 1, minFreq);
 			if (m_clip == null)
 			{
-				Debug.LogWarning("Could not open microphone");
+				Debug.LogWarningFormat(
+					"Could not open microphone '{0}' with sample rate {1}Hz",
+					MicrophoneName, minFreq);
 				this.enabled = false;
 			}
 			else
 			{
-				Debug.LogFormat("Opened microphone '{0}'", MicrophoneName);
+				Debug.LogFormat(
+					"Opened microphone '{0}' with sample rate {1}Hz", 
+					MicrophoneName, minFreq);
 			}
 
 			m_data = null;
@@ -78,9 +85,23 @@ namespace SentienceLab
 			}
 		}
 
-	
+
+		private void ListMicrophones()
+		{
+			string[] microphones = Microphone.devices;
+			StringBuilder sb = new StringBuilder();
+			foreach (string mic in microphones)
+			{
+				sb.Append("- ").Append(mic).Append("\n");
+			}
+			Debug.Log("Microphones:\n" + sb.ToString());
+		}
+
+
 		public void Update()
 		{
+			if (m_clip == null) return;
+
 			// allocate audio data buffer if not already done
 			if (m_data == null)
 			{
