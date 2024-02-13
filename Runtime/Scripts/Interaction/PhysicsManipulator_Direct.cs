@@ -9,7 +9,7 @@ namespace SentienceLab
 {
 	/// <summary>
 	/// Component for moving a physical object directly by clicking and moving it.
-	/// When clicked, the script will try to maintain the relative position of the rigid body using forces applied to its centre.
+	/// When active, the script will try to maintain the relative position of the rigid body using forces applied to its centre.
 	/// </summary>
 	///
 	[AddComponentMenu("SentienceLab/Interaction/Direct Physics Manipulator")]
