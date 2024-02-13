@@ -71,6 +71,7 @@ namespace SentienceLab
 
 			m_currentHit  = new RaycastHit();
 			m_doAim       = ActivationType == EActivationType.Immediately;
+			m_wasAiming   = false;
 			m_doTeleport  = false;
 			m_resetTarget = false;
 
@@ -187,8 +188,16 @@ namespace SentienceLab
 
 			if (m_currentTarget != newTarget)
 			{
-				//Debug.LogFormat("New teleport target '{0}' > '{1}'", m_currentTarget, newTarget);
+				// Debug.LogFormat("New teleport target '{0}' > '{1}'", m_currentTarget, newTarget);
 				m_currentTarget = newTarget;
+			}
+
+			bool isAiming = IsAimingAtValidTarget;
+			if (isAiming != m_wasAiming)
+			{
+				if (m_wasAiming) events.OnEndAiming.Invoke();
+				if (isAiming   ) events.OnStartAiming.Invoke();
+				m_wasAiming = isAiming;
 			}
 
 			if (m_currentTarget == null || m_currentTarget.DisableTeleporting)
@@ -231,7 +240,7 @@ namespace SentienceLab
 		}
 
 
-		private bool            m_doAim, m_doTeleport;
+		private bool            m_doAim, m_wasAiming, m_doTeleport;
 		private Teleporter      m_teleporter;
 		private Trajectory      m_trajectory;
 		private TeleportTarget  m_currentTarget;

@@ -21,7 +21,7 @@ namespace SentienceLab
 		[ContextMenuItem("List Microphones", "ListMicrophones")]
 		public string MicrophoneName = "";
 
-		[Tooltip("Threshold at which to fire noise/silence detected events")]
+		[Tooltip("Threshold (RMS) at which to fire noise/silence detected events")]
 		[Range(0,1)]
 		public float NoiseThreshold = 0.2f;
 

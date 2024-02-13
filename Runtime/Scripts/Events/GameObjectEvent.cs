@@ -37,20 +37,29 @@ namespace SentienceLab
 			StartCoroutine(OnStartCoroutine());
 		}
 
+
 		protected IEnumerator OnStartCoroutine()
 		{
 			yield return null;
 			events.OnStart.Invoke(this);
 		}
 
+
 		public void OnEnable()
 		{
 			events.OnEnabled.Invoke(this);
 		}
 
+
 		public void OnDisable()
 		{
 			events.OnDisabled.Invoke(this);
+		}
+
+
+		public void Destroy()
+		{
+			Destroy(gameObject);
 		}
 	}
 }
