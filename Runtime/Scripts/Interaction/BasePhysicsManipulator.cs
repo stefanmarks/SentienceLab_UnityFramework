@@ -10,8 +10,9 @@ using UnityEngine.InputSystem;
 namespace SentienceLab
 {
 	/// <summary>
-	/// Component for moving a physical object by clicking and moving it.
-	/// When clicked, the script will try to maintain the relative position of the rigid body using forces applied to its centre.
+	/// Abstract base component for moving a physical object.
+	/// When active, the script will try to maintain the relative position of the rigid body 
+	/// using forces and torque applied to the centre or the grab point.
 	/// </summary>
 	///
 	public abstract class BasePhysicsManipulator : MonoBehaviour
