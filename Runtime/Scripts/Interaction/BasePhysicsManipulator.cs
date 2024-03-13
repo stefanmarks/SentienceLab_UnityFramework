@@ -3,6 +3,7 @@
 // (C) SentienceLab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
 #endregion Copyright Information
 
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -51,7 +52,7 @@ namespace SentienceLab
 			if (GrabAction == null)
 			{
 				Debug.LogWarning("No action defined for grab");
-				this.enabled = false;
+				// this.enabled = false; // don't disable as this component can still be used for touch events
 			}
 
 			m_candidateBody = null;
@@ -112,11 +113,11 @@ namespace SentienceLab
 			// did we touch another object before?
 			if (m_touchedBody != null)
 			{
-				// fire "touch end" events
-				if (m_touchedBody.TryGetComponent<InteractiveRigidbody>(out var irb))
-				{
-					irb.InvokeTouchEnd(this.gameObject);
-				}
+				// yes > signal TouchEnd to rigidbody
+				ManipulationInfo info = GetManipulationInfo(m_touchedBody);
+				info.EndTouch(this);
+
+				// fire TouchEnd for manipulator
 				events?.OnTouchEnd.Invoke(m_touchedBody);
 			}
 
@@ -126,11 +127,11 @@ namespace SentienceLab
 			// are we touching an object now?
 			if (m_touchedBody != null)
 			{
-				// fire "touch start" events
-				if (m_touchedBody.TryGetComponent<InteractiveRigidbody>(out var irb))
-				{
-					irb.InvokeTouchStart(this.gameObject);
-				}
+				// yes > signal TouchStart to rigidbody
+				ManipulationInfo info = GetManipulationInfo(m_touchedBody);
+				info.StartTouch(this);
+
+				// fire TouchStart for manipulator
 				events?.OnTouchStart.Invoke(m_touchedBody);
 			}
 		}
@@ -157,6 +158,18 @@ namespace SentienceLab
 		protected void SetDefaultRigidbody(Rigidbody _default)
 		{
 			m_defaultBody = _default;
+		}
+
+
+		protected ManipulationInfo GetManipulationInfo(Rigidbody _rb)
+		{
+			if (!ms_manipulationInfo.TryGetValue(_rb, out ManipulationInfo info))
+			{
+				// this RB isn't being manipulated yet > add to the list
+				info = new ManipulationInfo(_rb);
+				ms_manipulationInfo.Add(_rb, info);
+			}
+			return info;
 		}
 
 
@@ -199,18 +212,11 @@ namespace SentienceLab
 					m_relTargetOrientation = Quaternion.Inverse(transform.rotation) * m_activeBody.transform.rotation;
 				}
 
-				if (DisableGravityOnGrab)
-				{
-					// make target object weightless
-					m_previousGravityFlag = m_activeBody.useGravity;
-					m_activeBody.useGravity = false;
-				}
+				// signal GrabStart to rigidbody
+				ManipulationInfo info = GetManipulationInfo(m_activeBody);
+				info.StartGrab(this);
 
-				// fire grab start events
-				if (m_activeBody.TryGetComponent<InteractiveRigidbody>(out var irb))
-				{
-					irb.InvokeGrabStart(this.gameObject);
-				}
+				// fire GrabStart events for manipulator
 				events?.OnGrabStart.Invoke(m_activeBody);
 			}
 			else
@@ -230,17 +236,11 @@ namespace SentienceLab
 		{
 			if (m_activeBody != null)
 			{
-				if (DisableGravityOnGrab)
-				{
-					// restore gravity flag
-					m_activeBody.useGravity = m_previousGravityFlag;
-				}
+				// signal GrabEnd to rigidbody
+				ManipulationInfo info = GetManipulationInfo(m_activeBody);
+				info.EndGrab(this);
 
-				// fire grab end events
-				if (m_activeBody.TryGetComponent<InteractiveRigidbody>(out var irb))
-				{
-					irb.InvokeGrabEnd(this.gameObject);
-				}
+				// fire GrabEnd events for manipulator
 				events?.OnGrabEnd.Invoke(m_activeBody);
 
 				m_activeBody = null;
@@ -266,9 +266,95 @@ namespace SentienceLab
 		}
 
 
-		protected Rigidbody  m_candidateBody, m_touchedBody, m_activeBody, m_defaultBody;
-		protected bool       m_previousGravityFlag;
-		protected Vector3    m_candidateTouch, m_touchPoint, m_relTargetPoint, m_relBodyPoint;
+		//
+		protected class ManipulationInfo
+		{
+			public ManipulationInfo(Rigidbody rigidbody) 
+			{
+				m_rigidbody     = rigidbody;
+				m_interactiveRB = rigidbody.gameObject.GetComponent<InteractiveRigidbody>();
+
+				m_touchingManipulators = new List<BasePhysicsManipulator>();
+				m_grabbingManipulators = new List<BasePhysicsManipulator>();
+			}
+
+			public void StartTouch(BasePhysicsManipulator manipulator)
+			{
+				if (m_touchingManipulators.Count == 0)
+				{
+					// first manipulator touch > fire TouchStart event
+					if (m_interactiveRB != null)
+					{
+						m_interactiveRB.InvokeTouchStart(manipulator.gameObject);
+					}
+				}
+
+				m_touchingManipulators.Add(manipulator);
+			}
+
+			public void StartGrab(BasePhysicsManipulator manipulator)
+			{
+				if (m_grabbingManipulators.Count == 0)
+				{
+					// first manipulator grabs > save RB settings
+					m_originalGravityFlag = m_rigidbody.useGravity;
+					// fire GrabStart event
+					if (m_interactiveRB != null)
+					{
+						m_interactiveRB.InvokeGrabStart(manipulator.gameObject);
+					}
+				}
+
+				m_grabbingManipulators.Add(manipulator);
+
+				if (manipulator.DisableGravityOnGrab)
+				{
+					m_rigidbody.useGravity = false;
+				}
+			}
+
+			public void EndGrab(BasePhysicsManipulator manipulator)
+			{
+				m_grabbingManipulators.Remove(manipulator);
+
+				if (m_grabbingManipulators.Count == 0)
+				{
+					// last manipulator lets go > restore RB settings
+					m_rigidbody.useGravity = m_originalGravityFlag;
+					// fire GrabEnd events
+					if (m_interactiveRB != null)
+					{
+						m_interactiveRB.InvokeGrabEnd(manipulator.gameObject);
+					}
+				}
+			}
+
+			public void EndTouch(BasePhysicsManipulator manipulator)
+			{
+				m_touchingManipulators.Remove(manipulator);
+
+				if (m_touchingManipulators.Count == 0)
+				{
+					// last touching manipulator > fire TouchEnd events
+					if (m_interactiveRB != null) 
+					{ 
+						m_interactiveRB.InvokeTouchEnd(manipulator.gameObject); 
+					}
+				}
+			}
+
+			protected Rigidbody                    m_rigidbody;
+			protected InteractiveRigidbody         m_interactiveRB;
+			protected List<BasePhysicsManipulator> m_touchingManipulators;
+			protected List<BasePhysicsManipulator> m_grabbingManipulators;
+
+			protected bool                         m_originalGravityFlag;
+		}
+
+		static protected Dictionary<Rigidbody, ManipulationInfo> ms_manipulationInfo = new Dictionary<Rigidbody, ManipulationInfo>();
+
+		protected Rigidbody  m_candidateBody,  m_touchedBody, m_activeBody,     m_defaultBody;
+		protected Vector3    m_candidateTouch, m_touchPoint,  m_relTargetPoint, m_relBodyPoint;
 		protected Quaternion m_relTargetOrientation;
 	}
 }
