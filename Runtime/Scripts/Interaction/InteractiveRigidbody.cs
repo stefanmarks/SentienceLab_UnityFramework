@@ -20,9 +20,16 @@ namespace SentienceLab
 		[System.Serializable]
 		public class Events
 		{
+			[Tooltip("Event fired when the object is touched or aimed at by a physics manipulator")]
 			public UnityEvent<InteractiveRigidbody, GameObject> OnTouchStart;
+
+			[Tooltip("Event fired when the object is not touched or aimed at any more by a physics manipulator")]
 			public UnityEvent<InteractiveRigidbody, GameObject> OnTouchEnd;
+
+			[Tooltip("Event fired when the object is grabbed")] 
 			public UnityEvent<InteractiveRigidbody, GameObject> OnGrabStart;
+
+			[Tooltip("Event fired when the object is released")]
 			public UnityEvent<InteractiveRigidbody, GameObject> OnGrabEnd;
 		}
 
