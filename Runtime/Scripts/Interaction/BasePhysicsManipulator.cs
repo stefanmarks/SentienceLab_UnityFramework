@@ -269,6 +269,10 @@ namespace SentienceLab
 				Vector3 force = PID.Process(bodyPos);
 				m_activeBody.AddForceAtPosition(force, bodyPos, ForceMode.Force);
 			}
+			else
+			{
+				PID.Reset();
+			}
 		}
 
 

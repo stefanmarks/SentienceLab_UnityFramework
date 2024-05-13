@@ -64,6 +64,14 @@ namespace SentienceLab
 
 			return m_out;
 		} 
+
+
+		public void Reset()
+		{
+			m_errorOld = 0;
+			m_errorSum = 0;
+		}
+
 		
 		private float m_errorOld = 0f;
 		private float m_errorSum = 0f;	
@@ -125,6 +133,14 @@ namespace SentienceLab
 
 			return m_out;
 		}
+
+		
+		public void Reset()
+		{
+			m_errorOld = Vector3.zero;
+			m_errorSum = Vector3.zero;
+		}
+
 
 		private Vector3 m_errorOld = Vector3.zero;
 		private Vector3 m_errorSum = Vector3.zero;
