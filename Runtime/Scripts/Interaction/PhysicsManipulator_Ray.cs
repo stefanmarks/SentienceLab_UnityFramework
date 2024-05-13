@@ -15,15 +15,18 @@ namespace SentienceLab
 	[AddComponentMenu("SentienceLab/Interaction/Ray Physics Manipulator")]
 	public class PhysicsManipulator_Ray : BasePhysicsManipulator
 	{
+		[Tooltip("Maximum range of the ray manipulator")]
+		public float Range = float.PositiveInfinity;
+
 		public void Update()
 		{
-			// is there any rigid body where the ray points at?
+			// is there any rigidbody where the ray points at?
 			RaycastHit target;
 			Ray        tempRay = new Ray(transform.position, transform.forward);
-			Physics.Raycast(tempRay, out target);
+			Physics.Raycast(tempRay, out target, Range);
 
 			// any rigidbody attached?
-			Transform t = target.transform;
+			Transform t  = target.transform;
 			Rigidbody rb = (t != null) ? t.GetComponentInParent<Rigidbody>() : null;
 			SetCandidate(rb, target.point);
 		}

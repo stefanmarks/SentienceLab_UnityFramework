@@ -89,7 +89,7 @@ namespace SentienceLab
 		/// Called by superclasses to set/clear a candidate and a world grab point.
 		/// </summary>
 		/// <param name="_candidate">potential rigidbody candidate or <c>null</c> if there is no candidate</param>
-		/// <param name="_grabPoint">world coordinate of grab point</param>
+		/// <param name="_touchPoint">world coordinate of potential touch/grab point</param>
 		/// 
 		protected void SetCandidate(Rigidbody _candidate, Vector3 _touchPoint)
 		{
@@ -145,7 +145,13 @@ namespace SentienceLab
 
 		public Vector3 GetGrabPoint()
 		{
-			return m_activeBody.transform.TransformPoint(m_relTargetPoint);
+			return m_activeBody.transform.TransformPoint(m_relBodyPoint);
+		}
+
+
+		public void SetGrabPoint(Vector3 pos)
+		{
+			m_relTargetPoint = transform.InverseTransformPoint(pos);
 		}
 
 
@@ -200,15 +206,15 @@ namespace SentienceLab
 				if (c == RigidbodyConstraints.None)
 				{
 					// body can move freely - apply forces at centre
-					m_relBodyPoint = Vector3.zero;
-					m_relTargetPoint = transform.InverseTransformPoint(m_activeBody.transform.position);
+					m_relBodyPoint         = Vector3.zero;
+					m_relTargetPoint       = transform.InverseTransformPoint(m_activeBody.transform.position);
 					m_relTargetOrientation = Quaternion.Inverse(transform.rotation) * m_activeBody.transform.rotation;
 				}
 				else
 				{
 					// body is constrained - apply forces on contact point
-					m_relBodyPoint = m_activeBody.transform.InverseTransformPoint(m_touchPoint);
-					m_relTargetPoint = transform.InverseTransformPoint(m_touchPoint);
+					m_relBodyPoint         = m_activeBody.transform.InverseTransformPoint(m_touchPoint);
+					m_relTargetPoint       = transform.InverseTransformPoint(m_touchPoint);
 					m_relTargetOrientation = Quaternion.Inverse(transform.rotation) * m_activeBody.transform.rotation;
 				}
 
