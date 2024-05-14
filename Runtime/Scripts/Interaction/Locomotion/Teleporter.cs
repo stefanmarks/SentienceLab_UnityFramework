@@ -79,11 +79,12 @@ namespace SentienceLab
 			{
 				if (m_fireStartEvent)
 				{
+					m_transition.Setup(this.transform);
 					if (events != null) events.OnTeleportStart.Invoke(transform);
 					m_fireStartEvent = false;
 				}
 
-				if (m_transition.Update(this.transform))
+				if (m_transition.Update())
 				{
 					// teleport has happened (or finished) > if there was a target, let it know
 					if (m_target != null)
@@ -279,7 +280,8 @@ namespace SentienceLab
 
 		private interface ITransition
 		{
-			bool Update(Transform offsetObject);
+			void Setup(Transform offsetObject);
+			bool Update();
 			bool IsFinished();
 			void Cleanup();
 		}
@@ -294,10 +296,10 @@ namespace SentienceLab
 				this.m_duration    = duration;
 
 				m_progress = 0;
-				m_moved = false;
+				m_moved    = false;
 
 				// are there any fade effects already?
-				m_fadeEffects = new(FindObjectsByType<ScreenFade>(FindObjectsInactive.Include, FindObjectsSortMode.None));
+				m_fadeEffects = new List<ScreenFade>(FindObjectsOfType<ScreenFade>(true));
 				if (m_fadeEffects.Count == 0)
 				{
 					// if none exist, brute-force create fade effect on all cameras
@@ -305,7 +307,13 @@ namespace SentienceLab
 				}
 			}
 
-			public bool Update(Transform offsetObject)
+			public void Setup(Transform offsetObject)
+			{
+				m_teleportee          = offsetObject;
+				m_teleporteeRigidbody = m_teleportee.GetComponent<Rigidbody>();
+			}
+
+			public bool Update()
 			{
 				bool teleportHappened = false;
 
@@ -314,8 +322,16 @@ namespace SentienceLab
 				m_progress  = Math.Min(1, m_progress);
 				if ((m_progress >= 0.5f) && !m_moved)
 				{
-					offsetObject.position = m_endPoint;
-					offsetObject.rotation = m_endRotation;
+					if (m_teleporteeRigidbody != null)
+					{
+						m_teleporteeRigidbody.position = m_endPoint;
+						m_teleporteeRigidbody.rotation = m_endRotation;
+					}
+					else
+					{
+						m_teleportee.SetPositionAndRotation(m_endPoint, m_endRotation);
+					}
+
 					m_moved = true; // only move once
 					teleportHappened = true;
 				}
@@ -342,6 +358,8 @@ namespace SentienceLab
 			}
 
 
+			private Transform        m_teleportee;
+			private Rigidbody        m_teleporteeRigidbody;
 			private Vector3          m_endPoint;
 			private Quaternion       m_endRotation;
 			private float            m_duration, m_progress;
@@ -368,15 +386,32 @@ namespace SentienceLab
 				m_progress = 0;
 			}
 
-			public bool Update(Transform offsetObject)
+			public void Setup(Transform offsetObject)
+			{
+				m_teleportee          = offsetObject;
+				m_teleporteeRigidbody = m_teleportee.GetComponent<Rigidbody>();
+			}
+
+			public bool Update()
 			{
 				// move from A to B
 				m_progress += Time.deltaTime / m_duration;
 				m_progress = Math.Min(1, m_progress);
+
 				// linear: lerpFactor = progress. smooth: lerpFactor = sin(progress * PI/2) ^ 2
 				float lerpFactor = m_smooth ? (float)Math.Pow(Math.Sin(m_progress * Math.PI / 2), 2) : m_progress;
-				offsetObject.position = Vector3.Lerp(m_startPoint, m_endPoint, lerpFactor);
-				offsetObject.rotation = Quaternion.Slerp(m_startRotation, m_endRotation, lerpFactor);
+
+				Vector3    pos = Vector3.Lerp(m_startPoint, m_endPoint, lerpFactor);
+				Quaternion rot = Quaternion.Slerp(m_startRotation, m_endRotation, lerpFactor);
+
+				if (m_teleporteeRigidbody != null)
+				{
+					m_teleporteeRigidbody.Move(pos, rot);
+				}
+				else
+				{
+					m_teleportee.SetPositionAndRotation(pos, rot);
+				}
 
 				return IsFinished();
 			}
@@ -391,6 +426,8 @@ namespace SentienceLab
 				// nothing to do
 			}
 
+			private Transform  m_teleportee;
+			private Rigidbody  m_teleporteeRigidbody;
 			private Vector3    m_startPoint, m_endPoint;
 			private Quaternion m_startRotation, m_endRotation;
 			private float      m_duration, m_progress;
