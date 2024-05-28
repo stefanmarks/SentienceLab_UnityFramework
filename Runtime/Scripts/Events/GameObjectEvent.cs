@@ -10,7 +10,8 @@ using UnityEngine.Events;
 namespace SentienceLab
 {
 	/// <summary>
-	/// Script that allows events to be sent when Triggers are entered/exited.
+	/// Script that allows events to be sent when a GameObject is enabled/disabled/started
+	/// and explicitely send an event to destroy the object.
 	/// </summary>
 	///
 	[AddComponentMenu("SentienceLab/Events/GameObject Event")]

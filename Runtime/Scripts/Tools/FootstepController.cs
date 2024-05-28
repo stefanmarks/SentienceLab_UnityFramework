@@ -29,6 +29,11 @@ namespace SentienceLab
 		public List<AudioClip> FootstepAudioL;
 		public List<AudioClip> FootstepAudioR;
 
+		[Tooltip("Audio to play when jumping")]
+		public AudioClip FootstepJump;
+		[Tooltip("Audio to play when landing")]
+		public AudioClip FootstepLand;
+
 
 		public void Start()
 		{
@@ -47,7 +52,9 @@ namespace SentienceLab
 		// Update is called once per frame
 		public void Update()
 		{
-			float distanceWalked = Vector3.Distance(m_lastFootstepLocation, transform.position);
+			Vector3 delta = transform.position - m_lastFootstepLocation;
+			delta.y = 0; // ignore vertical movement
+			float distanceWalked = delta.magnitude;
 			if (distanceWalked > StepDistance)
 			{
 				AudioSource src = m_leftStep ? LeftFoot : RightFoot;
@@ -61,7 +68,7 @@ namespace SentienceLab
 		}
 
 
-		private AudioClip ChooseFromSounds(List<AudioClip> _sounds)
+		protected AudioClip ChooseFromSounds(List<AudioClip> _sounds)
 		{
 			AudioClip clip = null;
 			if (_sounds.Count > 0)
@@ -69,6 +76,26 @@ namespace SentienceLab
 				clip = _sounds[(int)Random.Range(0, _sounds.Count)];
 			}
 			return clip;
+		}
+
+
+		public void PlayJumpSound()
+		{
+			AudioSource src = m_leftStep ? LeftFoot : RightFoot;
+			m_leftStep = !m_leftStep;
+			src.clip   = FootstepJump;
+			src.pitch  = Random.Range(1 - PitchVariation / 100.0f, 1 + PitchVariation / 100.0f); ;
+			src.Play();
+		}
+
+
+		public void PlayLandingSound()
+		{
+			AudioSource src = m_leftStep ? LeftFoot : RightFoot;
+			m_leftStep = !m_leftStep;
+			src.clip   = FootstepLand;
+			src.pitch  = Random.Range(1 - PitchVariation / 100.0f, 1 + PitchVariation / 100.0f); ;
+			src.Play();
 		}
 
 
