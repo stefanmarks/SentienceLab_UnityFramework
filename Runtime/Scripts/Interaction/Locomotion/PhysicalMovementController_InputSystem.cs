@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 namespace SentienceLab
 {
@@ -22,11 +23,14 @@ namespace SentienceLab
 		[Header("Translation")]
 
 		[Tooltip("Input action for left/right movement")]
-		public InputActionProperty actionMoveX;
+		[FormerlySerializedAs("actionMoveX")]
+		public InputActionProperty ActionMoveX;
 		[Tooltip("Input action for up/down movement")]
-		public InputActionProperty actionMoveY;
+		[FormerlySerializedAs("actionMoveY")]
+		public InputActionProperty ActionMoveY;
 		[Tooltip("Input action for forwards/backwards movement")]
-		public InputActionProperty actionMoveZ;
+		[FormerlySerializedAs("actionMoveZ")]
+		public InputActionProperty ActionMoveZ;
 
 		[Tooltip("Translation Force")]
 		public float TranslationForce = 5.0f;
@@ -34,15 +38,17 @@ namespace SentienceLab
 		[Header("Rotation")]
 	
 		[Tooltip("Input action for up/down rotation")]
-		public InputActionProperty actionRotateX;
+		[FormerlySerializedAs("actionRotateX")]
+		public InputActionProperty ActionRotateX;
 		[Tooltip("Input action for left/right rotation")]
-		public InputActionProperty actionRotateY;
+		[FormerlySerializedAs("actionRotateY")]
+		public InputActionProperty ActionRotateY;
 
 		[Tooltip("Rotation Torque")]
 		public float RotationTorque = 1.0f;
 
 		[Tooltip("Moving forward/backwards ignores the up/down rotation")]
-		public bool      TranslationIgnoresPitch = true;
+		public bool  TranslationIgnoresPitch = true;
 
 		[Tooltip("Transform for determining movement directions (None: this object itself)")]
 		public Transform RotationBasisNode;
@@ -50,7 +56,8 @@ namespace SentienceLab
 		[Header("Jumping")]
 
 		[Tooltip("Input action to jump")]
-		public InputActionProperty  actionJump;
+		[FormerlySerializedAs("actionJump")]
+		public InputActionProperty ActionJump;
 
 		[Tooltip("Impulse to apply when jumping")]
 		public float JumpImpulse = 5;
@@ -88,12 +95,12 @@ namespace SentienceLab
 			m_groundColliders = new List<Collider>();
 			m_onGround        = true; // let's assume we start on the ground
 
-			if (actionMoveX   != null) { actionMoveX.action.Enable(); }
-			if (actionMoveY   != null) { actionMoveY.action.Enable(); }
-			if (actionMoveZ   != null) { actionMoveZ.action.Enable(); }
-			if (actionRotateX != null) { actionRotateX.action.Enable(); }
-			if (actionRotateY != null) { actionRotateY.action.Enable(); }
-			if (actionJump    != null) { actionJump.action.Enable(); actionJump.action.performed += delegate { Jump(); };   }
+			if ((ActionMoveX   != null) && (ActionMoveX.action   != null)) { ActionMoveX.action.Enable(); }
+			if ((ActionMoveY   != null) && (ActionMoveY.action   != null)) { ActionMoveY.action.Enable(); }
+			if ((ActionMoveZ   != null) && (ActionMoveZ.action   != null)) { ActionMoveZ.action.Enable(); }
+			if ((ActionRotateX != null) && (ActionRotateX.action != null)) { ActionRotateX.action.Enable(); }
+			if ((ActionRotateY != null) && (ActionRotateY.action != null)) { ActionRotateY.action.Enable(); }
+			if ((ActionJump    != null) && (ActionJump.action    != null)) { ActionJump.action.Enable(); ActionJump.action.performed += delegate { Jump(); };   }
 		}
 
 
@@ -129,8 +136,8 @@ namespace SentienceLab
 		{
 			// Rotation
 			Vector3 vecR = Vector3.zero;
-			vecR.x = (actionRotateX != null) ? actionRotateX.action.ReadValue<float>() : 0;
-			vecR.y = (actionRotateY != null) ? actionRotateY.action.ReadValue<float>() : 0;
+			vecR.x = ((ActionRotateX != null) && (ActionRotateX.action != null)) ? ActionRotateX.action.ReadValue<float>() : 0;
+			vecR.y = ((ActionRotateY != null) && (ActionRotateY.action != null)) ? ActionRotateY.action.ReadValue<float>() : 0;
 			vecR  *= RotationTorque;
 			// rotate up/down (relative X axis)
 			m_rigidbody.AddRelativeTorque(Vector3.right * vecR.x);
@@ -139,9 +146,9 @@ namespace SentienceLab
 
 			// Translation
 			Vector3 vecT = Vector3.zero;
-			vecT.x = (actionMoveX != null) ? actionMoveX.action.ReadValue<float>() : 0;
-			vecT.y = (actionMoveY != null) ? actionMoveY.action.ReadValue<float>() : 0;
-			vecT.z = (actionMoveZ != null) ? actionMoveZ.action.ReadValue<float>() : 0;
+			vecT.x = ((ActionMoveX != null) && (ActionMoveX.action != null)) ? ActionMoveX.action.ReadValue<float>() : 0;
+			vecT.y = ((ActionMoveY != null) && (ActionMoveY.action != null)) ? ActionMoveY.action.ReadValue<float>() : 0;
+			vecT.z = ((ActionMoveZ != null) && (ActionMoveZ.action != null)) ? ActionMoveZ.action.ReadValue<float>() : 0;
 			vecT *= TranslationForce;
 			// translate forward (Z)
 			Vector3 v = RotationBasisNode.forward;

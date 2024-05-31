@@ -5,6 +5,7 @@
 
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 namespace SentienceLab
 {
@@ -17,9 +18,15 @@ namespace SentienceLab
 	{
 		[Header("Translation")]
 
-		public InputActionProperty actionMoveX;
-		public InputActionProperty actionMoveY;
-		public InputActionProperty actionMoveZ;
+		[Tooltip("Input action for left/right movement")]
+		[FormerlySerializedAs("actionMoveX")]
+		public InputActionProperty ActionMoveX;
+		[Tooltip("Input action for up/down movement")]
+		[FormerlySerializedAs("actionMoveY")]
+		public InputActionProperty ActionMoveY;
+		[Tooltip("Input action for forwards/backwards movement")]
+		[FormerlySerializedAs("actionMoveZ")]
+		public InputActionProperty ActionMoveZ;
 
 		[Tooltip("Maximum speed for translation")]
 		public float TranslationSpeed = 1.0f;
@@ -29,9 +36,13 @@ namespace SentienceLab
 		public float TranslationSmoothing = 0.1f;
 
 		[Header("Rotation")]
-	
-		public InputActionProperty actionRotateX;
-		public InputActionProperty actionRotateY;
+
+		[Tooltip("Input action for up/down rotation")]
+		[FormerlySerializedAs("actionRotateX")]
+		public InputActionProperty ActionRotateX;
+		[Tooltip("Input action for left/right rotation")]
+		[FormerlySerializedAs("actionRotateY")]
+		public InputActionProperty ActionRotateY;
 
 		[Tooltip("Maximum speed for rotation in degrees per second")]
 		public float RotationSpeed = 45.0f;
@@ -59,11 +70,11 @@ namespace SentienceLab
 				RotationBasisNode = this.transform;
 			}
 
-			actionMoveX.action?.Enable();
-			actionMoveY.action?.Enable();
-			actionMoveZ.action?.Enable();
-			actionRotateX.action?.Enable();
-			actionRotateY.action?.Enable();
+			if ((ActionMoveX   != null) && (ActionMoveX.action   != null)) { ActionMoveX.action.Enable();   }
+			if ((ActionMoveY   != null) && (ActionMoveY.action   != null)) { ActionMoveY.action.Enable();   }
+			if ((ActionMoveZ   != null) && (ActionMoveZ.action   != null)) { ActionMoveZ.action.Enable();   }
+			if ((ActionRotateX != null) && (ActionRotateX.action != null)) { ActionRotateX.action.Enable(); }
+			if ((ActionRotateY != null) && (ActionRotateY.action != null)) { ActionRotateY.action.Enable(); }
 		}
 
 
@@ -73,8 +84,8 @@ namespace SentienceLab
 
 			// Rotation
 			Vector3 vecR = Vector3.zero;
-			vecR.x = (actionRotateX != null) ? actionRotateX.action.ReadValue<float>() : 0;
-			vecR.y = (actionRotateY != null) ? actionRotateY.action.ReadValue<float>() : 0;
+			vecR.x = ((ActionRotateX != null) && (ActionRotateX.action != null)) ? ActionRotateX.action.ReadValue<float>() : 0;
+			vecR.y = ((ActionRotateY != null) && (ActionRotateY.action != null)) ? ActionRotateY.action.ReadValue<float>() : 0;
 			float smoothing  = Mathf.Pow(RotationSmoothing * SMOOTHING_FACTOR_MAX, SMOOTHING_FACTOR_POWER);
 			float lerpFactor = 1.0f - Mathf.Pow(smoothing, Time.deltaTime);
 			m_vecRotate = Vector3.Lerp(m_vecRotate, vecR, lerpFactor);
@@ -84,9 +95,9 @@ namespace SentienceLab
 			transform.RotateAround(RotationBasisNode.position, Vector3.up, m_vecRotate.y * RotationSpeed * Time.deltaTime);
 
 			Vector3 vecT = Vector3.zero;
-			vecT.x = (actionMoveX != null) ? actionMoveX.action.ReadValue<float>() : 0;
-			vecT.y = (actionMoveY != null) ? actionMoveY.action.ReadValue<float>() : 0;
-			vecT.z = (actionMoveZ != null) ? actionMoveZ.action.ReadValue<float>() : 0;
+			vecT.x = ((ActionMoveX != null) && (ActionMoveX.action != null)) ? ActionMoveX.action.ReadValue<float>() : 0;
+			vecT.y = ((ActionMoveY != null) && (ActionMoveY.action != null)) ? ActionMoveY.action.ReadValue<float>() : 0;
+			vecT.z = ((ActionMoveZ != null) && (ActionMoveZ.action != null)) ? ActionMoveZ.action.ReadValue<float>() : 0;
 			smoothing  = Mathf.Pow(TranslationSmoothing * SMOOTHING_FACTOR_MAX, SMOOTHING_FACTOR_POWER);
 			lerpFactor = 1.0f - Mathf.Pow(smoothing, Time.deltaTime);
 			m_vecTranslate = Vector3.Lerp(m_vecTranslate, vecT, lerpFactor);

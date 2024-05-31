@@ -62,11 +62,15 @@ namespace SentienceLab
 				return;
 			}
 
-			if (TeleportAction != null)
+			if ((TeleportAction != null) && (TeleportAction.action != null))
 			{
 				TeleportAction.action.performed += delegate { OnActionStart(); };
 				TeleportAction.action.canceled  += delegate { OnActionEnd(); };
 				TeleportAction.action.Enable();
+			}
+			else 
+			{
+				Debug.LogWarning("No valid InputAction provided for teleport controller.");
 			}
 
 			m_currentHit  = new RaycastHit();

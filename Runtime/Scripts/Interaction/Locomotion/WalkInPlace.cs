@@ -6,6 +6,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
+using UnityEngine.Serialization;
 
 namespace SentienceLab
 {
@@ -73,7 +74,8 @@ namespace SentienceLab
 		public Transform headset;
 
 		[Tooltip("Action to engage Walk-In-Place")]
-		public InputActionProperty engageAction;
+		[FormerlySerializedAs("engageAction")]
+		public InputActionProperty EngageAction;
 
 		[Tooltip("Which trackables are used to determine movement")]
 		public MovementSourceOption movementSources = MovementSourceOption.Headset | MovementSourceOption.Controllers;
@@ -306,16 +308,23 @@ namespace SentienceLab
 			m_movementSourceObjects = new List<AbstractMovementSource>();
 			UpdateMovementSourceObjectList();
 
-			initalGaze = Vector3.zero;
+			initalGaze        = Vector3.zero;
 			direction         = Vector3.zero;
 			previousDirection = Vector3.zero;
 			currentSpeed      = 0;
 			m_isActive        = false;
 			engageController  = null;
 
-			engageAction.action.performed += OnEngageActionPerformed;
-			engageAction.action.canceled  += OnEngageActionCanceled;
-			engageAction.action.Enable();
+			if ((EngageAction != null) && (EngageAction.action != null))
+			{
+				EngageAction.action.performed += OnEngageActionPerformed;
+				EngageAction.action.canceled  += OnEngageActionCanceled;
+				EngageAction.action.Enable();
+			}
+			else 
+			{
+				Debug.LogWarning("No valid InputAction provided for WalkInPlace.");
+			}
 		}
 
 

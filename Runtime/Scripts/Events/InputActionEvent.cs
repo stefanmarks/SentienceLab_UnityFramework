@@ -6,6 +6,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 namespace SentienceLab
 {
@@ -17,7 +18,8 @@ namespace SentienceLab
 	public class InputActionEvent : MonoBehaviour
 	{
 		[Tooltip("InputAction that fires the events")]
-		public InputActionProperty action;
+		[FormerlySerializedAs("action")]
+		public InputActionProperty Action;
 
 		[System.Serializable]
 		public struct Events
@@ -42,23 +44,23 @@ namespace SentienceLab
 
 		public void OnEnable()
 		{
-			if (action != null)
+			if ((Action != null) && (Action.action != null))
 			{
-				action.action.started   += OnActionStarted;
-				action.action.performed += OnActionPerformed;
-				action.action.canceled  += OnActionCanceled;
-				action.action.Enable();
+				Action.action.started   += OnActionStarted;
+				Action.action.performed += OnActionPerformed;
+				Action.action.canceled  += OnActionCanceled;
+				Action.action.Enable();
 			}
 		}
 
 
 		public void OnDisable()
 		{
-			if (action != null)
+			if ((Action != null) && (Action.action != null))
 			{
-				action.action.started   -= OnActionStarted;
-				action.action.performed -= OnActionPerformed;
-				action.action.canceled  -= OnActionCanceled;
+				Action.action.started   -= OnActionStarted;
+				Action.action.performed -= OnActionPerformed;
+				Action.action.canceled  -= OnActionCanceled;
 			}
 		}
 
