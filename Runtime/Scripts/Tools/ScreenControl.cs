@@ -8,16 +8,24 @@ using UnityEngine;
 namespace SentienceLab
 {
 	/// <summary>
-	/// Controls sleep timeout and brightness for the screen.
+	/// Controls the cursor, sleep timeout, and brightness for the screen.
 	/// </summary>
+	/// 
 	[AddComponentMenu("SentienceLab/Tools/Screen Control")]
 	public class ScreenControl : MonoBehaviour
 	{
+		[Tooltip("Cursor mode")]
+		public enum ECursorMode { Visible, Hidden };
+		public ECursorMode CursorMode = ECursorMode.Visible;
+
+		[Tooltip("Cursor lock mode")]
+		public CursorLockMode CursorLockMode = CursorLockMode.None;
+
 		[Tooltip("Screen sleep timeout in seconds\n(-1: Never sleep, -2: Use system setting)")]
 		public int sleepTimeout = SleepTimeout.SystemSetting;
 
-		[Tooltip("Screen brightness")]
-		[Range(0, 1)]
+		[Tooltip("Screen brightness (-1: don't change)")]
+		[Range(-1, 1)]
 		public float screenBrightness = 1.0f;
 
 
@@ -25,6 +33,8 @@ namespace SentienceLab
 		{
 			SetScreenSleepTimeout(sleepTimeout);
 			SetScreenBrightness(screenBrightness);
+			Cursor.visible   = CursorMode == ECursorMode.Visible;
+			Cursor.lockState = CursorLockMode;
 		}
 
 
@@ -39,8 +49,26 @@ namespace SentienceLab
 
 		public void SetScreenBrightness(float _brightness)
 		{
-			Screen.brightness = _brightness;
-			screenBrightness = Screen.brightness; // read back into field
-		} 
+			if (_brightness >= 0)
+			{
+				Screen.brightness = _brightness;
+				screenBrightness = Screen.brightness; // read back into field
+			}
+		}
+
+
+		public void OnApplicationFocus(bool _focus)
+		{
+            if (_focus)
+            {
+				Cursor.visible   = CursorMode == ECursorMode.Visible;
+				Cursor.lockState = CursorLockMode;
+			}
+			else
+			{
+				Cursor.visible   = true;
+				Cursor.lockState = CursorLockMode.None;
+			}
+        }
 	}
 }
