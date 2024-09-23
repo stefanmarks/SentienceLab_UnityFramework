@@ -1,17 +1,13 @@
 # Changelog
 
-All notable changes to the SentienceLab Unity Framework package will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
-
-
-## [1.7] - 2023-03-01
+## [1.7] - 2023-03-01 - 2024-09-20
 
 ### Added
 
 - GameObject related events (enable/disable)
 - Added some tool scripts from CTEC601 (VolumeSpawner, Footsteps, Sun Control, etc.)
+- PhysicsManipulator_Pointer 
 
 ### Changed
 
@@ -19,8 +15,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Extended timer functionality (restart, pause, sending values to text elements)
 - Added more Component menu entries
 - Bugfix in ToggleEvent to fire events only when state actually changes
+- Bugfixes in PhysicsManipulator_Ray and base class
+- Allowing Teleporter to move rigidbody based player
+- More options in ScreenControl
 
-## [1.6] - 2021-12-12
+
+## [1.6] - 2021-12-12 - 2023-03-01
 
 ### Added
 
@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - InteractivitySignifier removed because events in InteractiveRigidbody provide more flexibility.
 
 
-## [1.5] - 2020-10-21
+## [1.5] - 2020-10-21 - 2021-12-12
 
 ### Added
 
@@ -68,7 +68,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Shader for Always on top UI text
 
 
-## [1.4] - 2020-06-02
+## [1.4] - 2020-06-02 - 2020-10-21
 
 ### Added
 
@@ -91,7 +91,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Default Inputs JSON file
 
 
-## [1.3] - 2020-01-23
+## [1.3] - 2020-01-23 - 2020-06-02 
 
 ### Added
 
@@ -105,7 +105,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Various bugfixes
 
 
-## [1.2] - 2019-11-25
+## [1.2] - 2019-11-25 - 2020-01-23
 
 ### Changed
 
@@ -113,14 +113,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changes to Physics framework (interactivity)
 
 
-## [1.1] - 2019-08-13
+## [1.1] - 2019-08-13 - 2019-11-25
 
 ### Changed
 
 - OpenCV client pulls device attributes to construct device name (e.g., "ViveController1" is now "OpenVR_ControllerLeft")
 
 
-## [1.0] - 2019-08-05
+## [1.0] - 2019-08-05 - 2019-08-13
 
 ### Fixed
 
