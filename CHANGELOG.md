@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.8] - 2024-09-20 - [present]
+
+### Added
+
+
+
+### Changed
+
+- Minimum Unity version 6000
+
+
 
 ## [1.7] - 2023-03-01 - 2024-09-20
 
