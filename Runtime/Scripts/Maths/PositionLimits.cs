@@ -56,8 +56,8 @@ namespace SentienceLab
 
 		public void CheckLimits()
 		{
-			Vector3 pos = (m_rigidbody != null) ? m_rigidbody.position : this.transform.position;
-			Vector3 vel = (m_rigidbody != null) ? m_rigidbody.velocity : Vector3.zero;
+			Vector3 pos = (m_rigidbody != null) ? m_rigidbody.position       : this.transform.position;
+			Vector3 vel = (m_rigidbody != null) ? m_rigidbody.linearVelocity : Vector3.zero;
 			
 			if (Reference == EPositionReference.Local)
 			{
@@ -87,7 +87,7 @@ namespace SentienceLab
 				if (m_rigidbody != null)
 				{
 					m_rigidbody.MovePosition(pos);
-					m_rigidbody.velocity = vel;
+					m_rigidbody.linearVelocity = vel;
 				}
 				else
 				{

@@ -80,7 +80,7 @@ namespace SentienceLab
 				Rigidbody rb = newObject.GetComponentInChildren<Rigidbody>();
 				if (rb != null)
 				{
-					rb.velocity = this.transform.TransformVector(startVelocity);
+					rb.linearVelocity = this.transform.TransformVector(startVelocity);
 				}
 				
 				m_spawnCounter++;

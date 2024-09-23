@@ -89,7 +89,7 @@ namespace SentienceLab
 				if (m_rigidbody != null)
 				{
 					m_rigidbody.MoveRotation(qrot);
-					m_rigidbody.velocity = velR;
+					m_rigidbody.linearVelocity = velR;
 				}
 				else
 				{

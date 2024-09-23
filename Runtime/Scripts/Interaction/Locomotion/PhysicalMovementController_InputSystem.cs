@@ -184,8 +184,8 @@ namespace SentienceLab
 				}
 				if (!m_onGround && m_groundColliders.Count > 0)
 				{
-					m_onGround       = true;
-					m_rigidbody.drag = m_groundDrag; // restore gound drag
+					m_onGround                = true;
+					m_rigidbody.linearDamping = m_groundDrag; // restore gound drag
 					events.OnMadeGroundContact.Invoke();
 				}
 			}
@@ -199,9 +199,9 @@ namespace SentienceLab
 				m_groundColliders.Remove(_collision.collider);
 				if (m_groundColliders.Count == 0)
 				{
-					m_onGround       = false;
-					m_groundDrag     = m_rigidbody.drag;
-					m_rigidbody.drag = DragInAir;
+					m_onGround                = false;
+					m_groundDrag              = m_rigidbody.linearDamping;
+					m_rigidbody.linearDamping = DragInAir;
 					events.OnLostGroundContact.Invoke();
 				}
 			}
