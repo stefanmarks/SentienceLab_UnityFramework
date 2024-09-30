@@ -40,6 +40,11 @@ namespace SentienceLab
 		[Tooltip("Input action for up/down rotation")]
 		[FormerlySerializedAs("actionRotateX")]
 		public InputActionProperty ActionRotateX;
+
+		[Tooltip("Maximum up/down viewing angle (90: no limit)")]
+		[Range(0, 90)]
+		public float MaxUpDownAngle = 90;
+
 		[Tooltip("Input action for left/right rotation")]
 		[FormerlySerializedAs("actionRotateY")]
 		public InputActionProperty ActionRotateY;
@@ -90,6 +95,9 @@ namespace SentienceLab
 			float lerpFactor = 1.0f - Mathf.Pow(smoothing, Time.deltaTime);
 			m_vecRotate = Vector3.Lerp(m_vecRotate, vecR, lerpFactor);
 			// rotate up/down (always absolute around X axis)
+			float lookDownAngle = Vector3.Angle(Vector3.down, transform.forward);
+			if ((lookDownAngle < 90 - Mathf.Clamp(MaxUpDownAngle, 0, 90)) && (m_vecRotate.x > 0)) { m_vecRotate.x = 0; }
+			if ((lookDownAngle > 90 + Mathf.Clamp(MaxUpDownAngle, 0, 90)) && (m_vecRotate.x < 0)) { m_vecRotate.x = 0; }
 			transform.RotateAround(RotationBasisNode.position, RotationBasisNode.right, m_vecRotate.x * RotationSpeed * Time.deltaTime);
 			// rotate left/right (always absolute around Y axis)
 			transform.RotateAround(RotationBasisNode.position, Vector3.up, m_vecRotate.y * RotationSpeed * Time.deltaTime);
