@@ -212,7 +212,18 @@ namespace SentienceLab
 			public int _arrIndex;
 
 
-			public TimeZoneInfo zone { get { return GetTimezones()[_arrIndex]; } }
+			public TimeZoneInfo zone { 
+				get { 
+					if (_arrIndex < 0 || _arrIndex >= GetTimezones().Length)
+					{
+						for (int i = 0; i < GetTimezones().Length; i++)
+						{
+							if (GetTimezones()[i].Equals(TimeZoneInfo.Local)) { _arrIndex = i; break; }
+						}
+					}
+					return GetTimezones()[_arrIndex]; 
+				}
+			}
 
 
 			public static TimeZoneInfo[] GetTimezones()
