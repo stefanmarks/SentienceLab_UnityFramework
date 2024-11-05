@@ -41,13 +41,11 @@ namespace SentienceLab
 			Vector3 pointerPos = Vector3.zero;
 			pointerPos.x = PointerPosition.action.ReadValue<Vector2>().x;
 			pointerPos.y = PointerPosition.action.ReadValue<Vector2>().y;
-
-			RaycastHit target;
-			Ray        tempRay = m_camera.ScreenPointToRay(pointerPos);
+			Ray tempRay  = m_camera.ScreenPointToRay(pointerPos);
 
 			// is there any rigidbody where the ray points at?
+			RaycastHit target;
 			Physics.Raycast(tempRay, out target, Range);
-			Debug.Log(tempRay);
 
 			// any rigidbody attached?
 			Transform t  = target.transform;
