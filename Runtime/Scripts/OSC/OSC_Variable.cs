@@ -101,10 +101,10 @@ namespace SentienceLab.OSC
 		{
 			object obj = _packet.Data[0];
 			System.Type type = obj.GetType();
-			if      (type == typeof(byte)  ) { Value = ((byte)obj) > 0; }
-			else if (type == typeof(int)   ) { Value = ((int)obj) > 0; }
-			else if (type == typeof(long)  ) { Value = ((long)obj) > 0; }
-			else if (type == typeof(float) ) { Value = ((float)obj) > 0; }
+			if      (type == typeof(byte)  ) { Value = ((byte)  obj) > 0; }
+			else if (type == typeof(int)   ) { Value = ((int)   obj) > 0; }
+			else if (type == typeof(long)  ) { Value = ((long)  obj) > 0; }
+			else if (type == typeof(float) ) { Value = ((float) obj) > 0; }
 			else if (type == typeof(double)) { Value = ((double)obj) > 0; }
 		}
 
@@ -134,11 +134,11 @@ namespace SentienceLab.OSC
 		{
 			object obj = _packet.Data[0];
 			System.Type type = obj.GetType();
-			if      (type == typeof(byte)  ) { Value = (byte)obj; }
-			else if (type == typeof(int)   ) { Value = (int)obj; }
-			else if (type == typeof(long)  ) { Value = (int)((long)obj); }
-			else if (type == typeof(float) ) { Value = (int)((float)obj); }
-			else if (type == typeof(double)) { Value = (int)((double)obj); }
+			if      (type == typeof(byte)  ) { Value = (byte)         obj ; }
+			else if (type == typeof(int)   ) { Value = (int)          obj ; }
+			else if (type == typeof(long)  ) { Value = (int)((long)   obj); }
+			else if (type == typeof(float) ) { Value = (int)((float)  obj); }
+			else if (type == typeof(double)) { Value = (int)((double) obj); }
 
 			if (Value > Max) { Value = Max; }
 			if (Value < Min) { Value = Min; }
@@ -170,11 +170,11 @@ namespace SentienceLab.OSC
 		{
 			object obj = _packet.Data[0];
 			System.Type type = obj.GetType();
-			if      (type == typeof(byte)  ) { Value = ((byte)obj); }
-			else if (type == typeof(int)   ) { Value = ((int)obj); }
-			else if (type == typeof(long)  ) { Value = ((long)obj); }
-			else if (type == typeof(float) ) { Value = (float)obj; }
-			else if (type == typeof(double)) { Value = (float)((double)obj); }
+			if      (type == typeof(byte)  ) { Value = (byte)  obj; }
+			else if (type == typeof(int)   ) { Value = (int)   obj; }
+			else if (type == typeof(long)  ) { Value = (long)  obj; }
+			else if (type == typeof(float) ) { Value = (float) obj; }
+			else if (type == typeof(double)) { Value = (float)((double) obj); }
 
 			if (Value > Max) { Value = Max; }
 			if (Value < Min) { Value = Min; }
@@ -206,10 +206,10 @@ namespace SentienceLab.OSC
 				object obj = _packet.Data[idx];
 				System.Type type = obj.GetType();
 				float value = 0;
-				if      (type == typeof(byte)  ) { value = ((byte)obj); }
-				else if (type == typeof(int)   ) { value = ((int)obj); }
-				else if (type == typeof(long)  ) { value = ((long)obj); }
-				else if (type == typeof(float) ) { value = (float)obj; }
+				if      (type == typeof(byte)  ) { value = (byte)  obj; }
+				else if (type == typeof(int)   ) { value = (int)   obj; }
+				else if (type == typeof(long)  ) { value = (long)  obj; }
+				else if (type == typeof(float) ) { value = (float) obj; }
 				else if (type == typeof(double)) { value = (float)((double)obj); }
 
 				switch (idx)
@@ -247,10 +247,10 @@ namespace SentienceLab.OSC
 				object obj = _packet.Data[idx];
 				System.Type type = obj.GetType();
 				float value = 0;
-				if      (type == typeof(byte)  ) { value = ((byte)obj); }
-				else if (type == typeof(int)   ) { value = ((int)obj); }
-				else if (type == typeof(long)  ) { value = ((long)obj); }
-				else if (type == typeof(float) ) { value = (float)obj; }
+				if      (type == typeof(byte)  ) { value = (byte)  obj; }
+				else if (type == typeof(int)   ) { value = (int)   obj; }
+				else if (type == typeof(long)  ) { value = (long)  obj; }
+				else if (type == typeof(float) ) { value = (float) obj; }
 				else if (type == typeof(double)) { value = (float)((double)obj); }
 
 				switch (idx)
@@ -273,6 +273,60 @@ namespace SentienceLab.OSC
 	}
 
 
+	public class OSC_6DofPoseVariable : OSC_Variable
+	{
+		public Vector3    Position;
+		public Quaternion Rotation;
+
+
+		public OSC_6DofPoseVariable(string _name = "") : base(_name)
+		{
+			Position = Vector3.zero;
+		}
+
+
+		public override void Unpack(OSCPacket _packet)
+		{
+			Vector3 euler = Rotation.eulerAngles;
+			for (int idx = 0; idx < _packet.Data.Count; idx++)
+			{
+				object obj = _packet.Data[idx];
+				System.Type type = obj.GetType();
+				float value = 0;
+				if      (type == typeof(byte)  ) { value = (byte)  obj; }
+				else if (type == typeof(int)   ) { value = (int)   obj; }
+				else if (type == typeof(long)  ) { value = (long)  obj; }
+				else if (type == typeof(float) ) { value = (float) obj; }
+				else if (type == typeof(double)) { value = (float)((double)obj); }
+				
+				switch (idx)
+				{
+					case 0: euler.x = value; break;
+					case 1: euler.y = value; break;
+					case 2: euler.z = value; break;
+					case 3: Position.x = value; break;
+					case 4: Position.y = value; break;
+					case 5: Position.z = value; break;
+					default: break;
+				}
+			}
+			Rotation.eulerAngles = euler;
+		}
+
+
+		public override void Pack(OSCPacket _packet)
+		{
+			_packet.Append<float>(Position.x);
+			_packet.Append<float>(Position.y);
+			_packet.Append<float>(Position.z);
+			Vector3 euler = Rotation.eulerAngles;
+			_packet.Append<float>(euler.x);
+			_packet.Append<float>(euler.y);
+			_packet.Append<float>(euler.z);
+		}
+	}
+	
+	
 	public class OSC_StringVariable : OSC_Variable
 	{
 		public string Value;
@@ -288,7 +342,7 @@ namespace SentienceLab.OSC
 		{
 			object obj = _packet.Data[0];
 			System.Type type = obj.GetType();
-			if      (type == typeof(string)) { Value = (string)obj; }
+			if      (type == typeof(string)) { Value = (string) obj; }
 			/*
 			else if (type == typeof(byte)  ) { value = (byte)obj; }
 			else if (type == typeof(int)   ) { value = (int)obj; }
