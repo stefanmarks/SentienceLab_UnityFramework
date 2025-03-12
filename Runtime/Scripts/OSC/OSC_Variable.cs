@@ -275,13 +275,15 @@ namespace SentienceLab.OSC
 
 	public class OSC_6DofPoseVariable : OSC_Variable
 	{
-		public Vector3    Position;
-		public Quaternion Rotation;
+		public    Vector3    Position;
+		public    Quaternion Rotation;
+		protected bool       posFirst;
 
-
-		public OSC_6DofPoseVariable(string _name = "") : base(_name)
+		public OSC_6DofPoseVariable(string _name = "", bool _posFirst = true) : base(_name)
 		{
 			Position = Vector3.zero;
+			Rotation = Quaternion.identity;
+			posFirst = _posFirst;
 		}
 
 
@@ -301,12 +303,12 @@ namespace SentienceLab.OSC
 				
 				switch (idx)
 				{
-					case 0: euler.x = value; break;
-					case 1: euler.y = value; break;
-					case 2: euler.z = value; break;
-					case 3: Position.x = value; break;
-					case 4: Position.y = value; break;
-					case 5: Position.z = value; break;
+					case 0: if (posFirst) { Position.x = value; } else { euler.x = value; } break;
+					case 1: if (posFirst) { Position.y = value; } else { euler.y = value; } break;
+					case 2: if (posFirst) { Position.z = value; } else { euler.z = value; } break;
+					case 3: if (posFirst) { euler.x = value; } else { Position.x = value; } break;
+					case 4: if (posFirst) { euler.y = value; } else { Position.y = value; } break;
+					case 5: if (posFirst) { euler.z = value; } else { Position.z = value; } break;
 					default: break;
 				}
 			}
@@ -316,13 +318,25 @@ namespace SentienceLab.OSC
 
 		public override void Pack(OSCPacket _packet)
 		{
-			_packet.Append<float>(Position.x);
-			_packet.Append<float>(Position.y);
-			_packet.Append<float>(Position.z);
 			Vector3 euler = Rotation.eulerAngles;
-			_packet.Append<float>(euler.x);
-			_packet.Append<float>(euler.y);
-			_packet.Append<float>(euler.z);
+			if (posFirst)
+			{
+				_packet.Append<float>(Position.x);
+				_packet.Append<float>(Position.y);
+				_packet.Append<float>(Position.z);
+				_packet.Append<float>(euler.x);
+				_packet.Append<float>(euler.y);
+				_packet.Append<float>(euler.z);
+			}
+			else
+			{
+				_packet.Append<float>(euler.x);
+				_packet.Append<float>(euler.y);
+				_packet.Append<float>(euler.z);
+				_packet.Append<float>(Position.x);
+				_packet.Append<float>(Position.y);
+				_packet.Append<float>(Position.z);
+			}
 		}
 	}
 	
