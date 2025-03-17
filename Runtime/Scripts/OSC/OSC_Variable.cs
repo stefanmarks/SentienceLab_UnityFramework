@@ -277,13 +277,27 @@ namespace SentienceLab.OSC
 	{
 		public    Vector3    Position;
 		public    Quaternion Rotation;
-		protected bool       posFirst;
+		
+		public enum EDataFormat
+		{
+			Pos_RotEuler, Pos_RotQuat, RotEuler_Pos, RotQuat_Pos
+		}
+
+		protected EDataFormat DataFormat;
 
 		public OSC_6DofPoseVariable(string _name = "", bool _posFirst = true) : base(_name)
 		{
-			Position = Vector3.zero;
-			Rotation = Quaternion.identity;
-			posFirst = _posFirst;
+			Position   = Vector3.zero;
+			Rotation   = Quaternion.identity;
+			DataFormat = _posFirst ? EDataFormat.Pos_RotEuler : EDataFormat.RotEuler_Pos;
+		}
+
+
+		public OSC_6DofPoseVariable(string _name, EDataFormat _dataFormat) : base(_name)
+		{
+			Position   = Vector3.zero;
+			Rotation   = Quaternion.identity;
+			DataFormat = _dataFormat;
 		}
 
 
@@ -303,39 +317,137 @@ namespace SentienceLab.OSC
 				
 				switch (idx)
 				{
-					case 0: if (posFirst) { Position.x = value; } else { euler.x = value; } break;
-					case 1: if (posFirst) { Position.y = value; } else { euler.y = value; } break;
-					case 2: if (posFirst) { Position.z = value; } else { euler.z = value; } break;
-					case 3: if (posFirst) { euler.x = value; } else { Position.x = value; } break;
-					case 4: if (posFirst) { euler.y = value; } else { Position.y = value; } break;
-					case 5: if (posFirst) { euler.z = value; } else { Position.z = value; } break;
+					case 0: 
+						switch (DataFormat)
+						{
+							case EDataFormat.Pos_RotEuler: Position.x = value; break;
+							case EDataFormat.Pos_RotQuat:  Position.x = value; break;
+							case EDataFormat.RotEuler_Pos: euler.x    = value; break;
+							case EDataFormat.RotQuat_Pos:  Rotation.w = value; break;
+						}
+						break;
+
+					case 1:
+						switch (DataFormat)
+						{
+							case EDataFormat.Pos_RotEuler: Position.y = value; break;
+							case EDataFormat.Pos_RotQuat:  Position.y = value; break;
+							case EDataFormat.RotEuler_Pos: euler.y    = value; break;
+							case EDataFormat.RotQuat_Pos:  Rotation.x = value; break;
+						}
+						break;
+
+					case 2:
+						switch (DataFormat)
+						{
+							case EDataFormat.Pos_RotEuler: Position.z = value; break;
+							case EDataFormat.Pos_RotQuat:  Position.z = value; break;
+							case EDataFormat.RotEuler_Pos: euler.z    = value; break;
+							case EDataFormat.RotQuat_Pos:  Rotation.y = value; break;
+						}
+						break;
+
+					case 3:
+						switch (DataFormat)
+						{
+							case EDataFormat.Pos_RotEuler: euler.x    = value; break;
+							case EDataFormat.Pos_RotQuat:  Rotation.w = value; break;
+							case EDataFormat.RotEuler_Pos: Position.x = value; break;
+							case EDataFormat.RotQuat_Pos:  Rotation.z = value; break;
+						}
+						break;
+
+					case 4:
+						switch (DataFormat)
+						{
+							case EDataFormat.Pos_RotEuler: euler.y    = value; break;
+							case EDataFormat.Pos_RotQuat:  Rotation.x = value; break;
+							case EDataFormat.RotEuler_Pos: Position.y = value; break;
+							case EDataFormat.RotQuat_Pos:  Position.x = value; break;
+						}
+						break;
+
+					case 5:
+						switch (DataFormat)
+						{
+							case EDataFormat.Pos_RotEuler: euler.z    = value; break;
+							case EDataFormat.Pos_RotQuat:  Rotation.y = value; break;
+							case EDataFormat.RotEuler_Pos: Position.z = value; break;
+							case EDataFormat.RotQuat_Pos:  Position.y = value; break;
+						}
+						break;
+
+					case 6:
+						switch (DataFormat)
+						{
+							case EDataFormat.Pos_RotQuat: Rotation.z = value; break;
+							case EDataFormat.RotQuat_Pos: Position.z = value; break;
+						}
+						break;
+
 					default: break;
 				}
 			}
-			Rotation.eulerAngles = euler;
+			if ((DataFormat == EDataFormat.Pos_RotEuler) || (DataFormat == EDataFormat.RotEuler_Pos))
+			{
+				Rotation.eulerAngles = euler;
+			}
 		}
 
 
 		public override void Pack(OSCPacket _packet)
 		{
-			Vector3 euler = Rotation.eulerAngles;
-			if (posFirst)
+			switch (DataFormat)
 			{
-				_packet.Append<float>(Position.x);
-				_packet.Append<float>(Position.y);
-				_packet.Append<float>(Position.z);
-				_packet.Append<float>(euler.x);
-				_packet.Append<float>(euler.y);
-				_packet.Append<float>(euler.z);
-			}
-			else
-			{
-				_packet.Append<float>(euler.x);
-				_packet.Append<float>(euler.y);
-				_packet.Append<float>(euler.z);
-				_packet.Append<float>(Position.x);
-				_packet.Append<float>(Position.y);
-				_packet.Append<float>(Position.z);
+				case EDataFormat.Pos_RotEuler:
+					{
+						Vector3 euler = Rotation.eulerAngles;
+						_packet.Append<float>(Position.x);
+						_packet.Append<float>(Position.y);
+						_packet.Append<float>(Position.z);
+						_packet.Append<float>(euler.x);
+						_packet.Append<float>(euler.y);
+						_packet.Append<float>(euler.z);
+						break;
+					}
+
+				case EDataFormat.RotEuler_Pos:
+					{
+						Vector3 euler = Rotation.eulerAngles;
+						_packet.Append<float>(euler.x);
+						_packet.Append<float>(euler.y);
+						_packet.Append<float>(euler.z);
+						_packet.Append<float>(Position.x);
+						_packet.Append<float>(Position.y);
+						_packet.Append<float>(Position.z);
+						break;
+					}
+
+				case EDataFormat.Pos_RotQuat:
+					{
+						_packet.Append<float>(Position.x);
+						_packet.Append<float>(Position.y);
+						_packet.Append<float>(Position.z);
+						_packet.Append<float>(Rotation.w);
+						_packet.Append<float>(Rotation.x);
+						_packet.Append<float>(Rotation.y);
+						_packet.Append<float>(Rotation.z);
+						break;
+					}
+
+				case EDataFormat.RotQuat_Pos:
+					{
+						_packet.Append<float>(Rotation.w);
+						_packet.Append<float>(Rotation.x);
+						_packet.Append<float>(Rotation.y);
+						_packet.Append<float>(Rotation.z);
+						_packet.Append<float>(Position.x);
+						_packet.Append<float>(Position.y);
+						_packet.Append<float>(Position.z);
+						break;
+					}
+
+				default: break;
 			}
 		}
 	}
