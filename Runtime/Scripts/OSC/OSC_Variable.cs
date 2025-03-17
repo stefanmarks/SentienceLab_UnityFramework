@@ -30,7 +30,7 @@ namespace SentienceLab.OSC
 
 		public OSC_Variable(string _name = "")
 		{
-			Name = _name;
+			Name      = _name;
 			m_manager = null;
 		}
 
@@ -59,6 +59,12 @@ namespace SentienceLab.OSC
 
 		public void SendUpdate()
 		{
+			if (m_manager == null)
+			{
+				// see if the manager instance exists
+				m_manager = OSC_Manager.Instance;
+			}
+
 			if (m_manager != null)
 			{
 				OSCPacket packet = new OSCMessage(Name);

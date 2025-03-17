@@ -42,27 +42,42 @@ public class OSC_Manager : MonoBehaviour
 	public bool debugDataStream = false;
 
 
+	public static OSC_Manager Instance
+	{
+		get { return ms_Instance; }
+	}
+
+
 	/// <summary>
 	/// Initializes the OSC Handler.
 	/// Here you can create the OSC servers and clientes.
 	/// </summary>
 	public void Awake()
 	{
+		if (ms_Instance == null)
+		{
+			ms_Instance = this;
+		}
+		else
+		{
+			Debug.LogWarning("More than one OSC_Manager instances in the scene.");
+		}
+
 		// start server
-		server = new OSCServer(portIncoming);
-		server.PacketReceivedEvent += OnPacketReceived;
+		m_server = new OSCServer(portIncoming);
+		m_server.PacketReceivedEvent += OnPacketReceived;
 
 		// prepare clients
-		clients = new Dictionary<string, OSCClient>();
+		m_clients = new Dictionary<string, OSCClient>();
 		foreach (string addr in startClientList)
 		{
-			clients.Add(addr, new OSCClient(IPAddress.Parse(addr), portOutgoing));
+			m_clients.Add(addr, new OSCClient(IPAddress.Parse(addr), portOutgoing));
 		}
 
 		// do the variable gathering in the first Update call
 		// because some Components might not have had Start() called until now.
-		variableList = null;
-		clientToExclude = null;
+		m_variableList    = null;
+		m_clientToExclude = null;
 	}
 
 
@@ -71,19 +86,19 @@ public class OSC_Manager : MonoBehaviour
 	/// </summary>
 	void OnDestroy() 
 	{
-		if ( server != null )
+		if ( m_server != null )
 		{
-			server.Close();
-			server = null;
+			m_server.Close();
+			m_server = null;
 		}
 
-		if (clients != null)
+		if (m_clients != null)
 		{
-			foreach (OSCClient client in clients.Values)
+			foreach (OSCClient client in m_clients.Values)
 			{
 				client.Close();
 			}
-			clients.Clear();
+			m_clients.Clear();
 		}
 	}
 
@@ -91,7 +106,7 @@ public class OSC_Manager : MonoBehaviour
 	public void Update()
 	{
 		// do we need to update the variable list
-		if (variableList == null)
+		if (m_variableList == null)
 		{
 			// wait one frame so every script has started
 			if (Time.frameCount > 1)
@@ -102,7 +117,7 @@ public class OSC_Manager : MonoBehaviour
 		else
 		{
 			// run Update on each variable
-			foreach (OSC_Variable variable in variableList)
+			foreach (OSC_Variable variable in m_variableList)
 			{
 				if (variable != null) variable.Update();
 			}
@@ -113,20 +128,20 @@ public class OSC_Manager : MonoBehaviour
 	protected void GatherOSC_Variables()
 	{
 		// gather all OSC variables in the scene
-		variableList = new List<OSC_Variable>();
+		m_variableList = new List<OSC_Variable>();
 		ICollection<IOSCVariableContainer> containers = SentienceLab.ClassUtils.FindAll<IOSCVariableContainer>();
 		foreach (IOSCVariableContainer container in containers)
 		{
-			variableList.AddRange(container.GetOSC_Variables());
+			m_variableList.AddRange(container.GetOSC_Variables());
 		}
-		if (variableList.Contains(null))
+		if (m_variableList.Contains(null))
 		{
 			Debug.Log("Some OSC variables are not properly initialised");
 		}
 		
 		// register this manager with all OSC variables
 		string varNames = "";
-		foreach (OSC_Variable variable in variableList)
+		foreach (OSC_Variable variable in m_variableList)
 		{
 			if (variable != null)
 			{
@@ -142,7 +157,7 @@ public class OSC_Manager : MonoBehaviour
 
 	protected void UpdateAllClients()
 	{
-		foreach (OSC_Variable variable in variableList)
+		foreach (OSC_Variable variable in m_variableList)
 		{
 			if (variable != null) variable.SendUpdate();
 		}
@@ -151,14 +166,14 @@ public class OSC_Manager : MonoBehaviour
 
 	public void SendPacket(OSCPacket packet)
 	{
-		if (clients == null)
+		if (m_clients == null)
 			return;
 
 		if (debugDataStream) DumpPacket("Sending", packet);
 
-		foreach (OSCClient client in clients.Values)
+		foreach (OSCClient client in m_clients.Values)
 		{
-			if (client != clientToExclude)
+			if (client != m_clientToExclude)
 			{
 				client.Send(packet);
 			}
@@ -176,23 +191,23 @@ public class OSC_Manager : MonoBehaviour
 	{
 		// check if we have a new client
 		string clientAddr = server.LastEndPoint.Address.ToString();
-		if (!clients.ContainsKey(clientAddr))
+		if (!m_clients.ContainsKey(clientAddr))
 		{
 			// Yes: add to the list of addresses to send updates back to
-			clients.Add(clientAddr, new OSCClient(IPAddress.Parse(clientAddr), portOutgoing));
+			m_clients.Add(clientAddr, new OSCClient(IPAddress.Parse(clientAddr), portOutgoing));
 			Debug.Log("Added OSC client " + clientAddr);
 			UpdateAllClients();
 		}
 		else
 		{
 			// exclude client from receiving its own value
-			clientToExclude = clients[clientAddr];
+			m_clientToExclude = m_clients[clientAddr];
 		}
 
 		if (debugDataStream) DumpPacket("Recevied", packet);
 
 		// check which variable will accept the packet
-		foreach (OSC_Variable var in variableList)
+		foreach (OSC_Variable var in m_variableList)
 		{
 			if ((var != null) && (var.CanAccept(packet)))
 			{
@@ -202,7 +217,7 @@ public class OSC_Manager : MonoBehaviour
 			}
 		}
 
-		clientToExclude = null;
+		m_clientToExclude = null;
 	}
 
 
@@ -219,9 +234,10 @@ public class OSC_Manager : MonoBehaviour
 	}
 
 
-	private OSCServer                     server;
-	private List<OSC_Variable>            variableList;
-	private Dictionary<string, OSCClient> clients;
-	private OSCClient                     clientToExclude;
+	protected OSCServer                     m_server;
+	protected List<OSC_Variable>            m_variableList;
+	protected Dictionary<string, OSCClient> m_clients;
+	protected OSCClient                     m_clientToExclude;
+	protected static OSC_Manager            ms_Instance;
 }	
 
