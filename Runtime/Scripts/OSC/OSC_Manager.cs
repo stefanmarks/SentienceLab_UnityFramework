@@ -189,6 +189,8 @@ public class OSC_Manager : MonoBehaviour
 	/// 
 	void OnPacketReceived(OSCServer server, OSCPacket packet)
 	{
+		if (m_variableList == null) return;
+
 		// check if we have a new client
 		string clientAddr = server.LastEndPoint.Address.ToString();
 		if (!m_clients.ContainsKey(clientAddr))
@@ -238,6 +240,7 @@ public class OSC_Manager : MonoBehaviour
 	protected List<OSC_Variable>            m_variableList;
 	protected Dictionary<string, OSCClient> m_clients;
 	protected OSCClient                     m_clientToExclude;
-	protected static OSC_Manager            ms_Instance;
+
+	protected static OSC_Manager            ms_Instance = null;
 }	
 
