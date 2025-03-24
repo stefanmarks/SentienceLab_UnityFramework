@@ -22,6 +22,7 @@
 using SentienceLab.OSC;
 using System.Collections.Generic;
 using System.Net;
+using System.Text;
 using UnityEngine;
 using UnityOSC;
 
@@ -142,18 +143,20 @@ public class OSC_Manager : MonoBehaviour
 			Debug.Log("Some OSC variables are not properly initialised");
 		}
 		
-		// register this manager with all OSC variables
-		string varNames = "";
-		foreach (OSC_Variable variable in m_variableList)
+		if (m_variableList.Count > 0)
 		{
-			if (variable != null)
+			StringBuilder varNames = new StringBuilder("OSC Variables:");
+			foreach (OSC_Variable variable in m_variableList)
 			{
-				varNames += ((varNames.Length == 0) ? "" : ", ") + variable.Name;
-				variable.SetManager(this);
+				if (variable != null)
+				{
+					varNames.Append("\n- '").Append(variable.Name).Append("'");
+					variable.SetManager(this);
+				}
 			}
+			Debug.Log(varNames.ToString());
 		}
 
-		Debug.Log("OSC Variables: " + varNames);
 		UpdateAllClients();
 	}
 
