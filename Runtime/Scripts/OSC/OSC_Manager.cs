@@ -38,6 +38,9 @@ public class OSC_Manager : MonoBehaviour
 	public int      portOutgoing    = 57111;
 	public string[] startClientList = { "127.0.0.1" };
 
+	[Tooltip("Distribute incoming data to all other registered and connected clients")]
+	public bool DistributeData = true;
+
 	[Tooltip("Enable to see output of incoming and outgoing messages")]
 	public bool debugDataStream = false;
 
@@ -214,7 +217,7 @@ public class OSC_Manager : MonoBehaviour
 			if ((var != null) && (var.CanAccept(packet)))
 			{
 				var.Accept(packet);
-				var.SendUpdate();
+				if (DistributeData) { var.SendUpdate(); }
 				break;
 			}
 		}
