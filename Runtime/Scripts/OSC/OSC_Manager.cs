@@ -20,6 +20,7 @@
 //	  Inspired by http://www.unifycommunity.com/wiki/index.php?title=AManagerClass
 
 using SentienceLab.OSC;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
@@ -72,10 +73,10 @@ public class OSC_Manager : MonoBehaviour
 		m_server.PacketReceivedEvent += OnPacketReceived;
 
 		// prepare clients
-		m_clients = new Dictionary<string, OSCClient>();
+		m_clients = new Dictionary<string, Client>();
 		foreach (string addr in startClientList)
 		{
-			m_clients.Add(addr, new OSCClient(IPAddress.Parse(addr), portOutgoing));
+			m_clients.Add(addr, new Client(new OSCClient(IPAddress.Parse(addr), portOutgoing)));
 		}
 
 		// do the variable gathering in the first Update call
@@ -88,9 +89,9 @@ public class OSC_Manager : MonoBehaviour
 	/// <summary>
 	/// Ensure that the instance is destroyed properly, closing all ports and clients.
 	/// </summary>
-	void OnDestroy() 
+	void OnDestroy()
 	{
-		if ( m_server != null )
+		if (m_server != null)
 		{
 			m_server.Close();
 			m_server = null;
@@ -98,11 +99,14 @@ public class OSC_Manager : MonoBehaviour
 
 		if (m_clients != null)
 		{
-			foreach (OSCClient client in m_clients.Values)
+			lock (m_clients)
 			{
-				client.Close();
+				foreach (Client client in m_clients.Values)
+				{
+					client.Close();
+				}
+				m_clients.Clear();
 			}
-			m_clients.Clear();
 		}
 	}
 
@@ -142,7 +146,7 @@ public class OSC_Manager : MonoBehaviour
 		{
 			Debug.Log("Some OSC variables are not properly initialised");
 		}
-		
+
 		if (m_variableList.Count > 0)
 		{
 			StringBuilder varNames = new StringBuilder("OSC Variables:");
@@ -177,11 +181,14 @@ public class OSC_Manager : MonoBehaviour
 
 		if (debugDataStream) DumpPacket("Sending", packet);
 
-		foreach (OSCClient client in m_clients.Values)
+		lock (m_clients)
 		{
-			if (client != m_clientToExclude)
+			foreach (Client client in m_clients.Values)
 			{
-				client.Send(packet);
+				if (!client.Equals(m_clientToExclude))
+				{
+					client.Send(packet);
+				}
 			}
 		}
 	}
@@ -201,8 +208,11 @@ public class OSC_Manager : MonoBehaviour
 		string clientAddr = server.LastEndPoint.Address.ToString();
 		if (!m_clients.ContainsKey(clientAddr))
 		{
-			// Yes: add to the list of addresses to send updates back to
-			m_clients.Add(clientAddr, new OSCClient(IPAddress.Parse(clientAddr), portOutgoing));
+			lock (m_clients)
+			{
+				// Yes: add to the list of addresses to send updates back to
+				m_clients.Add(clientAddr, new Client(new OSCClient(IPAddress.Parse(clientAddr), portOutgoing)));
+			}
 			Debug.Log("Added OSC client " + clientAddr);
 			UpdateAllClients();
 		}
@@ -242,11 +252,52 @@ public class OSC_Manager : MonoBehaviour
 	}
 
 
-	protected OSCServer                     m_server;
-	protected List<OSC_Variable>            m_variableList;
-	protected Dictionary<string, OSCClient> m_clients;
-	protected OSCClient                     m_clientToExclude;
+	protected class Client
+	{
+		public Client(OSCClient _client) 
+		{ 
+			client    = _client; 
+			errors    = 0;
+			maxErrors = 10;
+		}
 
-	protected static OSC_Manager            ms_Instance = null;
-}	
+		public void Send(OSCPacket _packet)
+		{
+			if ((client != null) && (errors < maxErrors))
+			{
+				try
+				{
+					client.Send(_packet);
+					errors = 0;
+				}
+				catch (Exception e)
+				{
+					Debug.LogWarning($"Could not send OSC Packet to client {client.ClientIPAddress}:{client.Port}:\n{e}");
+					errors++;
+
+					if (errors >= maxErrors)
+					{
+						Debug.LogWarning($"Too many errors sending OSC Packets to {client.ClientIPAddress}:{client.Port} - Removing Client");
+					}
+				}
+			}
+		}
+
+		public void Close()
+		{
+			client.Close();
+		}
+
+		protected OSCClient client;
+		protected int       errors;
+		protected int       maxErrors;
+	}
+
+	protected OSCServer                  m_server;
+	protected List<OSC_Variable>         m_variableList;
+	protected Dictionary<string, Client> m_clients;
+	protected Client                     m_clientToExclude;
+
+	protected static OSC_Manager ms_Instance = null;
+}
 
