@@ -142,10 +142,8 @@ public class OSC_Manager : MonoBehaviour
 		{
 			m_variableList.AddRange(container.GetOSC_Variables());
 		}
-		if (m_variableList.Contains(null))
-		{
-			Debug.Log("Some OSC variables are not properly initialised");
-		}
+		// remove all null/invalid vars
+		m_variableList.RemoveAll(v => v == null);
 
 		if (m_variableList.Count > 0)
 		{
