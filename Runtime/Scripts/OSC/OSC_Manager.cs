@@ -22,6 +22,7 @@
 using SentienceLab.OSC;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using UnityEngine;
@@ -137,7 +138,8 @@ public class OSC_Manager : MonoBehaviour
 	{
 		// gather all OSC variables in the scene
 		m_variableList = new List<OSC_Variable>();
-		ICollection<IOSCVariableContainer> containers = SentienceLab.ClassUtils.FindAll<IOSCVariableContainer>(true);
+
+		IEnumerable<IOSCVariableContainer> containers = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None).OfType<IOSCVariableContainer>();
 		foreach (IOSCVariableContainer container in containers)
 		{
 			m_variableList.AddRange(container.GetOSC_Variables());
