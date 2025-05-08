@@ -137,7 +137,7 @@ public class OSC_Manager : MonoBehaviour
 	{
 		// gather all OSC variables in the scene
 		m_variableList = new List<OSC_Variable>();
-		ICollection<IOSCVariableContainer> containers = SentienceLab.ClassUtils.FindAll<IOSCVariableContainer>();
+		ICollection<IOSCVariableContainer> containers = SentienceLab.ClassUtils.FindAll<IOSCVariableContainer>(true);
 		foreach (IOSCVariableContainer container in containers)
 		{
 			m_variableList.AddRange(container.GetOSC_Variables());

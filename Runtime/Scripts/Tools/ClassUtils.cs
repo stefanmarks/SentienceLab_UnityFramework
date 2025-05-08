@@ -15,7 +15,7 @@ namespace SentienceLab
 		/// <typeparam name="T">Class or interface type to find</typeparam>
 		/// <returns>List of classes of the type</returns>
 		/// 
-		public static ICollection<T> FindAll<T>()
+		public static ICollection<T> FindAll<T>(bool includeInactive = false)
 		{
 			List<T> interfaceList = new List<T>();
 
@@ -23,7 +23,7 @@ namespace SentienceLab
 			GameObject[] rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
 			foreach (GameObject comp in rootObjects)
 			{
-				interfaceList.AddRange(comp.GetComponentsInChildren<T>());
+				interfaceList.AddRange(comp.GetComponentsInChildren<T>(includeInactive));
 			}
 
 			return interfaceList;
