@@ -490,4 +490,16 @@ namespace SentienceLab.OSC
 			_packet.Append<string>(Value);
 		}
 	}
+
+
+	public class OSC_VariableComparer : IComparer<OSC_Variable>
+	{
+		public int Compare(OSC_Variable x, OSC_Variable y)
+		{
+			return string.Compare(x.Name, y.Name);
+		}
+
+		public static readonly OSC_VariableComparer Instance = new OSC_VariableComparer();
+	}
+
 }

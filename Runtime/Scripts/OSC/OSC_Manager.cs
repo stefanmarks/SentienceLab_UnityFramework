@@ -146,6 +146,7 @@ public class OSC_Manager : MonoBehaviour
 		}
 		// remove all null/invalid vars
 		m_variableList.RemoveAll(v => v == null);
+		m_variableList.Sort(OSC_VariableComparer.Instance);
 
 		if (m_variableList.Count > 0)
 		{
