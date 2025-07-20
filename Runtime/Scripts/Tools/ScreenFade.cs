@@ -40,7 +40,7 @@ namespace SentienceLab
 
 
 		public virtual void OnPostRender()
-		{ 
+		{
 			if (FadeFactor > 0 && m_FadeMaterial != null)
 			{
 				m_FadeMaterial.color = new Color(FadeColour.r, FadeColour.g, FadeColour.b, FadeColour.a * FadeFactor);
