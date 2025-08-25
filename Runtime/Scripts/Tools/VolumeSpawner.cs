@@ -28,6 +28,12 @@ namespace SentienceLab
 	
 		public void Start () 
 		{
+			if (prefab == null)
+			{
+				Debug.LogWarning("No prefab provided for VolumeSpawner.");
+				return;
+			}
+			
 			Vector3 offset = Vector3.zero;
 			for (int x = 0; x < elementsX; x++)
 				for (int y = 0; y < elementsY; y++)

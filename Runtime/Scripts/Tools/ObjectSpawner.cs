@@ -71,6 +71,12 @@ namespace SentienceLab
 
 		public void SpawnObject()
 		{
+			if (spawnPrefab == null)
+			{
+				Debug.LogWarning("No prefab provided for ObjectSpawner.");
+				return;
+			}
+
 			if (m_noSpawnTimer <= 0)
 			{
 				var newObject = Instantiate(spawnPrefab, this.transform);
