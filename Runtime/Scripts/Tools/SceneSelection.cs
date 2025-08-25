@@ -1,7 +1,11 @@
-﻿using UnityEngine;
+﻿#region Copyright Information
+// Sentience Lab Unity Framework
+// (C) Sentience Lab (sentiencelab@aut.ac.nz), Auckland University of Technology, Auckland, New Zealand 
+#endregion Copyright Information
+
+using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
-using SentienceLab.PostProcessing;
 using System.Collections.Generic;
 
 namespace SentienceLab
